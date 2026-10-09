@@ -111,7 +111,7 @@ fn formats_list_use_artboards() {
     let mut s = Session::new();
     let r = s.execute("document.formats", &json!({})).unwrap();
     let opts = |id: &str| r["formats"].as_array().unwrap().iter().find(|f| f["id"] == id).unwrap()["options"].clone();
-    for id in ["svg", "pdf", "png", "jpg", "webp"] {
+    for id in ["svg", "pdf", "ai", "png", "jpg", "webp"] {
         assert!(opts(id).get("useArtboards").is_some(), "{id} lists useArtboards");
         assert!(opts(id).get("range").is_some(), "{id} lists range");
     }

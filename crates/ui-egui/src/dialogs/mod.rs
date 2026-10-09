@@ -427,6 +427,8 @@ mod tests;
 #[cfg(test)]
 mod tests_export;
 #[cfg(test)]
+mod tests_export_artboards;
+#[cfg(test)]
 mod tests_import_pdf;
 #[cfg(test)]
 mod tests_package;
