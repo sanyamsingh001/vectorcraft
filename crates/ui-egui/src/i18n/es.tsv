@@ -11,6 +11,23 @@
 # Coverage: the whole interface — every menu string and every `tl!` literal (`complete_menus`,
 # tested). Left in English on purpose (`MENU_KEEP_AS_IS` in the tests): the product name, language
 # names, OpenType, the built-in workspace names and the bracketed perspective grid preset names.
+# Photoshop-style raster effects (Effect menu, their dialogs).
+	Radial Blur…	Desenfoque radial…
+	Smart Blur…	Desenfoque inteligente…
+	Sharpen	Enfocar
+	Unsharp Mask…	Máscara de enfoque…
+	Radial Blur	Desenfoque radial
+	Smart Blur	Desenfoque inteligente
+	Unsharp Mask	Máscara de enfoque
+	Gaussian Blur	Desenfoque gaussiano
+	Method	Método
+	Quality	Calidad
+	Radius	Radio
+	Spin	Giro
+	Draft	Borrador
+	Good	Buena
+	Best	Óptima
+
 # Status and error messages too (`@msg` rows at the end, `COMPLETE_MESSAGES` in the tests).
 # A native speaker's review is welcome: keep the placeholders ({name}), the trailing "…" and the
 # leading/trailing spaces of fragments exactly as they are.
@@ -76,6 +93,7 @@
 	Add to Swatches	Agregar a muestras
 	Add Used Colors	Agregar colores usados
 	Additional Plug-ins Folder	Carpeta de plugins adicionales
+	Additional Fonts Folder	Carpeta de fuentes adicionales
 	Adjust Adjoining Width Points	Ajustar puntos de anchura contiguos
 	Adjust Color Balance…	Ajustar equilibrio de color…
 	Adjust Colors	Ajustar colores
@@ -202,6 +220,7 @@
 	Auto Size New Area Type	Ajustar automáticamente el tamaño del nuevo texto de área
 	Auto Spell Check	Revisión ortográfica automática
 	Auto-Collapse Iconic Panels	Contraer automáticamente los paneles de iconos
+	Show Tool Group Labels	Mostrar etiquetas de grupos de herramientas
 	Auto-Rotate (turn the paper to each artboard)	Rotar automáticamente (girar el papel según cada mesa de trabajo)
 	Automatic flatness	Lisura automática
 	Automatically	Automáticamente
@@ -320,6 +339,8 @@
 	Clean Up…	Limpiar…
 	Clear	Borrar
 	Clear All Tabs	Borrar todas las tabulaciones
+	Above Text	Sobre el texto
+	Position Panel Above Text	Colocar el panel sobre el texto
 	Clear Appearance	Borrar apariencia
 	Clear Guides	Borrar guías
 	Clear Overrides	Borrar modificaciones
@@ -956,6 +977,7 @@
 	Flare Tool	Herramienta Destello
 	Flare Tool Options	Opciones de la herramienta Destello
 	Flat Image	Imagen acoplada
+	Flat Logo	Logotipo plano
 	Flatness:	Lisura:
 	Flatten Artwork	Acoplar ilustración
 	Flatten Transparency	Acoplar transparencia
@@ -1399,6 +1421,9 @@
 	Marks and Bleed	Marcas y sangrado
 	Marks and Bleeds	Marcas y sangrados
 	Match User Interface Brightness	Igualar brillo de la interfaz de usuario
+	Light Gray	Gris claro
+	Medium Gray	Gris medio
+	Dark Gray	Gris oscuro
 	Materials…	Materiales…
 	Matte	Mate
 	Matte:	Mate:
@@ -1452,6 +1477,9 @@
 	Modify	Modificar
 	Mojikumi	Mojikumi
 	Mojikumi Set	Conjunto de mojikumi
+	Kinsoku Set	Conjunto de kinsoku
+	Hard	Fuerte
+	Soft	Suave
 	Monitor RGB	RGB del monitor
 	Mono	Mono
 	Monochrome images	Imágenes monocromas
@@ -1954,7 +1982,16 @@
 	Rating:	Clasificación:
 	Real World:	Mundo real:
 	Real-time Drawing and Editing	Dibujo y edición en tiempo real
-	Rearrange All Artboards (on the roadmap)	Reorganizar todas las mesas de trabajo (en la hoja de ruta)
+	Rearrange All Artboards	Reorganizar todas las mesas de trabajo
+	Rearrange All	Reorganizar todo
+	Layout Order:	Orden de diseño:
+	Change to Left-to-Right Layout	Cambiar a diseño de izquierda a derecha
+	Grid by Row	Cuadrícula por filas
+	Grid by Column	Cuadrícula por columnas
+	Arrange by Row	Organizar en una fila
+	Arrange by Column	Organizar en una columna
+	Move Artwork with Artboard	Mover la ilustración con la mesa de trabajo
+	Artboards: {n}	Mesas de trabajo: {n}
 	Rearrange All Artboards…	Reorganizar todas las mesas de trabajo…
 	Recall Selection	Recuperar selección
 	RECENT	RECIENTES
@@ -2116,6 +2153,8 @@
 	Reverse Spine	Invertir eje
 	Revert	Revertir
 	Revert to the saved version of “{name}”?	¿Revertir a la versión guardada de “{name}”?
+	Replace “{name}”, the file this document was opened from?	¿Reemplazar “{name}”, el archivo desde el que se abrió este documento?
+	Opening it left out what VectorCraft can't read yet ({what}), so replacing it loses that for good. Save under another name to keep it.	Al abrirlo quedó fuera lo que VectorCraft aún no puede leer ({what}), así que reemplazarlo lo pierde para siempre. Guárdelo con otro nombre para conservarlo.
 	Revolve…	Revolución…
 	RGB Color	Color RGB
 	Right	Derecha
@@ -2407,6 +2446,8 @@
 	Show Guides	Mostrar guías
 	Show handles when multiple anchors are selected	Mostrar manejadores al seleccionar varias anclas
 	Show Hidden Characters	Mostrar caracteres ocultos
+	Bold	Negrita
+	Italic	Cursiva
 	Show Images in Outline Mode	Mostrar imágenes en modo de contorno
 	Show in Folder	Mostrar en carpeta
 	Show Indic Options	Mostrar opciones índicas
@@ -2987,6 +3028,9 @@
 	 to zoom in  |  	 para acercar  |  
 	 to zoom out  |  	 para alejar  |  
 	 to zoom into an area	 para acercar un área
+	Hold	Mantener pulsado
+	 right or left to zoom in or out  |  	 a la derecha o a la izquierda para acercar o alejar  |  
+	 to keep zooming	 para seguir haciendo zoom
 	 an object to copy its attributes  |  	 en un objeto para copiar sus atributos  |  
 	 to apply the selection's to it  |  	 para aplicarle los de la selección  |  
 	 to sample a color	 para muestrear un color
@@ -3084,6 +3128,20 @@ axis	Both	Ambos
 # stays English for agents and tests. `{_1}`, `{_2}` … stand for the `{}` of the format string, in order
 # (`complete_languages_translate_every_message` lists any that are missing). Command ids, parameter
 # names and values in backticks or code (`colorModel rgb`, `document.export`) stay as they are.
+@msg	select some type first	selecciona primero algún texto
+@msg	{_1} has no {_2} style	{_1} no tiene el estilo {_2}
+@msg	a layer couldn't be read	no se pudo leer una capa
+@msg	it has more than one artboard	tiene más de una mesa de trabajo
+@msg	it has no page	no tiene página
+@msg	it has too many text objects	tiene demasiados objetos de texto
+@msg	it has too much text	tiene demasiado texto
+@msg	its editing data doesn't say where its artboard is	sus datos de edición no indican dónde está su mesa de trabajo
+@msg	its editing data has no layers	sus datos de edición no tienen capas
+@msg	its editing data is damaged	sus datos de edición están dañados
+@msg	its editing data is for a different page	sus datos de edición son de otra página
+@msg	its layers use {_1}, which aren't read yet	sus capas usan {_1}, que aún no se leen
+@msg	its page has text, and its layers have no text objects to put it in	su página tiene texto y sus capas no tienen objetos de texto donde ponerlo
+@msg	the art on them differs from the page's in {_1}% of it	el arte de las capas difiere del de la página en el {_1} % de su superficie
 @msg	`to` must be "corner" or "smooth"	`to` debe ser "corner" o "smooth"
 @msg	BMP files are RGB or grayscale: colorModel rgb or gray	los archivos BMP son RGB o en escala de grises: colorModel rgb o gray
 @msg	Blend colors: select at least three objects with filled colours	Fusionar colores: selecciona al menos tres objetos con relleno de color
@@ -3606,6 +3664,25 @@ axis	Both	Ambos
 @msg	{tool} isn't in a toolbar group of several tools	{tool} no está en un grupo de la barra de herramientas con varias herramientas
 @msg	onto must name a panel floating in another group	onto debe nombrar un panel que flote en otro grupo
 @msg	x and y must both be numbers	x e y deben ser números
+@msg	"{0}" is not a colour: write it as #rrggbb	"{0}" no es un color: escríbelo como #rrggbb
+@msg	this isn't a flat-colour logo ({_1}% of its solid areas match a few flat colours), so Flat Logo mode would turn its gradients into patches: use Color mode instead	esto no es un logotipo de colores planos ({_1}% de sus zonas sólidas coinciden con unos pocos colores planos), así que el modo Logotipo plano convertiría sus degradados en manchas: usa el modo Color
+@msg	`{what}` closes nothing	`{what}` no cierra nada
+@msg	`{what}` closes something it didn't open	`{what}` cierra algo que no abrió
+@msg	a path has too many points	un trazado tiene demasiados puntos
+@msg	it ends inside a layer	terminan dentro de una capa
+@msg	it has art outside its layers	tienen ilustraciones fuera de sus capas
+@msg	it has more than {MAX_NODES} objects	tienen más de {MAX_NODES} objetos
+@msg	it has no layers	no tienen capas
+@msg	it has too many values in a row	tienen demasiados valores seguidos
+@msg	it has {_1}, which VectorCraft doesn't read from it yet	tienen {_1}, que VectorCraft aún no lee de ellos
+@msg	its objects are nested too deeply	sus objetos están anidados a demasiada profundidad
+@msg	its section ending with `%{end}` doesn't end	su sección que termina con `%{end}` no termina
+@msg	objects with several fills or strokes, effects or brushes came in as their drawn look ({_1}): their appearance isn't editable yet	los objetos con varios rellenos o trazos, efectos o pinceles se importaron con su aspecto dibujado ({_1}): su aspecto aún no se puede editar
+@msg	gradient “{name}” isn't defined in the file: a plain colour stands in for it	el degradado “{name}” no está definido en el archivo: lo sustituye un color sólido
+@msg	an image VectorCraft can't read was left out	se omitió una imagen que VectorCraft no puede leer
+@msg	an image whose data is cut short was left out	se omitió una imagen con datos incompletos
+@msg	its editing data doesn't say where its art is	sus datos de edición no dicen dónde está su ilustración
+@msg	this file was saved without PDF compatibility, and its editing data can't be read ({why})	este archivo se guardó sin compatibilidad con PDF y sus datos de edición no se pueden leer ({why})
 
 # The macOS menu bar (native_menu): the app and Window menus' system items, Settings pages.
 	Services	Servicios

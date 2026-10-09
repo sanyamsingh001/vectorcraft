@@ -1,7 +1,7 @@
 # VectorCraft MCP server
 
 `vectorcraft-cli mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) server on stdio
-(newline-delimited JSON-RPC 2.0, protocol `2025-06-18`; `2025-03-26` and `2024-11-05` also accepted). Agents use it to
+(newline-delimited JSON-RPC 2.0; see [Protocol](#protocol) for version negotiation). Agents use it to
 draw, inspect and look at VectorCraft documents.
 
 It has two backends:
@@ -35,16 +35,18 @@ For a live session, start the app first: `cargo run --release -p vectorcraft -- 
 ## Protocol
 
 Newline-delimited JSON-RPC 2.0 on stdio. The revision is **`2025-06-18`**; `2025-03-26` and `2024-11-05` are
-accepted too, and `initialize` answers with whichever of those the client asked for. The specs' own
-`resultType` fields and the `2026-07-28` revision are not implemented — see
-[Not implemented](#not-implemented).
+accepted too. Clients requesting `2026-07-28` through `initialize`, or through a request's
+`_meta["io.modelcontextprotocol/protocolVersion"]`, receive `resultType: "complete"`,
+`ttlMs` and `cacheScope: "private"` on tool/resource/template/prompt lists and resource/prompt reads.
+List TTL is 600000 ms; live reads use zero. Older clients keep the original response shapes.
+This does not add streaming or input requests — see [Not implemented](#not-implemented).
 
 `initialize` advertises:
 
 | Capability | What it covers |
 |---|---|
-| `tools` | The 25 tools below |
-| `resources` | Two fixed documents and four templates |
+| `tools` | The tools below |
+| `resources` | Three fixed resources and four templates |
 | `prompts` | Five ready-made workflows |
 | `completions` | `completion/complete` for prompt arguments and template variables |
 | `logging` | `logging/setLevel` and `notifications/message` |
@@ -69,8 +71,8 @@ echo '{"jsonrpc":"2.0","id":1,"method":"prompts/get","params":{"name":"poster","
 
 ### Resource templates
 
-`vectorcraft://document` (summary) and `vectorcraft://document/json` (the whole model) are the fixed
-resources. The templates read one thing at a time, which matters on a real document: the full model
+`vectorcraft://document` (summary), `vectorcraft://document/json` (the whole model), and
+`vectorcraft://commands` (the live command catalog with enabled state) are the fixed resources. The templates read one thing at a time, which matters on a real document: the full model
 is thousands of lines an agent pays for again on every change.
 
 | `uriTemplate` | Reads |
@@ -123,6 +125,12 @@ crate that installed one would override whatever logger an embedder had already 
 `vectorcraft-mcp` directly means calling `vectorcraft_mcp::logging::install()` yourself if you want
 log records to reach your client.
 
+### Synchronous calls
+
+Exports complete synchronously. A `_meta.progressToken` is harmlessly ignored, as are
+`notifications/cancelled` (including unknown request ids). There are no background export jobs
+or progress notifications; cancellation cannot interrupt a running call.
+
 ### Not implemented
 
 Everything below needs the same thing first: the server reads one line at a time and answers it with
@@ -149,6 +157,27 @@ is here and subscriptions are not. The fix for the rest is a reader thread (or a
 the transport — a design change rather than a feature, so it is not in this crate yet.
 
 ## Tools
+
+### Common command tools
+
+These names match the conventions in [FilmCraft #28](https://github.com/storytold/filmcraft/pull/28).
+The older names below remain listed because existing workflows use them.
+
+| Tool | Arguments and result |
+|---|---|
+| `command_list` | Optional `filter`, `enabled_only`; returns the command array |
+| `command_run` | `id`, optional `params`; runs the command through the existing backend |
+| `command_batch` | `steps: [{id, params?}]`, optional `stop_on_error` (default true); returns `completed`, `failed`, `results: [{ok, result\|error}]`. Each edit has its own undo step; failures set `isError` |
+| `doc_inspect` | Optional `depth`, `childLimit`; same summary as `inspect_document` |
+| `render_preview` | Optional `max_side` (1–4096, default 1024); inline PNG of the first artboard without editing it. Artboards too large to render within the allocation bound return a tool error |
+| `ui_inspect`, `ui_screenshot` | Connected desktop state/window capture; tool errors in headless mode |
+
+Every tool declares read-only, destructive, idempotent and open-world hints. File-writing
+`screenshot`, `save_file` and `export` are conservatively marked as mutations. Unknown top-level
+argument keys return JSON-RPC `-32602`; command failures and caught tool panics return `isError`
+content, and the server continues serving. Command `params` are passed through: the registry
+currently describes them in prose, so MCP does not guess schemas or silently remove keys.
+
 
 Coordinates are points in document space: y points down, the origin is the first artboard's top-left, and a new
 document is 612 × 792 (US Letter). New objects become the selection. Most commands act on the selection or on
@@ -378,6 +407,17 @@ and `flattener` options over it (as `object.flattenTransparency` takes them); im
 transparency and rasterized areas are clipped to their regions. A file that would still have transparency fails the
 export. PDF/X-1a and PDF/X-3 files are PDF 1.3 files too.
 
+An Illustrator EPS (version 9 on) or `.ai` file opens from the editing data it carries (after the EPS page; in the
+`.ai` file's PDF private data): layers and sublayers (name, order, visibility, lock, printing, preview, dimming,
+colour), groups as they were nested, compound paths, clipping groups, object names, hidden and locked objects, fills and
+strokes (spot colours as spot swatches), linear and radial gradients, opacity, blend modes, isolation and knockout,
+embedded images with their alpha channel, guides, and every artboard where it is. An object with several fills or
+strokes, effects or a brush comes in as its drawn look (a group named after it). Type that shows is the page's, in its
+text object's place; hidden point type is made from the file's text document. A file whose editing data has symbols,
+pattern fills, placed files or anything else the reader doesn't read on a layer that shows, or whose layers look
+different from its page, opens as before: an EPS as its printed page, a `.ai` file from its PDF content (where plain
+groups open ungrouped), with a warning saying why.
+
 Opening a PDF (or `.ai`) imports every page as an artboard and layer; `document.open` takes `pages` ("2-3, 5", 1-based),
 `cropTo` (`bounding` (the art's bounds), `art`, `crop` (default), `trim`, `bleed`, `media`: the box each artboard gets)
 and `password` for an encrypted file. `document.pdfInfo` reads a file without opening it: the page count, each page's
@@ -396,7 +436,9 @@ CMYK too.
 ```
 
 PostScript files (`.eps`, and `.ai` files saved in older formats or without PDF compatibility) open through the EPS
-reader (see EPS and PostScript import); an `.ai` whose PDF part is only a placeholder page says it can't be opened.
+reader (see EPS and PostScript import). An `.ai` saved without PDF compatibility (its PDF part is only a placeholder
+page) opens from its editing data alone: its type is made from the file's text document where it can be (point type), and
+what can't be is left out with a warning; without editing data it says it can't be opened.
 
 What a PDF holds comes in as editable art: soft masks become opacity masks (an alpha mask as a white copy of its art;
 the backdrop colour gives Clip, an inverting transfer function Invert), transparency groups keep isolation and knockout,
@@ -1650,9 +1692,10 @@ without its formatting, taking the style at the caret.
 `document.exportDxf` (also `document.export` / `export` with format `dxf`) writes a CAD drawing, ASCII DXF R12 to 2018
 (`version`: `R12`, `R13`, `R14`, `2000`, `2004`, `2007`, `2010`, `2013`, `2018`; default `2018`). Each layer becomes a
 DXF layer (hidden layers switched off, locked ones locked, non-printing ones not plotted; template layers left out),
-straight paths become polylines, curved ones cubic splines through every anchor, fills solid hatches (R12 has none:
-their outlines), strokes lines with their lineweight and a linetype per dash pattern, and placed images image entities
-linked to PNG or JPEG files (`rasterFormat`) written next to the drawing (`linked` in the result). Coordinates are y up
+straight paths become polylines, curved ones cubic splines through every anchor, fills their outlines followed by
+solid hatches (laser and cutter software reads the outlines and skips hatches; R12 has no hatches: the outlines
+alone), strokes lines with their lineweight and a linetype per dash pattern, and placed images image entities linked
+to PNG or JPEG files (`rasterFormat`) written next to the drawing (`linked` in the result). Coordinates are y up
 from the bottom-left corner of the first artboard (or `artboard`), in drawing units: `scale` units per `unit` (default
 1 mm = 1 unit, which sets `$INSUNITS`); `scaleLineweights` scales the lineweights with them. `colors` is `8`, `16` or
 `256` indexed colours, or `true` (default; true colour with the nearest index, DXF 2004 and later). `preserve:
@@ -2098,9 +2141,7 @@ runs their data; `flushfile` skips it), axial and radial shadings and shading pa
 masks (data in the file through ASCII85, hex, run-length, Flate, LZW or DCT filters, or from procedures), and type as
 point type in the font the file names (embedded font programs are skipped). In a file in Illustrator's own format
 (Illustrator 3–8 `.ai` and their EPS, written with the prolog that defines its operators) the groups it writes (`u` …
-`U`) come in as groups, nested as they were; clips and groups nest at most 128 deep. A PDF-compatible `.ai` doesn't
-mark its plain groups (only layers, clipping groups and groups with opacity, blending or a mask), so they open
-ungrouped. The artboard is the `%%HiResBoundingBox`
+`U`) come in as groups, nested as they were; clips and groups nest at most 128 deep. The artboard is the `%%HiResBoundingBox`
 (else `%%BoundingBox`; a letter page without one). A program the interpreter can't run (an operator it doesn't know,
 an error, a runaway loop) or that draws nothing comes in as its TIFF preview (palette previews with an alpha channel
 too) with a warning; without a preview, the art drawn up to the error is kept with a warning, and a file with none is
@@ -2286,6 +2327,19 @@ Type and Convert To Point Type. Either keeps the text and its styles and is one 
 
 ```json
 {"name":"run_command","arguments":{"command":"type.convertToAreaType","params":{"ids":[42]}}}
+```
+
+## Kinsoku Set
+
+`text.setFormat {kinsoku: "hard"|"soft"|"none"}` sets the Paragraph panel's Kinsoku Set of the selected type (or `ids`):
+which Japanese characters may not start or end a line. **Hard** (the default; new type and documents from before the
+setting) keeps closing brackets, commas, full stops, middle dots, iteration marks, the prolonged sound mark ー and small
+kana off the line start, and opening brackets off the line end. **Soft** lets 々, ー and small kana start a line, as
+JLREQ's level 3 line-breaking rules do (https://www.w3.org/TR/jlreq/#addendum_a3); the rest of the set stays.
+**None** applies no kinsoku. `hard` isn't saved. One undo step.
+
+```json
+{"name":"run_command","arguments":{"command":"text.setFormat","params":{"kinsoku":"soft"}}}
 ```
 
 ## Hanging punctuation (burasagari)

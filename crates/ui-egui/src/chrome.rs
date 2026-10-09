@@ -319,10 +319,16 @@ fn tab_title(d: &vectorcraft_engine::DocState, zoom: f64, outline: bool) -> Stri
     format!("{}{} @ {} ({mode})", d.title(), if d.is_dirty() { "*" } else { "" }, zoom_label(zoom).replace('%', " %"))
 }
 
-/// Document tab strip: "Name* @ 66.67% (RGB/Preview)".
+/// Whether a document tab's × comes before its title (macOS) rather than after it (Windows,
+/// Linux and the web).
+const CLOSE_BEFORE_TITLE: bool = cfg!(target_os = "macos");
+
+/// Document tab strip: "Name* @ 66.67% (RGB/Preview)". User Interface › Large Tabs makes the tabs
+/// taller, with larger titles.
 pub fn doc_tabs(app: &mut VectorcraftApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
-    let (strip, _) = ui.allocate_exact_size(vec2(ui.available_width(), 35.0), Sense::hover());
+    let (height, title_size) = if app.session.prefs.large_tabs { (44.0, 14.0) } else { (35.0, 12.5) };
+    let (strip, _) = ui.allocate_exact_size(vec2(ui.available_width(), height), Sense::hover());
     ui.painter().rect_filled(strip, 0.0, t.tab_strip);
     ui.painter().line_segment([strip.left_bottom(), strip.right_bottom()], Stroke::new(1.0, t.border));
     let mut x = strip.left();
@@ -334,7 +340,7 @@ pub fn doc_tabs(app: &mut VectorcraftApp, ui: &mut Ui) {
         let title = tab_title(d, zoom, app.ui.view.outline);
         // On the Home screen no tab is the current one.
         let is_active = Some(i) == active && app.ui.home.is_none();
-        let galley = ui.painter().layout_no_wrap(title, theme::semibold(12.5), if is_active { t.text_strong } else { t.text_dim });
+        let galley = ui.painter().layout_no_wrap(title, theme::semibold(title_size), if is_active { t.text_strong } else { t.text_dim });
         let w = galley.size().x + 50.0;
         let r = egui::Rect::from_min_size(egui::pos2(x, strip.top()), vec2(w, strip.height() - 1.0));
         let resp = ui.interact(r, ui.id().with(("tab", i)), Sense::click());
@@ -344,11 +350,13 @@ pub fn doc_tabs(app: &mut VectorcraftApp, ui: &mut Ui) {
             ui.painter().rect_filled(r, 0.0, t.hover.gamma_multiply(0.4));
         }
         ui.painter().line_segment([r.right_top(), r.right_bottom()], Stroke::new(1.5, t.border));
-        // × at the left like Illustrator.
-        let xr = egui::Rect::from_center_size(egui::pos2(r.left() + 16.0, r.center().y), vec2(12.0, 12.0));
+        // The × where each platform puts a tab's: before the title on macOS, after it elsewhere
+        // (#673).
+        let (x_center, title_left) = if CLOSE_BEFORE_TITLE { (r.left() + 16.0, r.left() + 32.0) } else { (r.right() - 16.0, r.left() + 14.0) };
+        let xr = egui::Rect::from_center_size(egui::pos2(x_center, r.center().y), vec2(12.0, 12.0));
         let xresp = ui.interact(xr.expand(3.0), ui.id().with(("tabx", i)), Sense::click());
         icons::paint(ui, "x", xr, if xresp.hovered() { t.text_strong } else { t.text });
-        ui.painter().galley(egui::pos2(r.left() + 32.0, r.center().y - galley.size().y / 2.0), galley, t.text);
+        ui.painter().galley(egui::pos2(title_left, r.center().y - galley.size().y / 2.0), galley, t.text);
         if xresp.clicked() {
             close = Some(i);
         } else if resp.clicked() {
@@ -517,6 +525,9 @@ pub fn status_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
 
 /// Contextual hint for the active tool: segments of (text, bold). Keys in bold segments are
 /// written as shortcuts are ("Alt+Click"); [`hint_segments`] names them for the platform.
+/// The hint of the Zoom tool with Performance › Animated Zoom on.
+const ANIMATED_ZOOM_HINT: &str = "zoom.animated";
+
 fn hint_for(tool: &str) -> Option<&'static [(&'static str, bool)]> {
     Some(match tool {
         "selection" => &[
@@ -587,6 +598,16 @@ fn hint_for(tool: &str) -> Option<&'static [(&'static str, bool)]> {
             (" to zoom out  |  ", false),
             ("Drag", true),
             (" to zoom into an area", false),
+        ],
+        ANIMATED_ZOOM_HINT => &[
+            ("Click", true),
+            (" to zoom in  |  ", false),
+            ("Alt+Click", true),
+            (" to zoom out  |  ", false),
+            ("Drag", true),
+            (" right or left to zoom in or out  |  ", false),
+            ("Hold", true),
+            (" to keep zooming", false),
         ],
         "eyedropper" => &[
             ("Click", true),
@@ -674,8 +695,8 @@ fn hint_for(tool: &str) -> Option<&'static [(&'static str, bool)]> {
 /// can insist a complete language covers them.
 pub fn hint_strings() -> Vec<&'static str> {
     let mut v = Vec::new();
-    for tool in vectorcraft_tools::catalog::all_tools() {
-        for &(text, bold) in hint_for(tool.id).unwrap_or(&[]) {
+    for tool in vectorcraft_tools::catalog::all_tools().map(|t| t.id).chain([ANIMATED_ZOOM_HINT]) {
+        for &(text, bold) in hint_for(tool).unwrap_or(&[]) {
             let text = if bold { text.rsplit_once('+').map_or(text, |(_, k)| k) } else { text };
             if !text.is_empty() && !text.chars().all(|c| c.is_ascii_digit()) && !v.contains(&text) {
                 v.push(text);
@@ -729,7 +750,10 @@ pub fn hint_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                 ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, "?", theme::semibold(11.0), t.text);
                 ui.add_space(6.0);
                 let mut job = egui::text::LayoutJob::default();
-                for (txt, bold) in hint_segments(app.session.tool_id()) {
+                let tool = app.session.tool_id();
+                // The Zoom tool's drag zooms to an area, or with Animated Zoom zooms as it goes.
+                let hint = if tool == "zoom" && crate::canvas::animated_zoom(&app.session.prefs) { ANIMATED_ZOOM_HINT } else { tool };
+                for (txt, bold) in hint_segments(hint) {
                     let font = if bold { theme::semibold(12.5) } else { egui::FontId::proportional(12.5) };
                     job.append(&txt, 0.0, egui::TextFormat { font_id: font, color: if bold { t.text_strong } else { t.text }, ..Default::default() });
                 }
@@ -762,6 +786,44 @@ mod tests {
         if !cfg!(target_os = "macos") {
             assert!(text("zoom").contains("Alt+Click") && text("paintbrush").contains("Ctrl+Shift+/"));
         }
+    }
+
+    /// A document tab's × sits where the platform puts it (#673): after the title on Windows,
+    /// Linux and the web, before it on macOS; clicking it closes that document.
+    #[test]
+    fn a_tabs_close_box_sits_where_the_platform_puts_it() {
+        let mut app = crate::VectorcraftApp::new(Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 100, "height": 100})).unwrap();
+        app.session.execute("file.new", &json!({"width": 100, "height": 100})).unwrap();
+        let ctx = egui::Context::default();
+        crate::theme::install_fonts(&ctx);
+        let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1200.0, 200.0));
+        let frame = |app: &mut crate::VectorcraftApp, events: Vec<egui::Event>| {
+            let mut out = ctx.run_ui(egui::RawInput { screen_rect: Some(screen), events, ..Default::default() }, |ui| super::doc_tabs(app, ui));
+            out.textures_delta.clear();
+            let mut titles = vec![];
+            for c in &out.shapes {
+                // The titles, not the × icons.
+                if let egui::Shape::Text(t) = &c.shape
+                    && t.visual_bounding_rect().width() > 30.0
+                {
+                    titles.push(t.visual_bounding_rect());
+                }
+            }
+            titles.sort_by(|a, b| a.left().total_cmp(&b.left()));
+            titles
+        };
+        let titles = frame(&mut app, vec![]);
+        assert_eq!(titles.len(), 2, "{titles:?}");
+        // The first tab's ×: 20 pt past its title's end, or 16 pt before its start.
+        let first = titles[0];
+        let x = if super::CLOSE_BEFORE_TITLE { first.left() - 16.0 } else { first.right() + 20.0 };
+        let at = egui::pos2(x, first.center().y);
+        let press = |pressed| egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
+        frame(&mut app, vec![egui::Event::PointerMoved(at), press(true)]);
+        frame(&mut app, vec![press(false)]);
+        assert_eq!(app.session.documents().len(), 1, "the × closed the first document");
+        assert!(super::CLOSE_BEFORE_TITLE == cfg!(target_os = "macos"));
     }
 
     /// One headless frame of the status bar; returns the artboard navigator's buttons, left to
@@ -831,5 +893,34 @@ mod tests {
         assert!(title(&s).ends_with("(<Opacity Mask>/Opacity Mask)"), "{}", title(&s));
         s.execute("transparency.stopEditingOpacityMask", &json!({})).unwrap();
         assert!(title(&s).ends_with("(RGB/Preview)"));
+    }
+
+    /// The Zoom tool's hint follows Performance › Animated Zoom (#394): a drag zooms as it goes,
+    /// or (off) zooms into the area dragged across.
+    #[test]
+    fn the_zoom_hint_follows_animated_zoom() {
+        fn texts(s: &egui::Shape, out: &mut String) {
+            match s {
+                egui::Shape::Text(t) => out.push_str(t.galley.text()),
+                egui::Shape::Vec(v) => v.iter().for_each(|s| texts(s, out)),
+                _ => {}
+            }
+        }
+        let mut app = crate::VectorcraftApp::new(Session::new(), Default::default());
+        app.select_tool("zoom");
+        let ctx = egui::Context::default();
+        crate::theme::install_fonts(&ctx);
+        let hint = |app: &mut crate::VectorcraftApp| {
+            let mut out = ctx.run_ui(egui::RawInput::default(), |ui| super::hint_bar(app, ui));
+            out.textures_delta.clear();
+            let mut shown = String::new();
+            out.shapes.iter().for_each(|c| texts(&c.shape, &mut shown));
+            shown
+        };
+        let on = hint(&mut app);
+        assert!(on.contains(" right or left to zoom in or out") && on.contains("Hold"), "{on}");
+        app.run("prefs.set", json!({"key": "animatedZoom", "value": false})).unwrap();
+        let off = hint(&mut app);
+        assert!(off.contains(" to zoom into an area") && !off.contains("Hold"), "{off}");
     }
 }

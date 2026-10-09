@@ -103,6 +103,9 @@ pub struct RenderOptions {
     /// Screen view: Image Trace objects draw as their View asks (outlines, the source image…);
     /// off, they draw their tracing result, as exports and printing do.
     pub trace_views: bool,
+    /// Images are sampled smoothly when scaled or rotated; off, each pixel takes its nearest image
+    /// pixel (Pixel Preview with File Handling › Display Bitmaps as Anti-aliased Images off).
+    pub smooth_images: bool,
 }
 
 /// How edges are rasterized (raster export option).
@@ -169,6 +172,7 @@ impl Default for RenderOptions {
             anti_alias: AntiAlias::Art,
             progressive_placed: false,
             trace_views: false,
+            smooth_images: true,
         }
     }
 }
@@ -312,6 +316,9 @@ pub struct Renderer {
     live: live::LiveCache,
     /// Blurred, tinted drop shadow / outer glow rasters per object and effect (see `fx`).
     shadows: PtrMap<(usize, usize, Ink), fx::ShadowEntry>,
+    /// Objects' content run through Photoshop-style effects, per object and content slot (see
+    /// `fx`): kept only while drawn.
+    pixel_fx: PtrMap<(usize, usize, Ink), fx::PixelEntry>,
     /// Whether the group being drawn is a knockout group (what its neutral children inherit).
     knockout: bool,
     /// Address of the knockout-group element being drawn as its knockout shape: at full object
@@ -417,6 +424,7 @@ impl Renderer {
             stats: FrameStats::default(),
             brushes: Default::default(),
             shadows: PtrMap::default(),
+            pixel_fx: PtrMap::default(),
             live: live::LiveCache::default(),
             knockout: false,
             shape_of: 0,
@@ -487,6 +495,8 @@ impl Renderer {
         if self.shadows.len() > 256 {
             self.shadows.retain(|_, e| g - e.stamp <= 3);
         }
+        // Filtered rasters are large: only those of the last frame stay.
+        self.pixel_fx.retain(|_, e| e.stamp == g);
         if !inks {
             proof::post(&mut pixels, opts);
         }
@@ -1419,7 +1429,9 @@ impl Renderer {
             let pm = if outline { pm } else { self.ink_image(&cache_key, &pm, f.ink, f.doc.images.get(&im.key)) };
             let sx = im.width as f64 / pm.width().max(1) as f64;
             let sy = im.height as f64 / pm.height().max(1) as f64;
-            ctx.set_paint(vello_cpu::Image { image: vello_cpu::ImageSource::Pixmap(pm), sampler: peniko::ImageSampler::default() });
+            let quality = if f.opts.smooth_images { peniko::ImageQuality::Medium } else { peniko::ImageQuality::Low };
+            let sampler = peniko::ImageSampler { quality, ..Default::default() };
+            ctx.set_paint(vello_cpu::Image { image: vello_cpu::ImageSource::Pixmap(pm), sampler });
             match area {
                 Some((bp, rule)) => {
                     ctx.set_transform(f.view);

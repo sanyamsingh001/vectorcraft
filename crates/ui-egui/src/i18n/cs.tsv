@@ -285,6 +285,8 @@
 	Fill with Placeholder Text	Vyplnit zástupným textem
 	Insert Inline Symbol	Vložit symbol do textu
 	Show Hidden Characters	Zobrazit skryté znaky
+	Bold	Tučné
+	Italic	Kurzíva
 	Hide Hidden Characters	Skrýt skryté znaky
 	Type Orientation	Orientace textu
 	Horizontal	Vodorovně
@@ -643,3 +645,9 @@
 	Constrain	Omezit
 	Free Transform	Volná transformace
 	Perspective Distort	Perspektivní deformace
+
+# Photoshop-style raster effects (Effect menu, their dialogs).
+	Radial Blur…	Radiální rozostření…
+	Smart Blur…	Chytré rozostření…
+	Sharpen	Zostření
+	Unsharp Mask…	Maska rozostření…

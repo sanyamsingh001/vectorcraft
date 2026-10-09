@@ -87,7 +87,7 @@ impl MoveSnap {
     pub(crate) fn new(cx: &ToolContext) -> Self {
         Self {
             bounds: selection_bounds(cx),
-            targets: cx.smart_guides.then(|| Targets::collect(cx.doc, &cx.selection.objects, None).styled(cx)),
+            targets: cx.smart_guides.then(|| Targets::for_move(cx)),
             points: Targets::snap_to_point(cx, &cx.selection.objects),
         }
     }
@@ -161,6 +161,10 @@ impl Tool for SelectionTool {
 
     fn busy(&self) -> bool {
         !matches!(self.state, State::Idle) || self.guide.busy()
+    }
+
+    fn transforming(&self) -> bool {
+        matches!(self.state, State::Moving { began: true, .. } | State::Scaling { .. } | State::Rotating { .. })
     }
 
     fn pointer(&mut self, cx: &ToolContext, ev: &PointerEvent) -> Vec<Action> {

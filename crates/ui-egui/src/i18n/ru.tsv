@@ -9,6 +9,23 @@
 # Coverage: the whole interface — every menu string and every `tl!` literal (`complete_menus`,
 # tested). Left in English on purpose (`MENU_KEEP_AS_IS` in the tests): the product name, language
 # names, OpenType, the built-in workspace names and the bracketed perspective grid preset names.
+# Photoshop-style raster effects (Effect menu, their dialogs).
+	Radial Blur…	Радиальное размытие…
+	Smart Blur…	Умное размытие…
+	Sharpen	Резкость
+	Unsharp Mask…	Нерезкая маска…
+	Radial Blur	Радиальное размытие
+	Smart Blur	Умное размытие
+	Unsharp Mask	Нерезкая маска
+	Gaussian Blur	Размытие по Гауссу
+	Method	Метод
+	Quality	Качество
+	Radius	Радиус
+	Spin	Вращение
+	Draft	Черновое
+	Good	Хорошее
+	Best	Наилучшее
+
 # Status and error messages too (`@msg` rows at the end, `COMPLETE_MESSAGES` in the tests).
 # A native speaker's review is welcome: keep the placeholders ({name}), the trailing "…" and the
 # leading/trailing spaces of fragments exactly as they are.
@@ -74,6 +91,7 @@
 	Add to Swatches	Добавить в образцы
 	Add Used Colors	Добавить использованные цвета
 	Additional Plug-ins Folder	Папка дополнительных модулей
+	Additional Fonts Folder	Папка дополнительных шрифтов
 	Adjust Adjoining Width Points	Настроить смежные точки ширины
 	Adjust Color Balance…	Настроить цветовой баланс…
 	Adjust Colors	Настроить цвета
@@ -200,6 +218,7 @@
 	Auto Size New Area Type	Автоматически подгонять размер нового текста в области
 	Auto Spell Check	Автоматическая проверка орфографии
 	Auto-Collapse Iconic Panels	Автоматически сворачивать значки панелей
+	Show Tool Group Labels	Показывать названия групп инструментов
 	Auto-Rotate (turn the paper to each artboard)	Автоповорот (поворачивать лист по каждой монтажной области)
 	Automatic flatness	Автоматическая плоскостность
 	Automatically	Автоматически
@@ -318,6 +337,8 @@
 	Clean Up…	Очистить…
 	Clear	Очистить
 	Clear All Tabs	Удалить все табуляции
+	Above Text	Над текстом
+	Position Panel Above Text	Расположить панель над текстом
 	Clear Appearance	Очистить оформление
 	Clear Guides	Удалить направляющие
 	Clear Overrides	Очистить переопределения
@@ -953,6 +974,7 @@
 	Flare Tool	Инструмент «Блик»
 	Flare Tool Options	Параметры инструмента «Блик»
 	Flat Image	Плоское изображение
+	Flat Logo	Плоский логотип
 	Flatness:	Плоскостность:
 	Flatten Artwork	Объединить рисунок
 	Flatten Transparency	Объединить прозрачности
@@ -1397,6 +1419,9 @@
 	Marks and Bleed	Метки и вылет
 	Marks and Bleeds	Метки и вылеты
 	Match User Interface Brightness	Согласовать с яркостью интерфейса
+	Light Gray	Светло-серый
+	Medium Gray	Средне-серый
+	Dark Gray	Тёмно-серый
 	Materials…	Материалы…
 	Matte	Мат
 	Matte:	Мат:
@@ -1450,6 +1475,9 @@
 	Modify	Изменить
 	Mojikumi	Mojikumi
 	Mojikumi Set	Набор mojikumi
+	Kinsoku Set	Набор kinsoku
+	Hard	Строгий
+	Soft	Мягкий
 	Monitor RGB	RGB монитора
 	Mono	Моно
 	Monochrome images	Монохромные изображения
@@ -1950,7 +1978,16 @@
 	Rating:	Рейтинг:
 	Real World:	Реальный мир:
 	Real-time Drawing and Editing	Рисование и редактирование в реальном времени
-	Rearrange All Artboards (on the roadmap)	Переставить все монтажные области (в плане развития)
+	Rearrange All Artboards	Переставить все монтажные области
+	Rearrange All	Переставить все
+	Layout Order:	Порядок макета:
+	Change to Left-to-Right Layout	Переключить на макет слева направо
+	Grid by Row	Сетка по строкам
+	Grid by Column	Сетка по столбцам
+	Arrange by Row	Расположить в строку
+	Arrange by Column	Расположить в столбец
+	Move Artwork with Artboard	Перемещать иллюстрацию вместе с монтажной областью
+	Artboards: {n}	Монтажные области: {n}
 	Rearrange All Artboards…	Переставить все монтажные области…
 	Recall Selection	Восстановить выделение
 	RECENT	ПОСЛЕДНИЕ
@@ -2112,6 +2149,8 @@
 	Reverse Spine	Обратить остов
 	Revert	Вернуть
 	Revert to the saved version of “{name}”?	Вернуться к сохранённой версии «{name}»?
+	Replace “{name}”, the file this document was opened from?	Заменить «{name}» — файл, из которого открыт этот документ?
+	Opening it left out what VectorCraft can't read yet ({what}), so replacing it loses that for good. Save under another name to keep it.	При открытии было пропущено то, что VectorCraft пока не умеет читать ({what}), поэтому замена файла потеряет это навсегда. Чтобы сохранить это, сохраните документ под другим именем.
 	Revolve…	Вращение…
 	RGB Color	Цвет RGB
 	Right	Справа
@@ -2403,6 +2442,8 @@
 	Show Guides	Показать направляющие
 	Show handles when multiple anchors are selected	Показывать маркеры при выделении нескольких опорных точек
 	Show Hidden Characters	Показать скрытые символы
+	Bold	Полужирный
+	Italic	Курсив
 	Show Images in Outline Mode	Показывать изображения в режиме контуров
 	Show in Folder	Показать в папке
 	Show Indic Options	Показать параметры индийских языков
@@ -2983,6 +3024,9 @@
 	 to zoom in  |  	 для увеличения  |  
 	 to zoom out  |  	 для уменьшения  |  
 	 to zoom into an area	 для увеличения области
+	Hold	Удерживать
+	 right or left to zoom in or out  |  	 вправо или влево для увеличения или уменьшения  |  
+	 to keep zooming	 для непрерывного масштабирования
 	 an object to copy its attributes  |  	 в объект для копирования его атрибутов  |  
 	 to apply the selection's to it  |  	 для применения атрибутов выделения к нему  |  
 	 to sample a color	 для взятия образца цвета
@@ -3080,6 +3124,20 @@ axis	Both	Оба
 # stays English for agents and tests. `{_1}`, `{_2}` … stand for the `{}` of the format string, in order
 # (`complete_languages_translate_every_message` lists any that are missing). Command ids, parameter
 # names and values in backticks or code (`colorModel rgb`, `document.export`) stay as they are.
+@msg	select some type first	сначала выделите текст
+@msg	{_1} has no {_2} style	у {_1} нет начертания {_2}
+@msg	a layer couldn't be read	не удалось прочитать слой
+@msg	it has more than one artboard	в нём несколько монтажных областей
+@msg	it has no page	в нём нет страницы
+@msg	it has too many text objects	в нём слишком много текстовых объектов
+@msg	it has too much text	в нём слишком много текста
+@msg	its editing data doesn't say where its artboard is	его данные для редактирования не указывают, где находится монтажная область
+@msg	its editing data has no layers	в его данных для редактирования нет слоёв
+@msg	its editing data is damaged	его данные для редактирования повреждены
+@msg	its editing data is for a different page	его данные для редактирования относятся к другой странице
+@msg	its layers use {_1}, which aren't read yet	его слои используют {_1}, что пока не читается
+@msg	its page has text, and its layers have no text objects to put it in	на его странице есть текст, а на слоях нет текстовых объектов, куда его поместить
+@msg	the art on them differs from the page's in {_1}% of it	изображение на слоях отличается от изображения на странице на {_1} % площади
 @msg	`to` must be "corner" or "smooth"	`to` должно быть "corner" или "smooth"
 @msg	BMP files are RGB or grayscale: colorModel rgb or gray	файлы BMP бывают RGB или в оттенках серого: colorModel rgb или gray
 @msg	Blend colors: select at least three objects with filled colours	Смешивание цветов: выберите не менее трёх объектов с цветными заливками
@@ -3602,6 +3660,25 @@ axis	Both	Оба
 @msg	{tool} isn't in a toolbar group of several tools	{tool} не входит в группу панели инструментов из нескольких инструментов
 @msg	onto must name a panel floating in another group	onto должен называть панель, плавающую в другой группе
 @msg	x and y must both be numbers	x и y должны быть числами
+@msg	"{0}" is not a colour: write it as #rrggbb	«{0}» не является цветом: запишите его как #rrggbb
+@msg	this isn't a flat-colour logo ({_1}% of its solid areas match a few flat colours), so Flat Logo mode would turn its gradients into patches: use Color mode instead	это не логотип из плоских цветов ({_1}% его сплошных областей совпадает с несколькими плоскими цветами), поэтому режим «Плоский логотип» превратил бы градиенты в пятна: используйте режим «Цвет»
+@msg	`{what}` closes nothing	`{what}` ничего не закрывает
+@msg	`{what}` closes something it didn't open	`{what}` закрывает то, что не открывал
+@msg	a path has too many points	в контуре слишком много точек
+@msg	it ends inside a layer	они заканчиваются внутри слоя
+@msg	it has art outside its layers	в них есть графика вне слоёв
+@msg	it has more than {MAX_NODES} objects	в них больше {MAX_NODES} объектов
+@msg	it has no layers	в них нет слоёв
+@msg	it has too many values in a row	в них слишком много значений подряд
+@msg	it has {_1}, which VectorCraft doesn't read from it yet	в них есть {_1}, которые VectorCraft пока не читает
+@msg	its objects are nested too deeply	объекты в них вложены слишком глубоко
+@msg	its section ending with `%{end}` doesn't end	раздел, заканчивающийся на `%{end}`, не заканчивается
+@msg	objects with several fills or strokes, effects or brushes came in as their drawn look ({_1}): their appearance isn't editable yet	объекты с несколькими заливками или обводками, эффектами или кистями импортированы в нарисованном виде ({_1}): их оформление пока нельзя редактировать
+@msg	gradient “{name}” isn't defined in the file: a plain colour stands in for it	градиент «{name}» не определён в файле: вместо него используется сплошной цвет
+@msg	an image VectorCraft can't read was left out	изображение, которое VectorCraft не может прочитать, пропущено
+@msg	an image whose data is cut short was left out	изображение с обрезанными данными пропущено
+@msg	its editing data doesn't say where its art is	в его данных редактирования не указано, где находится графика
+@msg	this file was saved without PDF compatibility, and its editing data can't be read ({why})	этот файл сохранён без совместимости с PDF, и его данные редактирования не удаётся прочитать ({why})
 
 # The macOS menu bar (native_menu): the app and Window menus' system items, Settings pages.
 	Services	Службы

@@ -78,6 +78,9 @@
 	 to transform  |  	 para transformar  |  
 	 to zoom in  |  	 para ampliar  |  
 	 to zoom into an area	 para ampliar uma área
+	Hold	Manter pressionado
+	 right or left to zoom in or out  |  	 para a direita ou a esquerda para ampliar ou reduzir  |  
+	 to keep zooming	 para continuar o zoom
 	 to zoom out  |  	 para reduzir  |  
 	 while dragging to move perpendicular to the plane  |  	 ao arrastar para mover perpendicularmente ao plano  |  
 	(closest)	(mais próximo)
@@ -135,6 +138,7 @@
 	Add to Selection	Adicionar à Seleção
 	Add to Swatches	Adicionar às Amostras
 	Additional Plug-ins Folder	Pasta Adicional de Plug-ins
+	Additional Fonts Folder	Pasta Adicional de Fontes
 	Adjust Adjoining Width Points	Ajustar Pontos de Largura Adjacentes
 	Adjust Color Balance…	Ajustar Equilíbrio de Cores…
 	Adjust Colors	Ajustar Cores
@@ -248,6 +252,7 @@
 	Auto Size New Area Type	Dimensionar Automaticamente Novo Texto de Área
 	Auto Spell Check	Verificação Ortográfica Automática
 	Auto-Collapse Iconic Panels	Recolher Automaticamente Painéis Icônicos
+	Show Tool Group Labels	Mostrar Rótulos dos Grupos de Ferramentas
 	Auto-Rotate (turn the paper to each artboard)	Girar Automaticamente (gire o papel para cada mesa de trabalho)
 	Automatic	Automático
 	Automatic flatness	Achatamento automático
@@ -1258,6 +1263,9 @@
 	Marker…	Marcador…
 	Marks	Marcas
 	Match User Interface Brightness	Corresponder ao Brilho da Interface do Usuário
+	Light Gray	Cinza Claro
+	Medium Gray	Cinza Médio
+	Dark Gray	Cinza Escuro
 	Materials…	Materiais…
 	Matte:	Fosco:
 	Maximize	Maximizar
@@ -1743,7 +1751,16 @@
 	Rating:	Avaliação:
 	Real World:	Mundo Real:
 	Real-time Drawing and Editing	Desenho e Edição em Tempo Real
-	Rearrange All Artboards (on the roadmap)	Reorganizar Todas as Mesas de Trabalho (no roadmap)
+	Rearrange All Artboards	Reorganizar Todas as Mesas de Trabalho
+	Rearrange All	Reorganizar Tudo
+	Layout Order:	Ordem do Layout:
+	Change to Left-to-Right Layout	Mudar para Layout da Esquerda para a Direita
+	Grid by Row	Grade por Linha
+	Grid by Column	Grade por Coluna
+	Arrange by Row	Organizar em Linha
+	Arrange by Column	Organizar em Coluna
+	Move Artwork with Artboard	Mover Arte com a Mesa de Trabalho
+	Artboards: {n}	Mesas de Trabalho: {n}
 	Rearrange All Artboards…	Reorganizar Todas as Mesas de Trabalho…
 	Recall Selection	Relembrar Seleção
 	Recent Colors	Cores Recentes
@@ -1887,6 +1904,8 @@
 	Reverse Spine	Inverter Coluna
 	Revert	Reverter
 	Revert to the saved version of “{name}”?	Reverter para a versão salva de “{name}”?
+	Replace “{name}”, the file this document was opened from?	Substituir “{name}”, o arquivo do qual este documento foi aberto?
+	Opening it left out what VectorCraft can't read yet ({what}), so replacing it loses that for good. Save under another name to keep it.	Ao abri-lo, ficou de fora o que o VectorCraft ainda não consegue ler ({what}), então substituí-lo perde isso para sempre. Salve com outro nome para mantê-lo.
 	Revolve…	Revolver…
 	Right Grid:	Grade Direita:
 	Right Indent	Recuo Direito
@@ -2115,6 +2134,8 @@
 	Show Grid (⌘')	Mostrar Grade (⌘')
 	Show Guides	Mostrar Guias
 	Show Hidden Characters	Mostrar Caracteres Ocultos
+	Bold	Negrito
+	Italic	Itálico
 	Show Images in Outline Mode	Mostrar Imagens no Modo de Contorno
 	Show Indic Options	Mostrar Opções do Índico
 	Show Link Info	Mostrar Informações do Link
@@ -2659,3 +2680,9 @@
 	Constrain	Restringir
 	Free Transform	Transformação Livre
 	Perspective Distort	Distorção de Perspectiva
+
+# Photoshop-style raster effects (Effect menu, their dialogs).
+	Radial Blur…	Desfoque Radial…
+	Smart Blur…	Desfoque Inteligente…
+	Sharpen	Nitidez
+	Unsharp Mask…	Máscara de Nitidez…

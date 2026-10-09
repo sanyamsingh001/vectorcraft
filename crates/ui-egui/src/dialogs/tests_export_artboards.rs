@@ -121,7 +121,16 @@ fn selected_eightieth_board_reaches_dxf_options_and_keeps_its_fill() {
     assert_eq!(dxf.lines().filter(|s| *s == "HATCH").count(), 1, "a filled hatch of the chosen art, rather than only its outline: {dxf}");
     assert!(dxf.contains("SOLID"));
     let imported = vectorcraft_cad::import(written[0].1.as_slice(), &Default::default()).unwrap();
-    let bounds = imported.document.art_bounds().unwrap();
+    // DXF fills also have cutter outlines, whose imported default stroke expands visual bounds.
+    // Measure the filled geometry to keep the artboard and unit oracle independent of that stroke.
+    let filled: Vec<_> = imported
+        .document
+        .selectable_art()
+        .into_iter()
+        .filter(|id| imported.document.node(*id).is_some_and(|n| n.appearance.fill().is_some_and(|f| !f.paint.is_none())))
+        .collect();
+    assert_eq!(filled.len(), 1, "only the selected artboard's solid fill comes back");
+    let bounds = imported.document.bounds_of(&filled, false).unwrap();
     assert!((bounds.width() - 17.0).abs() < 0.01 && (bounds.height() - 19.0).abs() < 0.01, "{bounds:?}");
 }
 

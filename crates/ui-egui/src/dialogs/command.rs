@@ -12,7 +12,7 @@ pub(super) const SPEC: DialogSpec = DialogSpec {
     body: |app, ui, d| {
         let command = d.str("__command");
         let lengths = lengths(&command);
-        form::param_fields(ui, d, &|k| lengths.contains(&k), &|k| choices(&command, k), app.session.general_unit());
+        form::param_fields(ui, d, &|k| lengths.contains(&k), &|k| choices(&command, k), &|_| 0, app.session.general_unit());
         false
     },
     confirm,
@@ -24,7 +24,6 @@ fn lengths(command: &str) -> &'static [&'static str] {
     match command {
         "graph.create" => &["width", "height"],
         "shape.flare" => &["diameter", "pathLength"],
-        "artboard.rearrange" => &["spacing"],
         "perspective.grid.set" => &["cell", "distance"],
         "object.repeat.options" => &["radius", "hSpacing", "vSpacing"],
         "text.areaOptions" => &["width", "height", "gutter", "inset", "firstBaselineMin"],

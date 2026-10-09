@@ -87,6 +87,7 @@
 	Add to Swatches	新增至色票
 	Add Used Colors	新增使用中的顏色
 	Additional Plug-ins Folder	額外的增效模組資料夾
+	Additional Fonts Folder	額外的字體資料夾
 	Adjust Adjoining Width Points	調整相鄰寬度點
 	Adjust Color Balance…	調整色彩平衡…
 	Adjust Colors	調整顏色
@@ -213,6 +214,7 @@
 	Auto Size New Area Type	自動調整新區域文字大小
 	Auto Spell Check	自動拼字檢查
 	Auto-Collapse Iconic Panels	自動收合圖示面板
+	Show Tool Group Labels	顯示工具組標籤
 	Auto-Rotate (turn the paper to each artboard)	自動旋轉 (將紙張轉向各工作區域)
 	Automatic flatness	自動平滑度
 	Automatically	自動
@@ -335,6 +337,8 @@
 	Clean Up…	清除…
 	Clear	清除
 	Clear All Tabs	清除所有定位點
+	Above Text	文字上方
+	Position Panel Above Text	將面板置於文字上方
 	Clear Appearance	清除外觀
 	Clear Guides	清除參考線
 	Clear Overrides	清除覆寫
@@ -1078,6 +1082,7 @@
 	Grays	灰色
 	Grays and Neutrals	灰色與中性色
 	Grayscale	灰階
+	Flat Logo	扁平標誌
 	Grayscale images	灰階影像
 	Greek & Cyrillic	希臘文與西里爾文
 	Green	綠
@@ -1417,6 +1422,9 @@
 	Marks and Bleed	標記與出血
 	Marks and Bleeds	標記與出血
 	Match User Interface Brightness	符合使用者介面亮度
+	Light Gray	淺灰色
+	Medium Gray	中灰色
+	Dark Gray	深灰色
 	Materials…	材質…
 	Matte	邊緣色
 	Matte:	遮色：
@@ -1469,6 +1477,9 @@
 	Modified:	修改時間：
 	Modify	修改
 	Mojikumi Set	標點間距
+	Kinsoku Set	Kinsoku 集
+	Hard	強
+	Soft	弱
 	Monitor RGB	顯示器 RGB
 	Mono	單色
 	Monochrome images	單色影像
@@ -1974,7 +1985,16 @@
 	Rating:	評等：
 	Real World:	真實世界：
 	Real-time Drawing and Editing	即時繪圖與編輯
-	Rearrange All Artboards (on the roadmap)	重新排列所有工作區域 (規劃中)
+	Rearrange All Artboards	重新排列所有工作區域
+	Rearrange All	全部重新排列
+	Layout Order:	版面配置順序：
+	Change to Left-to-Right Layout	變更為由左至右版面配置
+	Grid by Row	依列格狀排列
+	Grid by Column	依欄格狀排列
+	Arrange by Row	排成一列
+	Arrange by Column	排成一欄
+	Move Artwork with Artboard	隨工作區域移動圖稿
+	Artboards: {n}	工作區域：{n}
 	Rearrange All Artboards…	重新排列所有工作區域…
 	Recall Selection	叫出選取範圍
 	RECENT	最近使用
@@ -2136,6 +2156,8 @@
 	Reverse Spine	反轉軸線
 	Revert	回復
 	Revert to the saved version of “{name}”?	要回復為「{name}」已儲存的版本嗎？
+	Replace “{name}”, the file this document was opened from?	要取代「{name}」（開啟此文件的來源檔案）嗎？
+	Opening it left out what VectorCraft can't read yet ({what}), so replacing it loses that for good. Save under another name to keep it.	開啟時略過了 VectorCraft 尚無法讀取的內容（{what}），取代該檔案會永久遺失這些內容。若要保留，請以其他名稱儲存。
 	Revolve…	迴轉…
 	RGB Color	RGB 色彩
 	Right	右
@@ -2427,6 +2449,8 @@
 	Show Guides	顯示參考線
 	Show handles when multiple anchors are selected	選取多個錨點時顯示控制把手
 	Show Hidden Characters	顯示隱藏字元
+	Bold	粗體
+	Italic	斜體
 	Show Images in Outline Mode	在外框模式中顯示影像
 	Show in Folder	在資料夾中顯示
 	Show Indic Options	顯示印度文字選項
@@ -3012,6 +3036,9 @@
 	 to zoom in  |  	可放大  |  
 	 to zoom out  |  	可縮小  |  
 	 to zoom into an area	可放大至指定區域
+	Hold	按住
+	 right or left to zoom in or out  |  	向右可放大、向左可縮小  |  
+	 to keep zooming	可持續縮放
 	 an object to copy its attributes  |  	物件可複製其屬性  |  
 	 to apply the selection's to it  |  	可將選取範圍的屬性套用至該物件  |  
 	 to sample a color	可取樣顏色
@@ -3118,3 +3145,20 @@ axis	Both	兩者
 	Constrain	強制
 	Free Transform	任意變形
 	Perspective Distort	透視扭曲
+
+# Photoshop-style raster effects (Effect menu, their dialogs).
+	Radial Blur…	放射狀模糊…
+	Smart Blur…	智慧型模糊…
+	Sharpen	銳利化
+	Unsharp Mask…	反銳利化遮罩…
+	Radial Blur	放射狀模糊
+	Smart Blur	智慧型模糊
+	Unsharp Mask	反銳利化遮罩
+	Gaussian Blur	高斯模糊
+	Method	方法
+	Quality	品質
+	Radius	半徑
+	Spin	旋轉
+	Draft	草稿
+	Good	良好
+	Best	最佳

@@ -98,13 +98,19 @@ fn known_bug(id: &str, p: &Value) -> bool {
     KNOWN_BUGS.iter().any(|(c, k)| *c == id && p.get(*k).is_some())
 }
 
-/// Regression: huge column counts used to panic with `capacity overflow`.
+/// Regression: huge column counts used to panic with `capacity overflow`; in every layout and
+/// order (#681), with huge and negative spacing too.
 #[test]
 fn artboard_rearrange_huge_columns() {
     for fx in Fixture::ALL {
-        for cols in [json!(u64::MAX), json!(1e308)] {
-            let p = json!({ "columns": cols });
-            assert_eq!(probe(fx, "artboard.rearrange", &p), None);
+        for layout in ["gridByRow", "gridByColumn", "row", "column"] {
+            for order in ["leftToRight", "rightToLeft"] {
+                for (cols, spacing) in [(json!(u64::MAX), json!(1e308)), (json!(1e308), json!(-1e308)), (json!(0), json!(0)), (json!(-5), json!(20))]
+                {
+                    let p = json!({ "layout": layout, "order": order, "columns": cols, "spacing": spacing });
+                    assert_eq!(probe(fx, "artboard.rearrange", &p), None);
+                }
+            }
         }
     }
 }
@@ -251,6 +257,9 @@ fn structured_junk() {
         ("effect.apply", json!({"effect": "distort.zigZag", "params": {"size": 1e308, "ridges": 100}})),
         ("effect.apply", json!({"effect": "distort.transform", "params": {"copies": 1e308}})),
         ("effect.apply", json!({"effect": "stylize.dropShadow", "params": {"blur": 1e308, "opacity": -1}})),
+        ("effect.apply", json!({"effect": "blur.radial", "params": {"amount": 1e308, "method": 5, "quality": "best"}})),
+        ("effect.apply", json!({"effect": "blur.smart", "params": {"radius": 1e308, "threshold": -1e308, "quality": null}})),
+        ("effect.apply", json!({"effect": "sharpen.unsharpMask", "params": {"amount": -1, "radius": "1e999", "threshold": 1e308}})),
         ("effect.apply", json!({"effect": "no.such.effect"})),
         ("effect.remove", json!({"index": 99})),
         ("effect.setParams", json!({"index": 0, "params": null})),

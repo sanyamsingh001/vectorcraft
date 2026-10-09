@@ -155,6 +155,11 @@ pub struct DocState {
     pub print_tiling: bool,
     /// The rows open in the Layers panel (view state: not undoable; native files keep it).
     pub layers_open: OpenRows,
+    /// The file this document was read from, and what reading it left out (hidden text, art or
+    /// layers it could not read): writing the document over that file would lose those for good,
+    /// so an export or save to it asks first ([`cmd::fileio::check_not_lossy_overwrite`]). Not saved.
+    pub imported_from: Option<String>,
+    pub import_losses: Vec<String>,
     /// Transform Again after a perspective move or scale (Perspective Selection tool): the
     /// `perspective.transform` params it repeats. `None` once an ordinary transform follows.
     pub last_perspective: Option<Value>,
@@ -243,6 +248,8 @@ impl DocState {
             recovery: None,
             print_tiling: false,
             layers_open,
+            imported_from: None,
+            import_losses: vec![],
             last_perspective: None,
         }
     }
@@ -480,6 +487,9 @@ pub struct Prefs {
     // Hyphenation
     pub hyphenation_language: String,
     pub hyphenation_exceptions: String,
+    /// Type › Options › Additional Fonts Folder: a folder (read with its subfolders) whose fonts
+    /// are listed and used as if installed (#683); empty for none.
+    pub fonts_folder: String,
     // Performance & Storage (Plug-ins & Scratch Disks)
     pub plugins_folder: String,
     pub scratch_primary: String,
@@ -488,6 +498,9 @@ pub struct Prefs {
     pub ui_brightness: String,
     pub canvas_color: String,
     pub auto_collapse_icon_panels: bool,
+    /// User Interface › Show Tool Group Labels: the toolbar's group names (Select, Shapes, Draw…);
+    /// off, a faint dash separates the groups instead (#663).
+    pub tool_group_labels: bool,
     pub open_documents_as_tabs: bool,
     pub large_tabs: bool,
     pub ui_scaling: f64,
@@ -696,12 +709,14 @@ impl Default for Prefs {
             slice_line_color: s("#ff3f3f"),
             hyphenation_language: s("English: USA"),
             hyphenation_exceptions: String::new(),
+            fonts_folder: String::new(),
             plugins_folder: String::new(),
             scratch_primary: s("Startup"),
             scratch_secondary: s("None"),
             ui_brightness: s("mediumDark"),
             canvas_color: s("matchUi"),
             auto_collapse_icon_panels: false,
+            tool_group_labels: true,
             open_documents_as_tabs: true,
             large_tabs: false,
             ui_scaling: 1.0,
@@ -1008,6 +1023,8 @@ impl Session {
         st.format = old.format;
         st.save_options = old.save_options.clone();
         st.converted = old.converted;
+        st.imported_from = old.imported_from.clone();
+        st.import_losses = old.import_losses.clone();
         st.view = old.view.clone();
         st.layers_open = old.layers_open.clone();
         let old = std::mem::replace(&mut self.docs[index], st);
@@ -1543,6 +1560,8 @@ mod tests_printtiling;
 mod tests_proxyitems;
 #[cfg(test)]
 mod tests_puppetwarp;
+#[cfg(test)]
+mod tests_rasterfilters;
 #[cfg(test)]
 mod tests_rastersettings;
 #[cfg(test)]

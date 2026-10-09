@@ -79,6 +79,7 @@
 	Add to Swatches	添加到色板
 	Add Used Colors	添加已用颜色
 	Additional Plug-ins Folder	附加增效工具文件夹
+	Additional Fonts Folder	附加字体文件夹
 	Adjust Adjoining Width Points	调整相邻宽度点
 	Adjust Color Balance…	调整色彩平衡…
 	Adjust Colors	调整颜色
@@ -202,6 +203,7 @@
 	Auto Size New Area Type	自动调整新区域文字大小
 	Auto Spell Check	自动拼写检查
 	Auto-Collapse Iconic Panels	自动折叠图标面板
+	Show Tool Group Labels	显示工具组标签
 	Auto-Rotate (turn the paper to each artboard)	自动旋转 (为每个画板转动纸张)
 	Automatic flatness	自动平滑度
 	Automatically	自动
@@ -323,6 +325,8 @@
 	Clean Up…	清理…
 	Clear	清除
 	Clear All Tabs	清除全部制表位
+	Above Text	文本上方
+	Position Panel Above Text	将面板置于文本上方
 	Clear Appearance	清除外观
 	Clear Guides	清除参考线
 	Clear Overrides	清除覆盖
@@ -1052,6 +1056,7 @@
 	Grays	灰度级数
 	Grays and Neutrals	灰色和中性色
 	Grayscale	灰度
+	Flat Logo	扁平徽标
 	Grayscale images	灰度图像
 	Greek & Cyrillic	希腊文与西里尔文
 	Green	绿
@@ -1381,6 +1386,9 @@
 	Marks and Bleed	标记和出血
 	Marks and Bleeds	标记和出血
 	Match User Interface Brightness	匹配用户界面亮度
+	Light Gray	浅灰色
+	Medium Gray	中灰色
+	Dark Gray	深灰色
 	Materials…	材质…
 	Matte	杂边
 	Matte:	杂边：
@@ -1928,7 +1936,16 @@
 	Rating:	等级：
 	Real World:	真实世界：
 	Real-time Drawing and Editing	实时绘图和编辑
-	Rearrange All Artboards (on the roadmap)	重新排列所有画板 (规划中)
+	Rearrange All Artboards	重新排列所有画板
+	Rearrange All	全部重新排列
+	Layout Order:	布局顺序：
+	Change to Left-to-Right Layout	更改为由左至右版面配置
+	Grid by Row	按行网格排列
+	Grid by Column	按列网格排列
+	Arrange by Row	排成一行
+	Arrange by Column	排成一列
+	Move Artwork with Artboard	随画板移动图稿
+	Artboards: {n}	画板：{n}
 	Rearrange All Artboards…	重新排列所有画板…
 	Recall Selection	召回选区
 	RECENT	最近使用
@@ -2088,6 +2105,8 @@
 	Reverse Spine	反转路径
 	Revert	恢复
 	Revert to the saved version of “{name}”?	要恢复为“{name}”已存储的版本吗？
+	Replace “{name}”, the file this document was opened from?	要替换“{name}”（打开此文档的源文件）吗？
+	Opening it left out what VectorCraft can't read yet ({what}), so replacing it loses that for good. Save under another name to keep it.	打开时略去了 VectorCraft 尚无法读取的内容（{what}），替换该文件会永久丢失这些内容。要保留它们，请以其他名称存储。
 	Revolve…	回转…
 	RGB Color	RGB 颜色
 	Right	右
@@ -2345,6 +2364,8 @@
 	Show Guides	显示参考线
 	Show handles when multiple anchors are selected	选择多个锚点时显示手柄
 	Show Hidden Characters	显示隐藏字符
+	Bold	粗体
+	Italic	斜体
 	Show Images in Outline Mode	以轮廓模式显示图像
 	Show in Folder	在文件夹中显示
 	Show Indic Options	显示印度文字选项
@@ -2927,6 +2948,9 @@
 	 to zoom in  |  	以放大  |  
 	 to zoom out  |  	以缩小  |  
 	 to zoom into an area	以放大指定区域
+	Hold	按住
+	 right or left to zoom in or out  |  	向右以放大、向左以缩小  |  
+	 to keep zooming	以持续缩放
 	 an object to copy its attributes  |  	选择对象以复制其属性  |  
 	 to apply the selection's to it  |  	以将所选对象属性应用到它  |  
 	 to sample a color	以取样颜色
@@ -3249,6 +3273,9 @@
 	Right-to-Left Paragraph Direction	从右到左段落方向
 	Line-end Punctuation Half Width	行尾标点半角
 	Mojikumi Set	标点挤压集
+	Kinsoku Set	Kinsoku 集
+	Hard	强
+	Soft	弱
 	Saved Selection 1	已保存的选区 1
 	Saved Selection 2	已保存的选区 2
 	Saved Selection 3	已保存的选区 3
@@ -3340,3 +3367,20 @@ axis	Both	两者
 	Select Shaper Face	选择 Shaper 区域
 	Constrain	约束
 	Perspective Distort	透视扭曲
+
+# Photoshop-style raster effects (Effect menu, their dialogs).
+	Radial Blur…	径向模糊…
+	Smart Blur…	智能模糊…
+	Sharpen	锐化
+	Unsharp Mask…	反锐化遮罩…
+	Radial Blur	径向模糊
+	Smart Blur	智能模糊
+	Unsharp Mask	反锐化遮罩
+	Gaussian Blur	高斯模糊
+	Method	方法
+	Quality	质量
+	Radius	半径
+	Spin	旋转
+	Draft	草稿
+	Good	良好
+	Best	最佳

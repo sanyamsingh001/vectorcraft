@@ -43,10 +43,13 @@ struct App {
     graphics_loss: GraphicsLoss,
     /// The graphics device was lost and the unsaved changes are kept for Data Recovery.
     graphics_lost: bool,
+    /// Frames the UI has run (see [`end_before_teardown`]).
+    frames: u64,
 }
 
 impl eframe::App for App {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.frames = ctx.cumulative_frame_nr();
         if let Some(why) = self.graphics_loss.take() {
             // eframe can't give a window a new device: the user saves and starts again.
             self.graphics_lost = self.app.graphics_lost(&why);
@@ -87,10 +90,27 @@ impl eframe::App for App {
     #[cfg(not(feature = "windows7"))]
     fn on_exit(&mut self) {
         save_prefs(&self.app);
+        end_before_teardown(self.frames);
     }
     #[cfg(feature = "windows7")]
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         save_prefs(&self.app);
+    }
+}
+
+/// On macOS with accessibility, end the process once the app has saved what it keeps on quitting,
+/// before eframe tears the window down (#661). AccessKit then gives the window's content view back
+/// its own class, which AppKit's Touch Bar support was observing it under, and AppKit aborts the
+/// app as it quits on Macs with a Touch Bar. Nothing after the window is needed on a normal quit.
+/// Not while the window is still starting up (`frames` below [`gpu::STARTUP_FRAMES`]): a graphics
+/// failure then starts the app again on another adapter (#651).
+#[allow(unused_variables)]
+fn end_before_teardown(frames: u64) {
+    #[cfg(all(target_os = "macos", feature = "accessibility", feature = "wgpu"))]
+    if frames >= gpu::STARTUP_FRAMES {
+        log::info!("quitting");
+        log::logger().flush();
+        std::process::exit(0);
     }
 }
 
@@ -344,6 +364,18 @@ fn app_icon() -> egui::IconData {
     eframe::icon_data::from_png_bytes(png).unwrap_or_default()
 }
 
+/// Windows shows a window's big icon (`ICON_BIG`) in the taskbar and Alt+Tab; eframe sets only the
+/// small one (the title bar's), so the taskbar showed a generic icon. Set the big one too.
+#[cfg(windows)]
+fn set_taskbar_icon(w: &winit::window::Window) {
+    use winit::platform::windows::WindowExtWindows as _;
+    let icon = app_icon();
+    // An icon that can't be made leaves the generic one: nothing else depends on it.
+    if let Ok(i) = winit::window::Icon::from_rgba(icon.rgba, icon.width, icon.height) {
+        w.set_taskbar_icon(Some(i));
+    }
+}
+
 /// "name (backend, kind)" of the adapter the window renders with, for Help › About and bug reports.
 #[cfg(feature = "wgpu")]
 fn adapter_summary(info: &eframe::wgpu::AdapterInfo) -> String {
@@ -449,6 +481,8 @@ fn main() -> std::process::ExitCode {
                 // Fit the window to its monitor, or put it back where it was (still hidden).
                 if let Some(w) = cc.winit_window() {
                     app.ui.window = Some(window::restore(w, saved_window));
+                    #[cfg(windows)]
+                    set_taskbar_icon(w);
                 }
                 // User Defined swatch and graphic style libraries live next to the preferences.
                 let swatches = prefs_path().and_then(|p| Some(p.parent()?.join("Swatches").to_string_lossy().to_string()));
@@ -495,7 +529,7 @@ fn main() -> std::process::ExitCode {
                 #[cfg(not(target_os = "macos"))]
                 let _ = in_window_menus;
                 open_files(&mut app, files);
-                Ok(Box::new(App { app, graphics_loss, graphics_lost: false }))
+                Ok(Box::new(App { app, graphics_loss, graphics_lost: false, frames: 0 }))
             }),
         )
     });

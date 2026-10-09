@@ -291,6 +291,8 @@ pub struct CacheKey {
     /// View › Pixel Preview: the document pixels rendered (x0, y0, x1, y1), one per point, shown
     /// with hard edges. None: the art is rendered for the screen.
     pub pixel: Option<[i64; 4]>,
+    /// Images sampled smoothly ([`vectorcraft_render::RenderOptions::smooth_images`]).
+    pub smooth_images: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -531,6 +533,14 @@ impl VectorcraftApp {
                 && let Some(p) = params.as_object_mut()
             {
                 p.insert("center".into(), serde_json::json!([c.x, c.y]));
+            }
+            // In place, in front, in back: onto the active artboard (#693).
+            if matches!(id, "edit.pasteInPlace" | "edit.pasteInFront" | "edit.pasteInBack")
+                && params.get("artboard").is_none()
+                && let Some(i) = self.view().map(|v| v.artboard)
+                && let Some(p) = params.as_object_mut()
+            {
+                p.insert("artboard".into(), serde_json::json!(i));
             }
             if let Some(r) = dialogs::swatch_conflict::ask(self, id, &params) {
                 return r;

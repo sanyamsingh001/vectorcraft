@@ -391,7 +391,6 @@ fn bounds_and_read_failures_are_uncertain_and_can_be_retried() {
 mod fontdb_integration {
     use super::{AtomicU64, Ordering, PathBuf, collection, embed, encoding, file_font_coverage, test_fonts};
     use crate::fontdb::{FallbackTestIo, FontDb};
-    use std::path::Path;
     use std::sync::Arc;
     use write_fonts::{FontBuilder, types::Tag};
 
@@ -452,12 +451,8 @@ mod fontdb_integration {
 
     impl DbFixture {
         fn new() -> Self {
-            // Require the parent's repo TMPDIR; never silently create fixtures in system /tmp.
-            let root = std::fs::canonicalize(std::env::var_os("TMPDIR").expect("set TMPDIR to a directory inside the repository")).unwrap();
-            let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
-            // Sidecars live below the common repository's .git; normal checkouts use workspace.
-            let repository = workspace.ancestors().find(|p| p.file_name().is_some_and(|n| n == ".git")).and_then(Path::parent).unwrap_or(workspace);
-            assert!(root.starts_with(std::fs::canonicalize(repository).unwrap()), "TMPDIR must stay inside the repository");
+            // Honor the caller's TMPDIR; ordinary test runs use Rust's default temporary directory.
+            let root = std::env::temp_dir();
             static NEXT: AtomicU64 = AtomicU64::new(0);
             let path = root.join(format!("vc-fontdb-integration-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
             std::fs::create_dir(&path).unwrap();

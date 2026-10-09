@@ -157,6 +157,9 @@ pub(super) fn encode(doc: &Document, p: &Value, compressed: bool) -> Result<Enco
     // that preparation out of the native attachment so missing links remain relinkable.
     let (full, warnings) = crate::cmd::place::document::full_documents(doc);
     let doc = &*full;
+    // SVG has no filters for the Photoshop-style effects: their objects go in as images.
+    let flat = crate::cmd::rasterfx::flatten_pixel_effects(doc);
+    let doc = flat.as_ref().unwrap_or(doc);
     let mut enc = Encoded { warnings, ..Encoded::default() };
     for artboard in boards {
         // A chosen artboard's file holds the art over it (#550).
