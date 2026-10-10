@@ -1,0 +1,61 @@
+name: Mojikumi unchanged-source control and Arabic focused evidence
+'on':
+  push:
+    branches: [codex/verify-mojikumi-controls-r60]
+permissions:
+  contents: read
+concurrency:
+  group: verify-mojikumi-controls-r60
+  cancel-in-progress: false
+jobs:
+  control:
+    if: github.repository == 'sanyamsingh001/vectorcraft'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.0
+      CARGO_BUILD_JOBS: '1'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: never
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.mojikumi-target
+    steps:
+      - name: Check out the control harness only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: control-harness
+          persist-credentials: false
+      - name: Check out pristine 01e
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 01e165af633b88cb9df55d6a24ac4567e9fe9c06
+          path: control-base
+          persist-credentials: false
+      - name: Check out unchanged published Oracles
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: b4f183eb7e3dfcd4d97c5995a9c227430c2235ec
+          path: control-published
+          persist-credentials: false
+      - name: Install the same Linux package set once for both sources
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev fonts-dejavu-core fonts-noto-core
+      - name: Install the pinned compiler
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Collect original controls, focused guards, then separately attributed diagnostics
+        shell: bash
+        run: |
+          printf '%s  %s\n' '29ea2b377d9bd7e59a3219b13569d6b524feadc85427ff8574069cb32d72cf8e' 'control-harness/.github/diagnostics/mojikumi-control.py' | sha256sum --check --strict
+          python3 control-harness/.github/diagnostics/mojikumi-control.py "$GITHUB_WORKSPACE/control-base" "$GITHUB_WORKSPACE/control-published" "$GITHUB_WORKSPACE/.mojikumi-evidence"
+      - name: Preserve evidence even when the control test fails
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: mojikumi-01e-b4-control
+          path: .mojikumi-evidence
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
