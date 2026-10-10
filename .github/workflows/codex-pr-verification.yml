@@ -1,0 +1,134 @@
+name: Verify Arabic oracle assertions (Linux)
+'on':
+  push:
+    branches:
+    - codex/verify-arabic-oracles-r60
+permissions:
+  contents: read
+concurrency:
+  group: verify-arabic-oracles-r60
+  cancel-in-progress: false
+jobs:
+  verify:
+    name: ${{ matrix.unit }}
+    if: github.repository == 'sanyamsingh001/vectorcraft'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+        - unit: test-oracles
+          head: b4f183eb7e3dfcd4d97c5995a9c227430c2235ec
+          tree: 22246235e197656f61dce82193e76852eaebef22
+          commands:
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-text
+            - --lib
+            - 'tests_bidi::'
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-pdf
+            - --test
+            - system_fonts
+            - --test
+            - embedded_system_fonts
+            - --
+            - --nocapture
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.0
+      CARGO_BUILD_JOBS: '1'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: never
+      UNIT: ${{ matrix.unit }}
+      EXPECTED_HEAD: ${{ matrix.head }}
+      EXPECTED_TREE: ${{ matrix.tree }}
+      FOCUSED_COMMANDS: ${{ toJSON(matrix.commands) }}
+    steps:
+    - name: Check out the published revision
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: ${{ matrix.head }}
+        persist-credentials: false
+    - name: Install Linux build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev fonts-dejavu-core fonts-noto-core
+    - name: Install Rust 1.99 and checks
+      run: |
+        rustup toolchain install 1.99.0 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+    - name: Run focused tests and full CI on the pinned source
+      shell: bash
+      run: |
+        python3 - <<'PY'
+        import hashlib, json, os, pathlib, platform, subprocess, sys, time
+        out = pathlib.Path('.git/codex-ci')
+        out.mkdir()
+        def git(*args):
+            return subprocess.check_output(['git', *args], text=True).strip()
+        def guard():
+            assert git('rev-parse', 'HEAD') == os.environ['EXPECTED_HEAD']
+            assert git('rev-parse', 'HEAD^{tree}') == os.environ['EXPECTED_TREE']
+            subprocess.run(['git', 'diff', '--exit-code', 'HEAD'], check=True)
+        guard()
+        rust = subprocess.check_output(['rustc', '-vV'], text=True)
+        assert rust.startswith('rustc 1.99.0 '), rust
+        source = {'unit': os.environ['UNIT'], 'head': git('rev-parse', 'HEAD'), 'tree': git('rev-parse', 'HEAD^{tree}'), 'rust': rust, 'cargo': subprocess.check_output(['cargo', '-vV'], text=True), 'platform': platform.platform(), 'cargo_lock_sha256': hashlib.sha256(pathlib.Path('Cargo.lock').read_bytes()).hexdigest(), 'environment': {k: os.environ.get(k) for k in ['RUSTUP_TOOLCHAIN', 'CARGO_BUILD_JOBS', 'CARGO_PROFILE_DEV_DEBUG', 'CARGO_PROFILE_TEST_DEBUG', 'CARGO_INCREMENTAL', 'RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'RUST_MIN_STACK', 'RUST_TEST_THREADS', 'PROPTEST_CASES', 'CRAFT_FONTS_DIR', 'CRAFT_FONTS_REQUIRED']}}
+        for name in ['RUST_MIN_STACK', 'RUST_TEST_THREADS', 'PROPTEST_CASES', 'RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'CRAFT_FONTS_DIR', 'CRAFT_FONTS_REQUIRED']:
+            assert not os.environ.get(name), name
+        (out / 'source.json').write_text(json.dumps(source, indent=2) + '\n')
+        commands = json.loads(os.environ['FOCUSED_COMMANDS'])
+        assert all(isinstance(c, list) and c[:2] == ['cargo', 'test'] and all(isinstance(a, str) for a in c) for c in commands)
+        commands.append(['cargo', 'xtask', 'ci'])
+        results = []
+        for index, command in enumerate(commands):
+            guard()
+            print('COMMAND', json.dumps(command), flush=True)
+            log = out / ('command-%02d.log' % index)
+            started = time.time()
+            with log.open('w') as stream:
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+                for line in process.stdout:
+                    stream.write(line)
+                    print(line, end='', flush=True)
+                status = process.wait()
+            guard()
+            results.append({'command': command, 'exit_code': status, 'source_unchanged': True, 'started': started, 'ended': time.time(), 'log': log.name, 'log_sha256': hashlib.sha256(log.read_bytes()).hexdigest()})
+            (out / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
+        guard()
+        assert len(results) == len(commands)
+        sys.exit(0 if all(row['exit_code'] == 0 for row in results) else 1)
+        PY
+    - name: Require all three Arabic assertions to execute
+      shell: bash
+      run: |
+        python3 - <<'PY_CHECK'
+        import hashlib, json, pathlib, subprocess
+        out = pathlib.Path('.git/codex-ci')
+        log = (out / 'command-00.log').read_text()
+        names = ['arabic_contextual_forms_and_lam_alef_use_the_shaper', 'identical_style_arabic_run_splits_keep_joining_and_source_attribution', 'different_style_arabic_boundary_receives_joining_context']
+        checks = {name: ('ASSERTIONS RUN: ' + name + '; Arabic font Noto Sans Arabic ') in log and ('SKIPPED: ' + name + ';') not in log for name in names}
+        font_paths = sorted(pathlib.Path('/usr/share/fonts').rglob('NotoSansArabic*.ttf'))
+        font_files = [{'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in font_paths]
+        evidence = {'assertions_executed': checks, 'font_package': subprocess.check_output(['dpkg-query', '-W', '-f=${Package} ${Version}\n', 'fonts-noto-core'], text=True), 'fonts': font_files}
+        (out / 'arabic-font-evidence.json').write_text(json.dumps(evidence, indent=2) + '\n')
+        print(json.dumps(evidence, indent=2))
+        assert font_files and all(checks.values()), 'Required Arabic assertions did not execute'
+        PY_CHECK
+    - name: Preserve validation evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: verification-${{ matrix.unit }}
+        path: .git/codex-ci
+        include-hidden-files: true
+        if-no-files-found: error
+        retention-days: 7
