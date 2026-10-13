@@ -25,7 +25,6 @@ jobs:
       CARGO_PROFILE_TEST_DEBUG: '0'
       CARGO_INCREMENTAL: '0'
       CARGO_TERM_COLOR: never
-      CARGO_TARGET_DIR: ${{ runner.temp }}/r61-${{ matrix.unit }}-target
       BINDINGS_SHA256: 8b6dd9df809cfe5809ea69f36f6b63e5c210a80496a687ed375f7c7c9e2f0b76
       VERIFIER_SHA256: 7c48c92f9bdb228d62473196f273e2f97fefd1bf1b2c4a5b48e574d74ea0d35a
     steps:
@@ -53,6 +52,7 @@ jobs:
       - name: Stage frozen source and run unmodified full CI
         shell: bash
         env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/r61-${{ matrix.unit }}-target
           TMPDIR: ${{ runner.temp }}/r61-${{ matrix.unit }}-tmp
           TMP: ${{ runner.temp }}/r61-${{ matrix.unit }}-tmp
           TEMP: ${{ runner.temp }}/r61-${{ matrix.unit }}-tmp
