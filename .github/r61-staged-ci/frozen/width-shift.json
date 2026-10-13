@@ -1,0 +1,82 @@
+{
+  "unit": "width-shift",
+  "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-width-shift-8715130c",
+  "diff_sha256": "c84b8eb483dd5ec45efe91d63ace2c21bf1c57a1795267d341945d938d032efd",
+  "tree": "ebeabd4dff230fa78299afa3c9e4bf3784f56a4d",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/tools/src/distort/width.rs",
+    "crates/ui-egui/src/dialogs/width_point.rs",
+    "crates/ui-egui/src/menus.rs",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md",
+    "docs/ui-parity.md"
+  ],
+  "required_tests": [
+    "distort::width::tests::drag_outward_creates_symmetric_width_point",
+    "distort::width::tests::alt_drag_changes_one_side_and_move_slides",
+    "distort::width::tests::shift_click_selects_several_points_that_drag_together",
+    "distort::width::tests::alt_drag_copies_and_dropping_onto_a_point_snaps_to_it",
+    "distort::width::tests::compound_path_strokes_are_edited_through_the_compound",
+    "distort::width::tests::width_points_show_on_every_subpath",
+    "distort::width::tests::the_cursor_says_what_a_drag_does",
+    "distort::width::tests::double_click_on_a_width_point_opens_width_point_edit",
+    "dialogs::width_point::tests::double_click_opens_it_and_ok_sets_the_widths",
+    "dialogs::width_point::tests::delete_removes_the_point",
+    "dialogs::width_point::tests::it_does_not_stretch_to_the_screen"
+  ],
+  "integration_adaptations": [],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791848985.402875,
+  "parent_source_proofs": {
+    "crates/tools/src/distort/width.rs": {
+      "base_sha256": "c61f99d6d6d29d4ff6c638263ca13fc5eb5ed602d0643d4d293d9e6ea0041535",
+      "candidate_sha256": "db4992ff5dcf8f8f0b09a1cff32f3f5b1919d5a3c90a7d9b06849bde2d1dd0d3",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/dialogs/width_point.rs": {
+      "base_sha256": "e9f8c7fe844fd41be8a07ea5f8fbb712807ff6d4d0c8e109b95f39ab647eb33d",
+      "candidate_sha256": "2a60e79989b601628d6a7446d5d5077b7b98bd51307446f6d75045d6b8e1857a",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/menus.rs": {
+      "base_sha256": "f7a8686925889fdfbbf63290b0bdc546a7dec6567f2ba07982c7773d914d5cbd",
+      "candidate_sha256": "99b79d9d504f5b0b49ede7b1ba99bc0afa303569cd823dd1489524513b6c8808",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/gaps.md": {
+      "base_sha256": "f0396c015f07a6cd176a6427c260b0f2dcb3c7b18f24817dfe6531ef11af2c0a",
+      "candidate_sha256": "9041b05183c1cfa1e84f63ff361429373ebaf4fca0c4620a442f910bad3f5033",
+      "exact_original_feature_edits": 3,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "ff5eadca3c8c58258cf213ebaeb7c210cca60eae070970ea5eb0245dce041455",
+      "candidate_sha256": "39824fd4a3cee2017a70107aa41f9ce1e5114512b3766a09df5ce3db9b8d0838",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "ad63365f84d2ffe328e5be189af36f3704d4b3118bfee2ec3408805712b547a8",
+      "candidate_sha256": "366cae91e2f4a78e879ee5d530ad41a5498a4d520b9455468967cadd5f9c1535",
+      "exact_original_feature_edits": 4,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/ui-parity.md": {
+      "base_sha256": "6c27809c925e51f8032cee973913d1f4d7796c830355fba2253892446be74afb",
+      "candidate_sha256": "246816ff6e326f9c454225362754df273337e4f4b7bfd5e0849571f0bdfa6ca0",
+      "accepted_feature_reversal_restores_upstream": true
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/width-shift.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/7fadeb4e/width-shift.json",
+    "sha256": "0e8593446b9b145bb714ad3989b5cd294574376adaa67528eb7af99647a9e51a"
+  },
+  "integration_proof": "Parent exact raw-blob equality for unchanged upstream paths; original-feature reversal restores both old and latest bases for shared docs. No runtime claim."
+}
