@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "status": "UNEXECUTED_PREPARED_CARRIER",
+  "repository": "sanyamsingh001/vectorcraft",
+  "source_repository": "storytold/vectorcraft",
+  "branch": "codex/r61-staged-ci-3752b3ec-3ba43d58a58d",
+  "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+  "base_tree": "ee206c9e7304337cf830ccc92c7d8a1cc64cceae",
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "diff_flags": [
+    "--binary",
+    "--full-index",
+    "--no-renames",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--no-color",
+    "--unified=3",
+    "--src-prefix=a/",
+    "--dst-prefix=b/",
+    "--diff-algorithm=myers",
+    "--no-indent-heuristic"
+  ],
+  "steps": [
+    "fmt",
+    "clippy",
+    "test",
+    "assets",
+    "brands",
+    "layers",
+    "wasm"
+  ],
+  "units": {
+    "width-shift": {
+      "manifest": "frozen/width-shift.json",
+      "manifest_sha256": "350dacd11f09c0778c08b308062a76dd94479b368295a1a37c5a918977b9343e",
+      "patch": "frozen/width-shift.patch",
+      "patch_sha256": "87c9cabac44e9f6e39d5ec38c87f3f93a46fde6965a228fa48df7919389f282a",
+      "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+      "tree": "07076c96dd561798a7554f793ee840d9251432bc",
+      "full_index_diff_sha256": "a4c0a65a79b4c86dd67c807a2969e3cd982848bd76dfcf37cd048e249f4e0bea",
+      "required_test_count": 11
+    },
+    "artboard-delete": {
+      "manifest": "frozen/artboard-delete.json",
+      "manifest_sha256": "8c754f5345085732968cce42e1fc06476474c7bfecd3437e1f17fa5ad40031c1",
+      "patch": "frozen/artboard-delete.patch",
+      "patch_sha256": "b48908519209b6288740132ee34c521bb3e96a5eb7974fa933f5141b8c5fab35",
+      "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+      "tree": "ac74c4d33e55e8e34477142c16cf3dca28d6032f",
+      "full_index_diff_sha256": "29f358d752b418fde25c1c99dc1f09f7ff51df0371bb378e71a6a7caa22442fb",
+      "required_test_count": 4
+    },
+    "screens-tiff": {
+      "manifest": "frozen/screens-tiff.json",
+      "manifest_sha256": "a188059769bbc03355fad0571e5aab7761747ea3c60a36bdebb5430c8cdf0957",
+      "patch": "frozen/screens-tiff.patch",
+      "patch_sha256": "31f354508c55f214416e30c9e05bd2778ae1032d108477e8fc61ae1358ceed6b",
+      "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+      "tree": "cf71a0683c1f44497d8e417e6aaa527f1b4209bd",
+      "full_index_diff_sha256": "10913cf88735877e7effb912ea573d728163140b20cf5d6a96d0b90237a1e057",
+      "required_test_count": 18
+    },
+    "style-auto-leading": {
+      "manifest": "frozen/style-auto-leading.json",
+      "manifest_sha256": "0562664ce75639d47d6daa34d58d40e22888109e768b0f707d3ad8041aedf2c0",
+      "patch": "frozen/style-auto-leading.patch",
+      "patch_sha256": "26c015b85ce51bb6e193791e73d6f2201686899695d6a7d2e96634457fcd0d5e",
+      "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+      "tree": "66037385294226d594fc320241f5c66e04c1e429",
+      "full_index_diff_sha256": "e61c7eb65fff4c8c2b66815e98c034e690041cdf0db2a0a83ab87a14546132c4",
+      "required_test_count": 8
+    }
+  }
+}

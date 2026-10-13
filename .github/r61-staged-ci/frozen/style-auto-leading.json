@@ -1,0 +1,65 @@
+{
+  "unit": "style-auto-leading",
+  "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-style-auto-leading-3752b3ec",
+  "diff_sha256": "26c015b85ce51bb6e193791e73d6f2201686899695d6a7d2e96634457fcd0d5e",
+  "tree": "66037385294226d594fc320241f5c66e04c1e429",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/engine/src/cmd/textstyles.rs",
+    "crates/ui-egui/src/panels/text_styles.rs",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md",
+    "docs/type-parity.md"
+  ],
+  "required_tests": [
+    "cmd::textstyles::tests::char_style_new_apply_range_redefine_keeps_overrides",
+    "cmd::textstyles::tests::new_from_selection_rename_delete_and_undo",
+    "cmd::textstyles::tests::styles_take_attributes_left_out_at_their_defaults",
+    "cmd::textstyles::tests::auto_leading_redefine_keeps_overrides_and_history",
+    "cmd::textstyles::tests::auto_leading_new_distinguishes_unset_attributes",
+    "cmd::textstyles::tests::paragraph_styles_and_survive_save",
+    "panels::text_styles::tests::panels_draw_and_apply_headless",
+    "panels::text_styles::tests::auto_leading_style_marks_only_real_overrides"
+  ],
+  "integration_adaptations": [],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791854623.4841537,
+  "parent_source_proofs": {
+    "crates/engine/src/cmd/textstyles.rs": {
+      "base_sha256": "6b158096c88491e4734888cd4295d60957a58c113a5151112c185e84b6e40dee",
+      "candidate_sha256": "0c597547f05b3da9fc663ed51a63d78cc1e1fdb64cd52d15ee5e2ccd6fac896d"
+    },
+    "crates/ui-egui/src/panels/text_styles.rs": {
+      "base_sha256": "e42cb7d6ac6bcdd780c6f3ada869e63b033e0b48fd51fa0dc9b41c972e0f9cb6",
+      "candidate_sha256": "03b5bcbed442226f7a803bbc3bc4d01ce91a78403ce411baf2a8d7537b8199fd"
+    },
+    "docs/gaps.md": {
+      "base_sha256": "90f8e5b9bd9db929b3567603cbe6da3aaa71ad2ecf0ef5a0d834411ece1f8c05",
+      "candidate_sha256": "4a5fb0262a61e69565cd4a2eb6020eed2384feacbf35c773c23cc9196fbeb6b0"
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "3c0ea0952beef0ad94756b47815411cd1104c152f3f80038477a6d3519d2c221",
+      "candidate_sha256": "d7db990c9a52a43b913abb38e43065752bd17ad376850d034891f9faf841f03d"
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "8b83f790b824c37a634897b9d15c727b9b2c63880ac0aa84c786bc1486a7ac83",
+      "candidate_sha256": "0913150461b9f7630a16ae9e5e9f781a06b5267a7de58b1f06320c1d94c23b02"
+    },
+    "docs/type-parity.md": {
+      "base_sha256": "40da196f722944451e64bb049bfb77f60f28b9c631263948710244a14ab03737",
+      "candidate_sha256": "a1beb4c1dccc24dabda6de1e36682c7256efa0c676bfcdb4ee4392c46ae0071b"
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/3752b3ec/style-auto-leading.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/style-auto-leading.json",
+    "sha256": "70b91a27a8a0273d79e1273c5eeb9f8c055eb434f3d4a9f036b092d5eded52af"
+  },
+  "integration_proof": "Parent independently verified unchanged accepted Rust bytes and exact original-feature reversal restoring both old and latest bases for all16 shared docs. No runtime claim."
+}

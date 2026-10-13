@@ -1,0 +1,90 @@
+{
+  "unit": "screens-tiff",
+  "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-screens-tiff-3752b3ec",
+  "diff_sha256": "31f354508c55f214416e30c9e05bd2778ae1032d108477e8fc61ae1358ceed6b",
+  "tree": "cf71a0683c1f44497d8e417e6aaa527f1b4209bd",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/ui-egui/src/dialogs/export_for_screens.rs",
+    "crates/ui-egui/src/dialogs/mod.rs",
+    "crates/ui-egui/src/dialogs/tests_screens.rs",
+    "crates/ui-egui/src/panels/asset_export.rs",
+    "crates/ui-egui/src/panels/tests_asset_export.rs",
+    "docs/file-format-parity.md",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md"
+  ],
+  "required_tests": [
+    "dialogs::tests_screens::opens_on_defaults_and_draws_every_view",
+    "dialogs::tests_screens::checked_artboards_read_as_a_range",
+    "dialogs::tests_screens::exports_into_the_folder_and_shows_it",
+    "dialogs::tests_screens::the_web_downloads_one_zip_or_the_file",
+    "dialogs::tests_screens::a_preset_export_reopens_on_its_rows",
+    "dialogs::tests_screens::tiff_dropdown_exports_scaled_artboards_with_options_and_reopens",
+    "panels::tests_asset_export::an_empty_panel_says_how_to_add_assets_and_shows_the_export_settings",
+    "panels::tests_asset_export::art_dropped_on_the_panel_becomes_assets",
+    "panels::tests_asset_export::the_plus_button_collects_the_selection_and_the_bin_removes_selected_assets",
+    "panels::tests_asset_export::renaming_an_asset_runs_assets_rename",
+    "panels::tests_asset_export::the_rows_are_the_shared_export_settings",
+    "panels::tests_asset_export::export_writes_into_the_picked_folder",
+    "panels::tests_asset_export::tiff_dropdown_exports_only_the_selected_asset_and_shares_settings",
+    "panels::tests_asset_export::tiff_cmyk_defaults_match_screens_and_preserve_explicit_rgb",
+    "panels::tests_asset_export::tiff_panel_preserves_shared_antialias_and_explicit_overrides",
+    "cmd::fileio::tests_tiffbmp::tiff_options_reach_the_file",
+    "cmd::fileio::tests_screens::format_settings_apply_to_their_rows_and_rows_win",
+    "panels::tests_asset_export::tiff_saved_aliases_use_document_defaults_and_explicit_rgb"
+  ],
+  "integration_adaptations": [],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791854621.5253665,
+  "parent_source_proofs": {
+    "crates/ui-egui/src/dialogs/export_for_screens.rs": {
+      "base_sha256": "2dabb9070c2ebddb273d42dd618daecafb89f76e062d186214403f75b79c40a4",
+      "candidate_sha256": "bc07bfe2fc085d07a342717c7640c1020f3495d98987b7e0fdcc8102e27fa6d4"
+    },
+    "crates/ui-egui/src/dialogs/mod.rs": {
+      "base_sha256": "14767ed239d0ef7d13f900c38649027002e9d4a2885d67bb105825c644acd644",
+      "candidate_sha256": "b129a13f5a841278af531df749385930fff9c4f8cc0f7a1ec4f9c80971a9c76d"
+    },
+    "crates/ui-egui/src/dialogs/tests_screens.rs": {
+      "base_sha256": "a556dc934b07872bac730e2907cb54ff605536cd91ad5c918b91fb954c44a48b",
+      "candidate_sha256": "e1fcc573f9eae3eb132744074cbfde681c9f6cbb1acff67a6bac27c91d4b7f8f"
+    },
+    "crates/ui-egui/src/panels/asset_export.rs": {
+      "base_sha256": "11c3989db8e809d61e876e03bcf9157412e98aeccc21af0eef177efe2f63bda2",
+      "candidate_sha256": "42d59d2f640055fa0105aec8268f80ab6011aa6d10375be82641fbca4b2e938d"
+    },
+    "crates/ui-egui/src/panels/tests_asset_export.rs": {
+      "base_sha256": "939e2d8d41bf4dff5bbd2e280bb042939b7bdbeabec9a98c26cdf4ed7cdb7b6b",
+      "candidate_sha256": "c83176379dba7b5f58371cad2cd97e04bc0015f3936deec21d39c7eb90f5ddcf"
+    },
+    "docs/file-format-parity.md": {
+      "base_sha256": "eabcb6c964ec96b2be4de5bdedfe0d1fc93f732002c8e37fa4b425faf09c4089",
+      "candidate_sha256": "53a6cf827d20fe39883a16e112f24677451ba24c9d44c8fa702e2937ccd086f5"
+    },
+    "docs/gaps.md": {
+      "base_sha256": "90f8e5b9bd9db929b3567603cbe6da3aaa71ad2ecf0ef5a0d834411ece1f8c05",
+      "candidate_sha256": "d1810a17ee0c3b5818e7c70424aa38a86a9b707b7a7026bac78a38b8e9cdecaf"
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "3c0ea0952beef0ad94756b47815411cd1104c152f3f80038477a6d3519d2c221",
+      "candidate_sha256": "1f47a0947c317879ea2179d2916127cc7ad6266874448ab57c652227c73a5a26"
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "8b83f790b824c37a634897b9d15c727b9b2c63880ac0aa84c786bc1486a7ac83",
+      "candidate_sha256": "61e645d842ff32e55c6151b0f3ca3ad89f57888b1accf0cdb60a305ac8fefdd1"
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/3752b3ec/screens-tiff.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/screens-tiff.json",
+    "sha256": "d50358ab8b8fbfedd85782c4cd17cfa45b1441450c629014e577aaaa82fbbd3a"
+  },
+  "integration_proof": "Parent independently verified unchanged accepted Rust bytes and exact original-feature reversal restoring both old and latest bases for all16 shared docs. No runtime claim."
+}
