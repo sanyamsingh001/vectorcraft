@@ -1,0 +1,641 @@
+diff --git a/crates/ui-egui/src/dialogs/export_for_screens.rs b/crates/ui-egui/src/dialogs/export_for_screens.rs
+index c1aeb3f3..ce1ef406 100644
+--- a/crates/ui-egui/src/dialogs/export_for_screens.rs
++++ b/crates/ui-egui/src/dialogs/export_for_screens.rs
+@@ -9,7 +9,7 @@
+ //! `boards` ([bool] per artboard), `assets` ([asset id] checked on the Assets tab), `includeBleed`,
+ //! `folder`, `openLocation`, `subfolders`, `prefix`, `preset` (""|mobile|density: where the rows
+ //! came from), `formats` (rows of `document.exportForScreens`, `scale` as text), `settings`
+-//! ({png|png8|jpg|webp|gif|svg|pdf: {…}}); `__settings` names the format whose Format Settings
++//! ({png|png8|jpg|webp|gif|tiff|svg|pdf: {…}}); `__settings` names the format whose Format Settings
+ //! show ("" when closed).
+ 
+ use serde::Deserialize;
+@@ -39,7 +39,7 @@ pub(super) const SPEC: DialogSpec = DialogSpec {
+ pub const KIND: &str = "exportForScreens";
+ 
+ /// The format choices of a row: (label, format, JPEG quality).
+-const FORMATS: [(&str, &str, Option<u8>); 9] = [
++const FORMATS: [(&str, &str, Option<u8>); 10] = [
+     ("PNG", "png", None),
+     ("PNG 8", "png8", None),
+     ("JPG 100", "jpg", Some(100)),
+@@ -47,15 +47,16 @@ const FORMATS: [(&str, &str, Option<u8>); 9] = [
+     ("JPG 50", "jpg", Some(50)),
+     ("WebP", "webp", None),
+     ("GIF", "gif", None),
++    ("TIFF", "tiff", None),
+     ("SVG", "svg", None),
+     ("PDF", "pdf", None),
+ ];
+-const FORMAT_LABELS: [&str; 9] = ["PNG", "PNG 8", "JPG 100", "JPG 80", "JPG 50", "WebP", "GIF", "SVG", "PDF"];
++const FORMAT_LABELS: [&str; 10] = ["PNG", "PNG 8", "JPG 100", "JPG 80", "JPG 50", "WebP", "GIF", "TIFF", "SVG", "PDF"];
+ 
+ /// The formats Format Settings has options for: (format, label).
+-const SETTINGS: [(&str, &str); 7] =
+-    [("png", "PNG"), ("png8", "PNG 8"), ("jpg", "JPG"), ("webp", "WebP"), ("gif", "GIF"), ("svg", "SVG"), ("pdf", "PDF")];
+-const SETTINGS_LABELS: [&str; 7] = ["PNG", "PNG 8", "JPG", "WebP", "GIF", "SVG", "PDF"];
++const SETTINGS: [(&str, &str); 8] =
++    [("png", "PNG"), ("png8", "PNG 8"), ("jpg", "JPG"), ("webp", "WebP"), ("gif", "GIF"), ("tiff", "TIFF"), ("svg", "SVG"), ("pdf", "PDF")];
++const SETTINGS_LABELS: [&str; 8] = ["PNG", "PNG 8", "JPG", "WebP", "GIF", "TIFF", "SVG", "PDF"];
+ 
+ /// The sizes a row's scale list offers (any can be typed).
+ const SIZES: [&str; 12] = ["0.5x", "0.75x", "1x", "1.5x", "2x", "3x", "4x", "512w", "512h", "72ppi", "150ppi", "300ppi"];
+@@ -106,11 +107,7 @@ pub fn open(app: &mut VectorcraftApp) {
+     // Every format's settings: its defaults, then the saved ones.
+     let mut settings = Map::new();
+     for (id, _) in SETTINGS {
+-        let mut s = defaults(app, id);
+-        if let Some(o) = get("settings").and_then(|v| v.get(id)).and_then(Value::as_object) {
+-            s.extend(o.iter().map(|(k, v)| (k.clone(), v.clone())));
+-        }
+-        settings.insert(id.into(), Value::Object(s));
++        settings.insert(id.into(), Value::Object(saved_options(app, &saved, id)));
+     }
+     let folder = get("folder").and_then(Value::as_str).filter(|f| !f.is_empty()).map(str::to_string).or_else(fileio::export_folder);
+     let fields = json!({
+@@ -150,6 +147,21 @@ fn defaults(app: &VectorcraftApp, id: &str) -> Map<String, Value> {
+     o
+ }
+ 
++/// The format's defaults with the document's saved choices overlaid.
++pub(crate) fn saved_options(app: &VectorcraftApp, saved: &Map<String, Value>, id: &str) -> Map<String, Value> {
++    let mut options = defaults(app, id);
++    // TIFF's new defaults must not mask an existing shared anti-aliasing choice.
++    if id == "tiff"
++        && let Some(aa) = saved.get("antiAlias")
++    {
++        options.insert("antiAlias".into(), aa.clone());
++    }
++    if let Some(o) = saved.get("settings").and_then(|v| v.get(id)).and_then(Value::as_object) {
++        options.extend(o.iter().map(|(k, v)| (k.clone(), v.clone())));
++    }
++    options
++}
++
+ /// A row with its size as the text the Scale field shows (`2x`, `100w`, `100h`, `72ppi`).
+ fn editable_row(row: &Value) -> Value {
+     let num = |k: &str| row.get(k).and_then(Value::as_f64);
+diff --git a/crates/ui-egui/src/dialogs/mod.rs b/crates/ui-egui/src/dialogs/mod.rs
+index 101a29f2..5a0f5535 100644
+--- a/crates/ui-egui/src/dialogs/mod.rs
++++ b/crates/ui-egui/src/dialogs/mod.rs
+@@ -104,7 +104,8 @@ pub use effect::open as open_effect_dialog;
+ pub use export_as::open as open_export_as;
+ pub use export_for_screens::open as open_export_for_screens;
+ pub(crate) use export_for_screens::{
+-    KIND as EXPORT_FOR_SCREENS, formats as screen_formats, open_assets as open_export_for_screens_assets, saved_rows as screen_saved_rows,
++    KIND as EXPORT_FOR_SCREENS, formats as screen_formats, open_assets as open_export_for_screens_assets, saved_options as screen_saved_options,
++    saved_rows as screen_saved_rows,
+ };
+ pub(crate) use new_document::preset_name;
+ pub use new_document::{open as open_new_document, preset_card};
+diff --git a/crates/ui-egui/src/dialogs/tests_screens.rs b/crates/ui-egui/src/dialogs/tests_screens.rs
+index 55a48f7d..80490534 100644
+--- a/crates/ui-egui/src/dialogs/tests_screens.rs
++++ b/crates/ui-egui/src/dialogs/tests_screens.rs
+@@ -57,7 +57,7 @@ fn opens_on_defaults_and_draws_every_view() {
+     assert_eq!(field(&app, "folder"), json!(fileio::export_folder().unwrap_or_default()), "the Desktop, else home");
+     assert_eq!((field(&app, "openLocation"), field(&app, "subfolders"), field(&app, "preset")), (json!(true), json!(false), json!("")));
+     let settings = field(&app, "settings");
+-    for f in ["png", "png8", "jpg", "webp", "gif", "svg", "pdf"] {
++    for f in ["png", "png8", "jpg", "webp", "gif", "tiff", "svg", "pdf"] {
+         assert!(settings[f].is_object(), "{f} has settings");
+     }
+     assert!(settings["jpg"].get("quality").is_none() && settings["jpg"].get("imageMap").is_none(), "rows choose quality; no maps");
+@@ -69,7 +69,7 @@ fn opens_on_defaults_and_draws_every_view() {
+     frame(&mut app);
+     set(&mut app, "tab", json!("artboards"));
+     set(&mut app, "select", json!("full"));
+-    for f in ["png", "png8", "jpg", "webp", "gif", "svg", "pdf"] {
++    for f in ["png", "png8", "jpg", "webp", "gif", "tiff", "svg", "pdf"] {
+         set(&mut app, "__settings", json!(f));
+         frame(&mut app);
+         assert_eq!(field(&app, "__settings"), json!(f));
+@@ -190,3 +190,142 @@ fn a_preset_export_reopens_on_its_rows() {
+     let scales: Vec<Value> = field(&app, "formats").as_array().unwrap().iter().map(|r| r["scale"].clone()).collect();
+     assert_eq!(scales, [json!("64w"), json!("3x"), json!("144ppi")]);
+ }
++
++/// Persistent frames keep dropdowns open between the pointer press and release.
++struct ScreensFrame {
++    ctx: egui::Context,
++    time: f64,
++}
++
++impl ScreensFrame {
++    fn new() -> Self {
++        let ctx = egui::Context::default();
++        crate::theme::install_fonts(&ctx);
++        Self { ctx, time: 0.0 }
++    }
++
++    fn frame(&mut self, app: &mut VectorcraftApp, events: Vec<egui::Event>) -> egui::FullOutput {
++        self.time += 0.1;
++        let input = egui::RawInput {
++            events,
++            time: Some(self.time),
++            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1100.0, 900.0))),
++            ..Default::default()
++        };
++        let mut out = self.ctx.run_ui(input, |ui| super::show(app, ui.ctx()));
++        out.textures_delta.clear();
++        out
++    }
++
++    fn settle(&mut self, app: &mut VectorcraftApp) -> egui::FullOutput {
++        self.frame(app, vec![]);
++        self.frame(app, vec![])
++    }
++
++    fn click(&mut self, app: &mut VectorcraftApp, at: egui::Pos2) -> egui::FullOutput {
++        let button = |pressed| egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
++        self.frame(app, vec![egui::Event::PointerMoved(at)]);
++        self.frame(app, vec![button(true)]);
++        self.frame(app, vec![button(false)]);
++        self.settle(app)
++    }
++
++    fn click_label(&mut self, app: &mut VectorcraftApp, label: &str) -> egui::FullOutput {
++        let out = self.settle(app);
++        self.click(app, screen_text_at(&out, label))
++    }
++
++    fn choose(&mut self, app: &mut VectorcraftApp, current: &str, next: &str) {
++        let out = self.click_label(app, current);
++        self.click(app, screen_text_at(&out, next));
++    }
++}
++
++fn screen_text_at(out: &egui::FullOutput, label: &str) -> egui::Pos2 {
++    fn find(shape: &egui::Shape, label: &str) -> Option<egui::Pos2> {
++        match shape {
++            egui::Shape::Text(t) if t.galley.text().trim() == label => Some(t.visual_bounding_rect().center()),
++            egui::Shape::Vec(v) => v.iter().find_map(|s| find(s, label)),
++            _ => None,
++        }
++    }
++    out.shapes.iter().find_map(|s| find(&s.shape, label)).unwrap_or_else(|| panic!("missing {label}: {}", crate::tests_labels::shapes_text(out)))
++}
++
++/// First-directory entries of the big-endian TIFF chosen below: tag, type, count, inline value.
++fn big_tiff_tags(bytes: &[u8]) -> Vec<(u16, u16, u32, u16)> {
++    assert_eq!(&bytes[..4], b"MM\0*");
++    let short = |at| u16::from_be_bytes(bytes[at..at + 2].try_into().unwrap());
++    let long = |at| u32::from_be_bytes(bytes[at..at + 4].try_into().unwrap());
++    let dir = long(4) as usize;
++    (0..usize::from(short(dir)))
++        .map(|i| {
++            let at = dir + 2 + 12 * i;
++            (short(at), short(at + 2), long(at + 4), short(at + 8))
++        })
++        .collect()
++}
++
++#[test]
++fn tiff_dropdown_exports_scaled_artboards_with_options_and_reopens() {
++    let (mut app, log) = app(2, true);
++    app.run("paint.setStroke", json!({"none": true})).unwrap();
++    app.run("paint.setFill", json!({"color": "#c03020"})).unwrap();
++    open(&mut app);
++    // Begin with an existing PNG row; TIFF must be chosen from the actual popup.
++    set(&mut app, "formats", json!([{"format": "png", "scale": "2x", "suffix": "@2x"}]));
++    set(&mut app, "prefix", json!("proof-"));
++    let mut h = ScreensFrame::new();
++    h.choose(&mut app, "PNG", "TIFF");
++    assert_eq!(field(&app, "formats"), json!([{"format": "tiff", "scale": "2x", "suffix": "@2x"}]));
++    // Leave only the first of two boards checked.
++    h.click_label(&mut app, "Artboard 2");
++    assert_eq!(field(&app, "boards"), json!([true, false]));
++    assert_eq!(field(&app, "range"), json!("1"));
++
++    // Exercise the settings dropdown independently of the row's format choice.
++    set(&mut app, "__settings", json!("png"));
++    h.choose(&mut app, "PNG", "TIFF");
++    assert_eq!(field(&app, "__settings"), json!("tiff"));
++    let settings = field(&app, "settings");
++    assert_eq!(settings["tiff"]["colorModel"], "rgb");
++    assert_eq!(settings["tiff"]["byteOrder"], "little");
++    assert_eq!(settings["tiff"]["lzw"], true);
++    assert_eq!(settings["tiff"]["embedIcc"], true);
++    h.choose(&mut app, "Little-endian (II)", "Big-endian (MM)");
++    h.click_label(&mut app, "LZW Compression");
++    h.click_label(&mut app, "Embed ICC Profile");
++    let settings = field(&app, "settings");
++    assert_eq!(settings["tiff"]["byteOrder"], "big");
++    assert_eq!(settings["tiff"]["lzw"], false);
++    assert_eq!(settings["tiff"]["embedIcc"], false);
++    h.click_label(&mut app, "Done");
++    h.click_label(&mut app, "Download");
++    assert!(app.ui.dialog.is_none(), "{}", app.ui.status);
++
++    {
++        let log = log.borrow();
++        let [(name, bytes)] = log.as_slice() else { panic!("expected one TIFF download") };
++        assert_eq!(name, "proof-Artboard-1@2x.tif");
++        let tags = big_tiff_tags(bytes);
++        assert!(tags.contains(&(259, 3, 1, 1)), "uncompressed as selected");
++        assert!(tags.contains(&(262, 3, 1, 2)), "RGB");
++        assert!(!tags.iter().any(|t| t.0 == 34675), "ICC profile disabled");
++        let img = image::load_from_memory_with_format(bytes, image::ImageFormat::Tiff).unwrap().to_rgba8();
++        assert_eq!(img.dimensions(), (120, 80));
++        assert_eq!(img.get_pixel(0, 0).0[3], 0, "transparent board corner");
++        let inside = img.get_pixel(40, 28).0;
++        assert!(inside[0] > inside[1] && inside[3] == 255, "ellipse at the scaled position: {inside:?}");
++    }
++
++    open(&mut app);
++    assert_eq!(field(&app, "formats"), json!([{"format": "tiff", "scale": "2x", "suffix": "@2x"}]));
++    assert_eq!(field(&app, "boards"), json!([true, false]));
++    assert_eq!(field(&app, "prefix"), "proof-");
++    assert_eq!(field(&app, "settings")["tiff"], settings["tiff"]);
++    // Existing vector and raster choices remain selectable.
++    h.choose(&mut app, "TIFF", "SVG");
++    assert_eq!(field(&app, "formats")[0]["format"], "svg");
++    h.choose(&mut app, "SVG", "PNG");
++    assert_eq!(field(&app, "formats")[0]["format"], "png");
++}
+diff --git a/crates/ui-egui/src/panels/asset_export.rs b/crates/ui-egui/src/panels/asset_export.rs
+index 2583f74a..82905110 100644
+--- a/crates/ui-egui/src/panels/asset_export.rs
++++ b/crates/ui-egui/src/panels/asset_export.rs
+@@ -18,7 +18,7 @@ use vectorcraft_doc::{ExportAsset, Node, NodeId};
+ use vectorcraft_engine::DocState;
+ 
+ use super::{pstate, set_pstate};
+-use crate::dialogs::{EXPORT_FOR_SCREENS, open_export_for_screens_assets, screen_formats, screen_saved_rows};
++use crate::dialogs::{EXPORT_FOR_SCREENS, open_export_for_screens_assets, screen_formats, screen_saved_options, screen_saved_rows};
+ use crate::state::Dialog;
+ use crate::theme::Tokens;
+ use crate::widgets::{self, menu_item};
+@@ -191,6 +191,18 @@ fn export(app: &mut VectorcraftApp, ids: Vec<u64>, files_each: usize) {
+ 
+ fn export_now(app: &mut VectorcraftApp, ids: Vec<u64>, files_each: usize) {
+     let mut p = json!({ "assets": ids });
++    // Match the shared dialog's TIFF defaults, retaining saved choices and other formats.
++    if let Some(st) = app.session.active()
++        && screen_saved_rows(&st.doc.export_settings)
++            .0
++            .iter()
++            .any(|row| row["format"].as_str().and_then(vectorcraft_engine::cmd::fileio::format).is_some_and(|f| f.id == "tiff"))
++    {
++        let saved = &st.doc.export_settings;
++        let mut settings = saved.get("settings").and_then(Value::as_object).cloned().unwrap_or_default();
++        settings.insert("tiff".into(), Value::Object(screen_saved_options(app, saved, "tiff")));
++        p["settings"] = Value::Object(settings);
++    }
+     if io::is_web(app) {
+         p["zip"] = json!(ids.len() * files_each > 1);
+     } else {
+diff --git a/crates/ui-egui/src/panels/tests_asset_export.rs b/crates/ui-egui/src/panels/tests_asset_export.rs
+index 59e732d3..9b978e83 100644
+--- a/crates/ui-egui/src/panels/tests_asset_export.rs
++++ b/crates/ui-egui/src/panels/tests_asset_export.rs
+@@ -204,3 +204,217 @@ fn export_writes_into_the_picked_folder() {
+     assert!(dir.join("Badge.png").is_file(), "{:?}", std::fs::read_dir(&dir).map(|d| d.count()));
+     let _ = std::fs::remove_dir_all(&dir);
+ }
++
++#[test]
++fn tiff_dropdown_exports_only_the_selected_asset_and_shares_settings() {
++    let (mut app, log, [a, b]) = app(true);
++    app.run("paint.setFill", json!({"ids": [a], "color": "#c03020"})).unwrap();
++    app.run("paint.setFill", json!({"ids": [b], "color": "#2040c0"})).unwrap();
++    app.run("assets.add", json!({"ids": [a], "name": "Badge"})).unwrap();
++    app.run("assets.add", json!({"ids": [b], "name": "Other"})).unwrap();
++    app.run(
++        "assets.settings.set",
++        json!({
++            "formats": [{"format": "png", "scale": "2x", "suffix": "@2x"}],
++            "settings": {"tiff": {"byteOrder": "big", "lzw": false, "embedIcc": false}}
++        }),
++    )
++    .unwrap();
++    let ctx = egui::Context::default();
++    crate::theme::install_fonts(&ctx);
++    frame(&ctx, &mut app, vec![], false);
++    let texts = frame(&ctx, &mut app, vec![], false);
++    frame(&ctx, &mut app, click(at(&texts, "PNG")), false);
++    let texts = frame(&ctx, &mut app, vec![], false);
++    frame(&ctx, &mut app, click(at(&texts, "TIFF")), false);
++    let texts = frame(&ctx, &mut app, vec![], false);
++    assert!(has(&texts, "TIFF"));
++    let saved = app.run("document.exportSettings", json!({})).unwrap()["settings"].clone();
++    assert_eq!(saved["formats"], json!([{"format": "tiff", "scale": "2x", "suffix": "@2x"}]));
++    frame(&ctx, &mut app, click(at(&texts, "Badge")), false);
++    let texts = frame(&ctx, &mut app, vec![], false);
++    frame(&ctx, &mut app, click(at(&texts, "Export 1 Selected")), false);
++    {
++        let log = log.borrow();
++        let [(name, bytes)] = log.as_slice() else { panic!("expected only the selected asset") };
++        assert_eq!(name, "Badge@2x.tif");
++        assert_eq!(&bytes[..4], b"MM\0*", "the saved TIFF byte order reaches asset export");
++        let img = image::load_from_memory_with_format(bytes, image::ImageFormat::Tiff).unwrap().to_rgba8();
++        assert_eq!(img.dimensions(), (60, 40), "the selected 30x20 asset at 2x");
++        let pixel = img.get_pixel(30, 20).0;
++        assert!(pixel[0] > pixel[1] && pixel[0] > pixel[2] && pixel[3] == 255, "the red Badge, not the blue Other asset: {pixel:?}");
++    }
++    app.run("file.exportForScreens", json!({})).unwrap();
++    let d = app.ui.dialog.as_ref().unwrap();
++    assert_eq!(d.fields["formats"], saved["formats"]);
++    assert_eq!(d.fields["settings"]["tiff"]["byteOrder"], "big");
++    assert_eq!(d.fields["settings"]["tiff"]["lzw"], false);
++    assert_eq!(d.fields["settings"]["tiff"]["embedIcc"], false);
++}
++
++/// TIFF tag 262 identifies RGB (2) or separated CMYK (5), independently of a decoder's conversion.
++fn tiff_photometric(bytes: &[u8]) -> u16 {
++    let big = match &bytes[..4] {
++        b"II*\0" => false,
++        b"MM\0*" => true,
++        magic => panic!("not TIFF: {magic:?}"),
++    };
++    let short = |at: usize| {
++        let b = bytes[at..at + 2].try_into().unwrap();
++        if big { u16::from_be_bytes(b) } else { u16::from_le_bytes(b) }
++    };
++    let long = |at: usize| {
++        let b = bytes[at..at + 4].try_into().unwrap();
++        if big { u32::from_be_bytes(b) } else { u32::from_le_bytes(b) }
++    };
++    let dir = long(4) as usize;
++    let entry = (0..usize::from(short(dir))).map(|i| dir + 2 + 12 * i).find(|&at| short(at) == 262).expect("PhotometricInterpretation");
++    assert_eq!((short(entry + 2), long(entry + 4)), (3, 1), "one SHORT");
++    short(entry + 8)
++}
++
++#[test]
++fn tiff_cmyk_defaults_match_screens_and_preserve_explicit_rgb() {
++    for rgb_override in [false, true] {
++        let mut models = vec![];
++        for screens in [false, true] {
++            let (mut app, log, [a, _]) = app(true);
++            app.run("object.convertDocumentColorMode", json!({"mode": "cmyk"})).unwrap();
++            app.run("assets.add", json!({"ids": [a], "name": "Badge"})).unwrap();
++            assert!(app.session.active().unwrap().doc.export_settings.get("settings").is_none(), "fresh format settings");
++            if rgb_override {
++                app.run("assets.settings.set", json!({"settings": {"tiff": {"colorModel": "rgb"}}})).unwrap();
++            }
++            let ctx = egui::Context::default();
++            crate::theme::install_fonts(&ctx);
++            frame(&ctx, &mut app, vec![], false);
++            let texts = frame(&ctx, &mut app, vec![], false);
++            frame(&ctx, &mut app, click(at(&texts, "PNG")), false);
++            let texts = frame(&ctx, &mut app, vec![], false);
++            frame(&ctx, &mut app, click(at(&texts, "TIFF")), false);
++            let texts = frame(&ctx, &mut app, vec![], false);
++            assert!(has(&texts, "TIFF"));
++            if !rgb_override {
++                assert!(app.session.active().unwrap().doc.export_settings.get("settings").and_then(|s| s.get("tiff")).is_none());
++            }
++            if screens {
++                // The 24 pt gear is the rightmost control in the Formats row of this 236 pt panel.
++                frame(&ctx, &mut app, click(pos2(236.0 - 12.0, at(&texts, "Formats:").y)), false);
++                let d = app.ui.dialog.as_ref().expect("the panel gear opens Format Settings");
++                assert_eq!((d.kind.as_str(), d.str("tab"), d.str("__settings")), ("exportForScreens", "assets".into(), "tiff".into()));
++                assert_eq!(d.fields["settings"]["tiff"]["colorModel"], if rgb_override { "rgb" } else { "cmyk" });
++                crate::dialogs::confirm(&mut app).unwrap();
++                assert!(app.ui.dialog.is_none());
++            } else {
++                frame(&ctx, &mut app, click(at(&texts, "Export")), false);
++            }
++            let log = log.borrow();
++            let [(name, bytes)] = log.as_slice() else { panic!("expected one TIFF: screens={screens}, rgb_override={rgb_override}") };
++            assert_eq!(name, "Badge.tif");
++            models.push(tiff_photometric(bytes));
++        }
++        assert_eq!(models, vec![if rgb_override { 2 } else { 5 }; 2], "direct panel and screens; explicit RGB={rgb_override}");
++    }
++}
++
++#[test]
++fn tiff_panel_preserves_shared_antialias_and_explicit_overrides() {
++    for (format_aa, row_aa, effective_aa) in [(None, None, "none"), (Some("art"), None, "art"), (Some("art"), Some("none"), "none")] {
++        let (mut app, log, _) = app(true);
++        // The fractional ellipse reuses the raster-export hard/smooth edge oracle.
++        let id = app.run("shape.ellipse", json!({"x": 5.3, "y": 4.7, "width": 25.8, "height": 21.5})).unwrap()["id"].clone();
++        app.run("assets.add", json!({"ids": [id], "name": "Edge"})).unwrap();
++        let mut row = json!({"format": "png", "scale": "1x", "suffix": ""});
++        if let Some(aa) = row_aa {
++            row["antiAlias"] = json!(aa);
++        }
++        let other_settings = json!({"png": {"antiAlias": "type", "interlaced": true}, "jpg": {"quality": 80}});
++        let mut settings = other_settings.clone();
++        if let Some(aa) = format_aa {
++            settings["tiff"] = json!({"antiAlias": aa});
++        }
++        app.run("assets.settings.set", json!({"formats": [row], "antiAlias": "none", "settings": settings})).unwrap();
++        let ctx = egui::Context::default();
++        crate::theme::install_fonts(&ctx);
++        frame(&ctx, &mut app, vec![], false);
++        let texts = frame(&ctx, &mut app, vec![], false);
++        frame(&ctx, &mut app, click(at(&texts, "PNG")), false);
++        let texts = frame(&ctx, &mut app, vec![], false);
++        frame(&ctx, &mut app, click(at(&texts, "TIFF")), false);
++        let texts = frame(&ctx, &mut app, vec![], false);
++        assert!(has(&texts, "TIFF"));
++        frame(&ctx, &mut app, click(at(&texts, "Export")), false);
++        {
++            let log = log.borrow();
++            let [(name, bytes)] = log.as_slice() else { panic!("expected one TIFF: format={format_aa:?}, row={row_aa:?}") };
++            assert_eq!(name, "Edge.tif");
++            let img = image::load_from_memory_with_format(bytes, image::ImageFormat::Tiff).unwrap().to_rgba8();
++            assert!(img.pixels().any(|p| p[3] == 255), "the ellipse is present");
++            assert!(img.pixels().any(|p| p[3] == 0), "transparent outside the ellipse");
++            let hard = img.pixels().all(|p| p[3] == 0 || p[3] == 255);
++            assert_eq!(hard, effective_aa == "none", "effective anti-aliasing: format={format_aa:?}, row={row_aa:?}");
++        }
++        let saved = app.run("document.exportSettings", json!({})).unwrap()["settings"].clone();
++        assert_eq!(saved["antiAlias"], "none", "the shared choice stays saved");
++        assert_eq!(saved["settings"], settings, "direct export preserves saved format options, including an absent TIFF map");
++        assert_eq!(saved["formats"][0]["format"], "tiff");
++        assert_eq!(saved["formats"][0].get("antiAlias").and_then(Value::as_str), row_aa, "row overrides stay on the row");
++        for format in ["png", "jpg"] {
++            assert_eq!(saved["settings"][format], other_settings[format], "other format choices survive");
++        }
++    }
++}
++
++#[cfg(not(target_arch = "wasm32"))]
++#[test]
++fn tiff_saved_aliases_use_document_defaults_and_explicit_rgb() {
++    let dir = std::env::temp_dir().join(format!("vc-asset-tiff-aliases-{}", std::process::id()));
++    let _ = std::fs::remove_dir_all(&dir);
++    // The first case is the historical control: saved tif without an explicit model must be CMYK.
++    // Native picked folders let the mixed-row case inspect each file without introducing a ZIP decoder.
++    for (case, (alias, rgb_override, mixed)) in
++        [("tif", false, false), ("TIFF", false, false), (".tif", false, true), ("tif", true, false)].into_iter().enumerate()
++    {
++        let folder = dir.join(case.to_string());
++        let picked = folder.to_string_lossy().replace('\\', "/");
++        let (mut app, _, [a, _]) = app(false);
++        app.services.pick_folder = Some(Box::new(move || Some(picked.clone())));
++        app.run("object.convertDocumentColorMode", json!({"mode": "cmyk"})).unwrap();
++        app.run("assets.add", json!({"ids": [a], "name": "Badge"})).unwrap();
++        let mut rows = vec![json!({"format": alias, "scale": "2x", "suffix": "@2x"})];
++        if mixed {
++            rows.push(json!({"format": "png", "scale": "1x", "suffix": ""}));
++        }
++        let mut settings = json!({"png": {"interlaced": true}});
++        if rgb_override {
++            settings["tiff"] = json!({"colorModel": "rgb"});
++        }
++        let saved = json!({"formats": rows, "settings": settings});
++        app.run("assets.settings.set", saved.clone()).unwrap();
++        let ctx = egui::Context::default();
++        crate::theme::install_fonts(&ctx);
++        frame(&ctx, &mut app, vec![], false);
++        let texts = frame(&ctx, &mut app, vec![], false);
++        // Keep the valid saved spelling; choosing the TIFF dropdown would hide the alias bug.
++        frame(&ctx, &mut app, click(at(&texts, "Export")), false);
++        let bytes = std::fs::read(folder.join("Badge@2x.tif")).unwrap();
++        assert_eq!(tiff_photometric(&bytes), if rgb_override { 2 } else { 5 }, "saved alias {alias}, explicit RGB={rgb_override}");
++        if rgb_override {
++            let img = image::load_from_memory_with_format(&bytes, image::ImageFormat::Tiff).unwrap();
++            assert_eq!((img.width(), img.height()), (60, 40), "the saved TIFF row is still 2x");
++        }
++        if mixed {
++            let png = std::fs::read(folder.join("Badge.png")).unwrap();
++            let img = image::load_from_memory_with_format(&png, image::ImageFormat::Png).unwrap();
++            assert_eq!((img.width(), img.height()), (30, 20), "the PNG row keeps its own 1x scale");
++            assert_eq!(png.get(28), Some(&1), "the saved PNG interlace option survives the TIFF defaults");
++        }
++        assert_eq!(std::fs::read_dir(&folder).unwrap().count(), if mixed { 2 } else { 1 });
++        assert_eq!(
++            app.run("document.exportSettings", json!({})).unwrap()["settings"],
++            saved,
++            "direct export preserves saved aliases and explicit options"
++        );
++    }
++    let _ = std::fs::remove_dir_all(&dir);
++}
+diff --git a/docs/file-format-parity.md b/docs/file-format-parity.md
+index 5f3d4845..b0986200 100644
+--- a/docs/file-format-parity.md
++++ b/docs/file-format-parity.md
+@@ -1,6 +1,6 @@
+ # File format parity
+ 
+-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (grayscale TIFFs with an alpha channel or extra channels place and open, #1466 in part; a faded or masked fill keeps its stroke apart on PDF and `.ai` import, #1434; SVG knockout groups without masks, #1435; Affinity import: a text frame too short for its first line is made taller, #1423; `.ai` editing data: a compound path takes its last path's paint and keeps paths grouped inside it, #1410; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` gradient matrices, meshes and artboard names from the editing data; `.ai` art styles, clipping fills and compound looks from the editing data; `editingData: "always"` opens a `.ai` from its editing data; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` gradient matrices, meshes and artboard names from the editing data; `.ai` art styles, clipping fills and compound looks from the editing data; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` gradient matrices, meshes and artboard names from the editing data; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; SVG knockout groups of opaque art without masks; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` keeps its RGB numbers; PDF import keeps a stroke apart from a fill masked or faded by its group) · **Target:** Adobe Illustrator 2026 (30.x)
++> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged; grayscale TIFFs with an alpha channel or extra channels place and open, #1466 in part; a faded or masked fill keeps its stroke apart on PDF and `.ai` import, #1434; SVG knockout groups without masks, #1435; Affinity import: a text frame too short for its first line is made taller, #1423; `.ai` editing data: a compound path takes its last path's paint and keeps paths grouped inside it, #1410; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` gradient matrices, meshes and artboard names from the editing data; `.ai` art styles, clipping fills and compound looks from the editing data; `editingData: "always"` opens a `.ai` from its editing data; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` gradient matrices, meshes and artboard names from the editing data; `.ai` art styles, clipping fills and compound looks from the editing data; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` gradient matrices, meshes and artboard names from the editing data; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; SVG knockout groups of opaque art without masks; a `.ai` whose PDF part is only text opens from it, #1387; PDF and `.ai` import keep overprint, #1388; `.ai` editing data: gradients with middle stops, #1390; type of objects with an appearance, hidden layers and later artboards, #1391; area type in a frame too short for the fallback font, #1392; `.ai` editing data: placed (linked) files read, #1264; gradient-filled shapes import as paths, #1304; white constant alpha soft masks, #1286 in part; DXF control-point SPLINE closure read, #1299 follow-up; `.ai` and PDF trim and bleed boxes as artboard and bleed, #1266; `.ai` keeps its RGB numbers; PDF import keeps a stroke apart from a fill masked or faded by its group) · **Target:** Adobe Illustrator 2026 (30.x)
+ 
+ Every format Illustrator opens, places, saves or exports, against VectorCraft's format table (`FORMATS`,
+ `OPEN_EXTS`, `PLACE_EXTS` in `crates/engine/src/cmd/fileio/mod.rs`). Illustrator's list comes from its public
+@@ -68,7 +68,7 @@ the app's own editing copy of a file (an EPS after its `%%EOF`, a `.ai`'s `AIPri
+ | EMF / WMF | open, export | yes | yes | |
+ | PSD | open, place, export | yes (merged image, every mode and depth) | yes (layered, max editability) | placing as layers (Photoshop Import Options) missing |
+ | PSB | open | yes (merged image) | no | |
+-| PNG / JPEG / GIF / BMP / TIFF / Targa | open, export | yes (Targa: export only) | yes | Targa import missing; TIFF: grayscale with an alpha channel or other extra channels reads (#1466 in part), CCITT Group 3 and planar files with extra channels don't |
++| PNG / JPEG / GIF / BMP / TIFF / Targa | open, export | yes (Targa: export only) | yes; TIFF is also selectable in Export for Screens and Asset Export with its existing options | Targa import missing; TIFF: grayscale with an alpha channel or other extra channels reads (#1466 in part), CCITT Group 3 and planar files with extra channels don't |
+ | WebP | export (Export for Screens) | yes | yes (lossless only; lossy written lossless with a warning) | |
+ | HEIC / HEIF | open, place | no | no | |
+ | JPEG 2000 | open, place | no | no | |
+@@ -87,6 +87,7 @@ the app's own editing copy of a file (an EPS after its `%%EOF`, a `.ai`'s `AIPri
+ | Date | Change | Summary |
+ |---|---|---|
+ | 2026-10-13 | minor | TIFF: grayscale files with an alpha channel or other extra channels place, relink and open, read as CMYK files with alpha already were (8 and 16 bits, either polarity; #1489, part of #1466); the rows for #1434 (strokes kept apart from a faded or masked fill, a `.ai`'s RGB numbers) and #1435 (SVG knockout groups without masks, `--decimals`) were written by those PRs; scores unchanged (estimated) |
++| 2026-10-12 | minor | TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged |
+ | 2026-10-12 | minor | Affinity import: a text frame too short for its first line (a 64 pt title in a 54 pt frame) is made taller from its top, with a warning in the open result, instead of showing nothing (#1423), as `.ai` area type is (#1392); the spacing Affinity itself fits the line with isn't read; scores unchanged |
+ | 2026-10-12 | minor | `.ai` editing data: a compound path takes the paint, opacity, blend mode and fill rule of its last path (the last painted one when that has none), so gradient-filled compound paths no longer come in black, and paths grouped inside a compound path stay its paths (#1426, fixes #1410); hand-written editing data test; scores unchanged |
+ | 2026-10-12 | minor | `editingData: "always"` (`convert --editing-data`) opens a `.ai` from its editing data even where it draws differently from its page, which can be older, with a note |
+diff --git a/docs/gaps.md b/docs/gaps.md
+index f6552fa2..0c9ff388 100644
+--- a/docs/gaps.md
++++ b/docs/gaps.md
+@@ -1,6 +1,6 @@
+ # Gaps
+ 
+-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (G1: Split Into Grid options, #1462, Transform Objects and Reflect's angle, #1448 and #1460, Pathfinder on a group, #1450, value fields, #1457 and #1465 in part; G9: grayscale TIFFs with alpha, #1466 in part; G6: unknown parameter keys refused, #1442; G10: window surfaces past 8192 px, #1459 in part; G15: many-object edits, #1429 in part; estimates unchanged; G16: Vietnamese catalog added, complete under the tests; three key languages remain, 60–100 → 55–90 h; G3: Extrude & Bevel, Inflate and Rotate added, 45–75 → 25–45 h; G9: `.ai` compound path paint, #1410, overprint kept on import, #1388, text-only PDF parts, #1387; G1: Transform dialogs preview, #1412, transforms of direct-selected anchors, #1408, corner drags, #1229; G11: strokes wider than their shape, #1396; estimates unchanged; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; G9: `.ai` gradient matrices and meshes from the editing data; estimate unchanged; G9: `.ai` art styles from the editing data; estimate unchanged; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; G9: `.ai` gradient matrices and meshes from the editing data; estimate unchanged; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; SVG knockout groups of opaque art export without masks; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; G9: `.ai` keeps its RGB numbers, PDF import keeps strokes apart from fills faded or masked by their group; estimates unchanged) · **Target:** Adobe Illustrator 2026 (30.x)
++> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged; G1: Split Into Grid options, #1462, Transform Objects and Reflect's angle, #1448 and #1460, Pathfinder on a group, #1450, value fields, #1457 and #1465 in part; G9: grayscale TIFFs with alpha, #1466 in part; G6: unknown parameter keys refused, #1442; G10: window surfaces past 8192 px, #1459 in part; G15: many-object edits, #1429 in part; estimates unchanged; G16: Vietnamese catalog added, complete under the tests; three key languages remain, 60–100 → 55–90 h; G3: Extrude & Bevel, Inflate and Rotate added, 45–75 → 25–45 h; G9: `.ai` compound path paint, #1410, overprint kept on import, #1388, text-only PDF parts, #1387; G1: Transform dialogs preview, #1412, transforms of direct-selected anchors, #1408, corner drags, #1229; G11: strokes wider than their shape, #1396; estimates unchanged; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; G9: `.ai` gradient matrices and meshes from the editing data; estimate unchanged; G9: `.ai` art styles from the editing data; estimate unchanged; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; G9: `.ai` gradient matrices and meshes from the editing data; estimate unchanged; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; SVG knockout groups of opaque art export without masks; G9: `.ai` editing-data follow-ups (gradient stops, type placement, short area-type frames), #1390, #1391, #1392; G15: symbol instance art kept between frames, #1386; G1: dialog keyboard focus, #1367 and #1395; estimates unchanged; G9: placed (linked) files read from `.ai` editing data, #1264; G9: gradient shapes import as paths, #1304, and white constant alpha masks, #1286 in part; G15: linear deselect on hide or lock, #1353; estimates unchanged; G7: custom ruler origin done, #1212; G1: Artboard object clicks create a fitted artboard (#1227); remaining interaction pass and estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; G16: Korean catalog added, 70–110 → 60–100 h; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; G11: valid selection after Simplify and Add Anchor Points (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; G10: RPM runtime dependency metadata (#1275); estimates unchanged; G15: texture-effect distance searches optimized (#1257); idle-machine/platform drag QA still pending; estimate unchanged; G1: Curvature point display improved (#1236, in part); estimates unchanged; G4: full-name font matching (#1258); Windows font-service QA pending; estimate unchanged; G11: no-op anchor Align keeps history and saved state (#1180 follow-up); estimates unchanged; G1: dedicated Eyedropper cursor and precise-cursor checks (#1269); estimates unchanged; G1: Eyedropper reads visible locked and outside-isolation sources (#1251); estimate unchanged; G11: Direct Selection segment Delete (#1278); estimates unchanged; G1: painted strokes regain the existing default after None/zero-width inheritance (#1253); estimate unchanged; G15: large-selection edits, cached live effects and faster Pathfinder, #1173; G4: proportional vertical metrics done, #966; G11: Shape Builder merge seams on grids of lines fixed, #893; scaled text controls corrected, #1034; group font-size preservation deferred; G9: `.ai` keeps its RGB numbers, PDF import keeps strokes apart from fills faded or masked by their group; estimates unchanged) · **Target:** Adobe Illustrator 2026 (30.x)
+ 
+ Every known shortfall against Illustrator, one entry each, **ranked by how much it stops a professional from
+ switching**. This is the work list: unless you were given a task, pick the highest-ranked gap you can make
+@@ -148,10 +148,12 @@ from G14 and the budget run of G15: **~170–270 h** one agent, ~50–80 h wall
+ 
+ ## G13 Illustrator 2026 (30.x) additions
+ 
++- **Done:** TIFF choices and format settings in Export for Screens and Asset Export (30.2), using the existing encoder; UI-to-file regressions cover selection, scaling, options and persistence.
++
+ - **Missing:** gradient dither and perceptual blending, gradient presets (30.0); tangent and perpendicular
+   snapping and the consolidated snapping options (30.0); artboard locking, artboard colours and managing
+   artboards from the canvas (30.0); the Blend panel with ease in/out and separate colour acceleration (30.7);
+-  TIFF in Export for Screens (30.2); the Dimension tool (28.x).
++  the Dimension tool (28.x).
+ - **Evidence:** Adobe's 30.0 and 30.7 release announcements, see
+   [target-app-parity.md](target-app-parity.md#how-this-was-measured-2026-10-10).
+ - **Estimate:** 15–25 h.
+@@ -237,6 +239,7 @@ from G14 and the budget run of G15: **~170–270 h** one agent, ~50–80 h wall
+ | Date | Change | Summary |
+ |---|---|---|
+ | 2026-10-13 | minor | G1: Split Into Grid has its documented options (#1462), Transform Objects in the Transform dialogs and Transform Each and Reflect across an angle (#1448, #1460), the Pathfinder panel works on a group selected alone (#1450; one plain path alone is not settled), a focused field follows its value (#1457), selected text in value fields is readable (#1465 in part); G9: grayscale TIFFs with an alpha channel or extra channels place (#1466 in part), strokes kept apart from a faded or masked fill on PDF and `.ai` import (#1434); G4: Fit Headline in a frame one line tall (#1444), frames beyond a billion points hold no text (#1451); G6: commands refuse a parameter key they don't take (#1442); G10: a window surface past 8192 px no longer closes the app (#1459 in part); G15: edits and Alt-drags of thousands of objects (#1429 in part); G16: 128 more Czech strings (#1461); estimates unchanged |
++| 2026-10-12 | minor | TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged |
+ | 2026-10-12 | minor | G3: Extrude & Bevel, Inflate and Rotate with Position presets ([three-d.md](three-d.md), #1407); materials, lights, shadows, Classic, Turntable and export remain, 45–75 → 25–45 h |
+ | 2026-10-12 | minor | G9: a `.ai` compound path takes its last path's paint and keeps paths grouped inside it (#1410); PDF and `.ai` import keep overprint (#1388); a `.ai` whose PDF part draws only text opens from it (#1387); G1: the Transform dialogs preview and step with the arrow keys (#1412), the transform tools and commands act on direct-selected anchors (#1408), the bounding box hides during a corner drag (#1229); G11: a stroke wider than its closed shape paints solid on the canvas (#1396); estimates unchanged |
+ | 2026-10-12 | minor | G9: `.ai` art styles, clipping fills and compound looks read from the editing data; estimate unchanged |
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index a056d8a3..2c316568 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -1,6 +1,6 @@
+ # Roadmap: milestones and what's next
+ 
+-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (Split Into Grid options, #1462; Transform Objects and Reflect's angle, #1448 and #1460; Pathfinder on a group, #1450; unknown parameter keys refused, #1442; grayscale TIFFs with alpha, #1466 in part; estimates unchanged; M9: Extrude & Bevel, Inflate and Rotate; `.ai` compound path paint, #1410, overprint on import, #1388, text-only PDF parts, #1387; Transform dialogs preview, #1412, and transforms of direct-selected anchors, #1408; strokes wider than their shape, #1396; estimates unchanged; `.ai` editing-data follow-ups, #1390, #1391, #1392; dialog keyboard focus, #1367 and #1395; symbol instance redraw cache, #1386; font rescan, #1376; estimates unchanged; gradient shapes import as paths, #1304; white constant alpha masks, #1286 in part; Live Corners widget click, #1239; custom ruler origin, #1212; M11: Artboard object clicks create a fitted artboard (#1227); estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; desktop print transport adopts craft-print, Windows 7 fallback retained, scores unchanged; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; M6: Simplify preview/counts and valid topology selection (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; M14: RPM runtime metadata (#1275); estimates unchanged; M5: squared-distance texture redraws (#1257); clean-machine/platform drag measurements still pending; estimates unchanged; M2: Curvature point display improved (#1236, in part); estimates unchanged; M7: full-name font matching (#1258); Windows font-service QA pending; estimates unchanged; M1: no-op anchor Align keeps Undo, Redo and saved state (#1180 follow-up); estimates unchanged; M14: dedicated Eyedropper cursor (#1269); estimates unchanged; M3: Eyedropper reads visible locked and outside-isolation sources (#1251); estimates unchanged; M2: Direct Selection segment picks and Delete (#1278); estimates unchanged; M3: adding paint to an unpainted zero-width stroke restores 1 pt (#1253); estimates unchanged; M12: graph designs, graph data, Graph Type and label options; M14: native macOS save Format menu, #866; M6: compound appearance and member fill-rule fixes, #1197; estimates unchanged; M9: PDF raster-effect cap warnings; G11: #893 fixed, #937 open; M7: accurate character controls after scaling, #1034; estimates unchanged) · **Target:** Adobe Illustrator 2026 (30.x)
++> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged; Split Into Grid options, #1462; Transform Objects and Reflect's angle, #1448 and #1460; Pathfinder on a group, #1450; unknown parameter keys refused, #1442; grayscale TIFFs with alpha, #1466 in part; estimates unchanged; M9: Extrude & Bevel, Inflate and Rotate; `.ai` compound path paint, #1410, overprint on import, #1388, text-only PDF parts, #1387; Transform dialogs preview, #1412, and transforms of direct-selected anchors, #1408; strokes wider than their shape, #1396; estimates unchanged; `.ai` editing-data follow-ups, #1390, #1391, #1392; dialog keyboard focus, #1367 and #1395; symbol instance redraw cache, #1386; font rescan, #1376; estimates unchanged; gradient shapes import as paths, #1304; white constant alpha masks, #1286 in part; Live Corners widget click, #1239; custom ruler origin, #1212; M11: Artboard object clicks create a fitted artboard (#1227); estimate unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; DXF control-point SPLINE closure read, #1299 follow-up; desktop print transport adopts craft-print, Windows 7 fallback retained, scores unchanged; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; M6: Simplify preview/counts and valid topology selection (#1272); estimates unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; M14: RPM runtime metadata (#1275); estimates unchanged; M5: squared-distance texture redraws (#1257); clean-machine/platform drag measurements still pending; estimates unchanged; M2: Curvature point display improved (#1236, in part); estimates unchanged; M7: full-name font matching (#1258); Windows font-service QA pending; estimates unchanged; M1: no-op anchor Align keeps Undo, Redo and saved state (#1180 follow-up); estimates unchanged; M14: dedicated Eyedropper cursor (#1269); estimates unchanged; M3: Eyedropper reads visible locked and outside-isolation sources (#1251); estimates unchanged; M2: Direct Selection segment picks and Delete (#1278); estimates unchanged; M3: adding paint to an unpainted zero-width stroke restores 1 pt (#1253); estimates unchanged; M12: graph designs, graph data, Graph Type and label options; M14: native macOS save Format menu, #866; M6: compound appearance and member fill-rule fixes, #1197; estimates unchanged; M9: PDF raster-effect cap warnings; G11: #893 fixed, #937 open; M7: accurate character controls after scaling, #1034; estimates unchanged) · **Target:** Adobe Illustrator 2026 (30.x)
+ 
+ Forward-looking plan. Where VectorCraft stands is in [`ROADMAP.md`](../ROADMAP.md) and
+ [target-app-parity.md](target-app-parity.md); the ranked work list is [gaps.md](gaps.md). Hours are Opus 5.5
+@@ -52,7 +52,7 @@ Checked 2026-10-10 from the code, tests and open issues; no workflow fails, so V
+ | M1 | Selection, transform, layers, MCP (common command tools, strict keys, session resources and version-aware result hints) | ✅ mostly done (no-op anchor Align keeps Undo, Redo and saved state (#1180 follow-up); transform reference point snaps to anchors/centres; rotated objects keep a rotated bounding box and their angle; Free Transform, Scale and Reflect along a rotated box pending) | 4–6 |
+ | M2 | Drawing tools + smart guides | ✅ mostly done (Curvature point markers without direction handles (#1236, in part); Direct Selection segment click/Delete preserves neighboring edges, #1278; Flare, Reshape, Live Corners widget dragging and per-corner radii and kinds landed, on any path's corners; Shaper rough-shape recognition and orientation steps, the remaining Pen modifier nuances; Shaper Groups with editable sources and separate fill/stroke edits landed; custom ruler origin with drag preview, active-artboard reset, relative X/Y fields and native round-trip (#1212); construction widget/refinements pending) | 12–18 |
+ | M3 | Paint & appearance (swatches, color, gradient, stroke, appearance, transparency, styles) | ✅ done (M3.7–M3.98): swatches, groups, libraries, tints, Lab spots and Registration; Eyedropper reads visible locked and outside-isolation sources (#1251); Color Picker, Color panel, Color Guide, Color Themes, Edit Colors and Recolor Artwork; gradients that follow every transform, the annotator, linked stops, freeform gradients, focal points, gradients on strokes and Expand; visible strokes when paint is added to inherited None/zero-width art (#1253); stroke geometry, arrowheads, dashes fitted to corners, stroke on type, width profiles and the Width tool, Scale Strokes and preview bounds; Appearance targeting, container appearance, target circles, Expand Appearance; knockout, isolation, blend accuracy, CMYK blending, overprint, Attributes, masks and clipping, Flatten Transparency; graphic styles, links and libraries. Left: freeform and mixed spot/process gradients export as stops or process colours to SVG/PDF; confirm the Scale Strokes & Effects default | 4–8 |
+-| M4 | Files (native, SVG, PDF, raster, Export for Screens, clipboard interop) | ✅ done (M4.14–M4.98 on 2026-10-05): Save As/Save a Copy/Revert/templates, Data Recovery and background save, SVG import and export fidelity (units, text, symbols, filters, SVGZ, Preserve Editing, SVG Options), PDF import (colours, layers, masks, editable text, security) and export (presets, marks, bleed, ICC and output intent, raster effects, subset fonts, PDF/X-1a, X-3 and X-4, PDF layers, overprint, page thumbnails, fast web view, PDF 1.3), Place and Links, Package, EPS and DXF in and out (closed SPLINE flags round-trip, #1299), EMF/WMF, TIFF/BMP/Targa/PSD/GIF/PNG-8 export, Print and print presets, slices, Save for Web, Asset Export, clipboard flavours, File Info; AF.1–AF.4 add Affinity import (native layers, artboards, vectors, text and images from Affinity 1–3 files; the embedded preview only as a warned fallback; AF.4 expands current `.af` fixtures and every-board round-trip validation). Left: DWG (use DXF), PSD placement as layers, overprint read back from PDF, Affinity export, polish | 3–6 (existing scope; Affinity export unestimated) |
++| M4 | Files (native, SVG, PDF, raster, Export for Screens, clipboard interop) | ✅ done (M4.14–M4.98 on 2026-10-05): Save As/Save a Copy/Revert/templates, Data Recovery and background save, SVG import and export fidelity (units, text, symbols, filters, SVGZ, Preserve Editing, SVG Options), PDF import (colours, layers, masks, editable text, security) and export (presets, marks, bleed, ICC and output intent, raster effects, subset fonts, PDF/X-1a, X-3 and X-4, PDF layers, overprint, page thumbnails, fast web view, PDF 1.3), Place and Links, Package, EPS and DXF in and out (closed SPLINE flags round-trip, #1299), EMF/WMF, TIFF/BMP/Targa/PSD/GIF/PNG-8 export, Print and print presets, slices, Save for Web, TIFF in Export for Screens and Asset Export, clipboard flavours, File Info; AF.1–AF.4 add Affinity import (native layers, artboards, vectors, text and images from Affinity 1–3 files; the embedded preview only as a warned fallback; AF.4 expands current `.af` fixtures and every-board round-trip validation). Left: DWG (use DXF), PSD placement as layers, overprint read back from PDF, Affinity export, polish | 3–6 (existing scope; Affinity export unestimated) |
+ | M5 | Performance | 🟡 background render + caches + MT done; `vectorcraft-cli bench` and `vectorcraft-cli perf` (budget suite); file format v2 opens 3× faster (50k paths: 722 → 244 ms); raster effects (glows, shadows, blur, feather) no longer force the whole frame single-threaded (filtered offscreen per effect, verified equal to the single-threaded reference); Craquelure/Mosaic Tiles/Stained Glass distance searches optimized with pixel-invariance checks and the `texture_drag_perf` probe (#1257); effect-heavy demos need a clean-machine benchmark; dirty-region rendering, GPU backend spike pending | 15–25 |
+ | M6 | Path operations (Pathfinder, Shape Builder, offset…) | ✅ mostly done (single-result Pathfinder names and SVG IDs retained (#1293); Divide open-cutting-path geometry, appearance and history verified (#1307; existing segment cap remains); Simplify preview/counts and rewritten-path component selection verified (#1272; auto/slider/advanced UI remains open); Compound appearance and member fill-rule edits verified (#1197); Boolean precision on almost-horizontal edges fixed and the property tests made deterministic; Shape Builder gap detection, large-offset bug open) | 3–6 |
+ | M7 | Type (point/area/path, editing, styles, OpenType, threading, glyphs) | 🟡 Document-point character controls after object/group scaling (#1034; optional font-size preservation remains separate), Character/Paragraph Styles, per-paragraph paragraph attributes, Area Type Options (with Width/Height, Auto Size and Shrink Text to Fit; overflow reported to agents and vertical Align), type areas resized by their handles and reshaped with Direct Selection, threaded text, Fit Headline, Glyphs, OpenType panel, Find Font, installed system fonts in every font menu (fonts registered with Windows outside its font folders, the XDG and Flatpak host font folders on Linux, and fonts installed while the app runs, listed when it comes back to the front; searchable; the Character and Properties menus show each family's sample of the selected text, preview it live under the pointer or ↑/↓, filter by script and kind, list a family's styles, and star favourites; the Glyphs panel and Find Font's Replace With use the same menu without the live preview) and found by name on open/import (full-name aliases and Missing Fonts searches verified, #1258; Windows font-service QA pending), variable fonts' named instances as styles, CJK names in the UI, input methods (marked text in place, candidate window at the caret; Japanese IME), Text Wrap (offset, invert, both sides of an object; follows edits), Type on a Path effects and Options with draggable start/centre/end brackets (slide, flip), tab stops + Tabs panel (Above Text floats it over the selected text, its ruler at the canvas zoom so stops line up with the columns, #729), inline symbols in text (beyond parity), Hebrew/Arabic bidirectional text, Paragraph Direction, Every-line/Single-line Composer per object (ragged text too) done; tab leaders, spell check, vertical type pending | 45–60 |
+@@ -81,6 +81,7 @@ After placed documents (File › Place of a `.vectorcraft` file, linked), M4.14
+ | Date | Change | Summary |
+ |---|---|---|
+ | 2026-10-13 | minor | M6: Split Into Grid has its documented options (#1462), the Pathfinder panel works on a group selected alone (#1450); M2: Transform Objects in the Transform dialogs and Transform Each, Reflect across an angle (#1448, #1460); M4: grayscale TIFFs with an alpha channel or extra channels place (#1466 in part), strokes kept apart from a faded or masked fill on PDF and `.ai` import (#1434), SVG knockout groups without masks (#1435); M7: Fit Headline in a frame one line tall (#1444), frames beyond a billion points hold no text (#1451); M13: commands refuse a parameter key they don't take (#1442); M5: edits and Alt-drags of thousands of objects (#1429 in part); M14: a focused field follows its value (#1457), selected text in value fields is readable (#1465 in part), a window surface past 8192 px no longer closes the app (#1459 in part); estimates unchanged |
++| 2026-10-12 | minor | TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged |
+ | 2026-10-12 | minor | M9: Extrude & Bevel, Inflate and Rotate (initial 3D types, [three-d.md](three-d.md)) |
+ | 2026-10-12 | minor | M4: a `.ai` compound path takes its last path's paint (#1410), PDF and `.ai` import keep overprint (#1388), a `.ai` whose PDF part draws only text opens from it (#1387); M2: the Transform dialogs preview and step with the arrow keys (#1412), the transform tools and commands act on direct-selected anchors (#1408), the bounding box hides during a corner drag (#1229); M5: a stroke wider than its closed shape paints solid on the canvas (#1396); estimates unchanged |
+ | 2026-10-12 | minor | M4: `.ai` editing data follow-ups to #1264 (gradient stops #1390, type placement #1391, short area-type frames #1392) and PDF bleed with editing data (#1379); M14: dialogs take the keyboard focus on every open (#1367, #1395); M5: symbol instance art kept between frames (#1386); M7: characters no font had are looked for again after a font rescan (#1376); estimates unchanged |
+diff --git a/docs/target-app-parity.md b/docs/target-app-parity.md
+index 7fc87827..c7909af0 100644
+--- a/docs/target-app-parity.md
++++ b/docs/target-app-parity.md
+@@ -1,6 +1,6 @@
+ # Parity with Adobe Illustrator
+ 
+-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (Split Into Grid options, #1462; Transform Objects and Reflect across an angle, #1448 and #1460; Pathfinder panel on a group, #1450; unknown parameter keys refused, #1442; grayscale TIFFs with alpha, #1466 in part; Localization: Vietnamese catalog added, 63% → 71%, hours 60–100 → 55–90, full readiness unchanged at ~62%; scores and hours unchanged; Image Trace places edges to a fraction of a pixel in every mode, measured in `image-trace-quality.md`, score unchanged; 3D and Materials: Extrude & Bevel, Inflate and Rotate added, 3D ~8% → ~25% (estimated), menu stubs 25 → 22; Affinity text frames too short for their first line show it, #1423; Transform dialogs preview, #1412, and the transform tools and commands act on direct-selected anchors, #1408; `.ai` compound path paint, #1410; strokes wider than their shape, #1396; corner drags hide the bounding box, #1229; scores and hours unchanged; PDF and `.ai` import keep overprint, #1388, scores unchanged; `.ai` editing-data follow-ups: gradient stops, type of objects with an appearance, short area-type frames (#1390, #1391, #1392); dialog keyboard focus on every open (#1382, #1395); art flush with an artboard (#1375); font rescan (#1376); symbol instance redraw cache (#1386); scores and hours unchanged; grid tool options, #1377 in part, scores unchanged; `.ai` placed (linked) files read from the editing data, #1264, scores unchanged; gradient shapes import as paths, #1304; white constant alpha masks, #1286 in part; Live Corners widget click selects its corner, #1239; scores and hours unchanged; custom ruler origin, #1212; Artboard click-to-fit verified for objects, groups, visible bounds, undo and cancellation (#1227); scores and hours unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; Localization: Korean catalog added, 54% → 63%, full readiness unchanged at ~62%; desktop print transport adopts craft-print, Windows 7 fallback retained, scores unchanged; Image Trace: an image over 64 megapixels traces scaled down instead of being refused, scores unchanged; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; Path operations: Simplify preview/counts and component selection (#1272); scores unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; Platforms: RPM runtime capabilities and glibc floor (#1275); scores unchanged; Raster effects: squared-distance texture redraws (#1257); pixels unchanged; scores and hours unchanged; Drawing: Curvature point display improved (#1236, in part); scores unchanged; Type core: full-name font matching (#1258), scores and hours unchanged; Selection: no-op anchor Align preserves history and saved state (#1180 follow-up); scores unchanged; UI chrome: Eyedropper cursor and precise-setting regressions (#1269); scores unchanged; Colour: Eyedropper reads visible locked and outside-isolation sources (#1251); scores and hours unchanged; Selection: segment click/Delete preserves neighboring edges (#1278); scores unchanged; Colour: unpainted zero-width strokes regain 1 pt when painted (#1253); scores and hours unchanged; graphs: designs and markers, data, Graph Type and label options; UI chrome: native macOS save Format menu, #866, scores unchanged; compound paths inherit the backmost appearance and member fill-rule edits reach their owner, #1197; scores unchanged; Type core: Middle Eastern digit types done, Character panel menu › Digits; PDF export warns when the pixel cap lowers raster-effect resolution; Drawing tools: Live Corners round corners between curved sides, #1144; Type advanced: proportional vertical metrics (`vpal`) done, #966; Shape Builder: #893 fixed, merged regions of crossing lines no longer keep seams; scores unchanged while #937 is open; #1034: document-point character controls after object/group scaling; full readiness recomputed as the standard's additive weighted sum, ~62%; per-audience hours; essentials-user score ~75% added; ready-for-real-work re-examined: 50% → 55%, mainstream 65% added; earlier the same day: full re-measure against Illustrator 2026 30.x; merged the ROADMAP's parity estimate, honest assessment and "Shipped so far" into this file; SVG knockout groups of opaque art export without masks; Image Trace: colour presets no longer shatter noisy flat art and photos trace into smooth tones, measured in `image-trace-quality.md`, score unchanged; Split Into Grid options, #1462; Transform Objects and Reflect across an angle, #1448 and #1460; Pathfinder panel on a group, #1450; unknown parameter keys refused, #1442; grayscale TIFFs with alpha, #1466 in part; scores and hours unchanged; Image Trace places edges to a fraction of a pixel in every mode, measured in `image-trace-quality.md`, score unchanged; 3D and Materials: Extrude & Bevel, Inflate and Rotate added, 3D ~8% → ~25% (estimated), menu stubs 25 → 22; Affinity text frames too short for their first line show it, #1423; Transform dialogs preview, #1412, and the transform tools and commands act on direct-selected anchors, #1408; `.ai` compound path paint, #1410; strokes wider than their shape, #1396; corner drags hide the bounding box, #1229; scores and hours unchanged; PDF and `.ai` import keep overprint, #1388, scores unchanged; `.ai` editing-data follow-ups: gradient stops, type of objects with an appearance, short area-type frames (#1390, #1391, #1392); dialog keyboard focus on every open (#1382, #1395); art flush with an artboard (#1375); font rescan (#1376); symbol instance redraw cache (#1386); scores and hours unchanged; grid tool options, #1377 in part, scores unchanged; `.ai` placed (linked) files read from the editing data, #1264, scores unchanged; gradient shapes import as paths, #1304; white constant alpha masks, #1286 in part; Live Corners widget click selects its corner, #1239; scores and hours unchanged; custom ruler origin, #1212; Artboard click-to-fit verified for objects, groups, visible bounds, undo and cancellation (#1227); scores and hours unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; Localization: Korean catalog added, 54% → 63%, full readiness unchanged at ~62%; desktop print transport adopts craft-print, Windows 7 fallback retained, scores unchanged; Image Trace: an image over 64 megapixels traces scaled down instead of being refused, scores unchanged; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; Path operations: Simplify preview/counts and component selection (#1272); scores unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; Platforms: RPM runtime capabilities and glibc floor (#1275); scores unchanged; Raster effects: squared-distance texture redraws (#1257); pixels unchanged; scores and hours unchanged; Drawing: Curvature point display improved (#1236, in part); scores unchanged; Type core: full-name font matching (#1258), scores and hours unchanged; Selection: no-op anchor Align preserves history and saved state (#1180 follow-up); scores unchanged; UI chrome: Eyedropper cursor and precise-setting regressions (#1269); scores unchanged; Colour: Eyedropper reads visible locked and outside-isolation sources (#1251); scores and hours unchanged; Selection: segment click/Delete preserves neighboring edges (#1278); scores unchanged; Colour: unpainted zero-width strokes regain 1 pt when painted (#1253); scores and hours unchanged; graphs: designs and markers, data, Graph Type and label options; UI chrome: native macOS save Format menu, #866, scores unchanged; compound paths inherit the backmost appearance and member fill-rule edits reach their owner, #1197; scores unchanged; Type core: Middle Eastern digit types done, Character panel menu › Digits; PDF export warns when the pixel cap lowers raster-effect resolution; Drawing tools: Live Corners round corners between curved sides, #1144; Type advanced: proportional vertical metrics (`vpal`) done, #966; Shape Builder: #893 fixed, merged regions of crossing lines no longer keep seams; scores unchanged while #937 is open; #1034: document-point character controls after object/group scaling; full readiness recomputed as the standard's additive weighted sum, ~62%; per-audience hours; essentials-user score ~75% added; ready-for-real-work re-examined: 50% → 55%, mainstream 65% added; earlier the same day: full re-measure against Illustrator 2026 30.x; merged the ROADMAP's parity estimate, honest assessment and "Shipped so far" into this file; SVG knockout groups of opaque art export without masks) · **Target:** Adobe Illustrator 2026 (30.x; public release notes through 30.7, August 2026)
++> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged; Split Into Grid options, #1462; Transform Objects and Reflect across an angle, #1448 and #1460; Pathfinder panel on a group, #1450; unknown parameter keys refused, #1442; grayscale TIFFs with alpha, #1466 in part; Localization: Vietnamese catalog added, 63% → 71%, hours 60–100 → 55–90, full readiness unchanged at ~62%; scores and hours unchanged; Image Trace places edges to a fraction of a pixel in every mode, measured in `image-trace-quality.md`, score unchanged; 3D and Materials: Extrude & Bevel, Inflate and Rotate added, 3D ~8% → ~25% (estimated), menu stubs 25 → 22; Affinity text frames too short for their first line show it, #1423; Transform dialogs preview, #1412, and the transform tools and commands act on direct-selected anchors, #1408; `.ai` compound path paint, #1410; strokes wider than their shape, #1396; corner drags hide the bounding box, #1229; scores and hours unchanged; PDF and `.ai` import keep overprint, #1388, scores unchanged; `.ai` editing-data follow-ups: gradient stops, type of objects with an appearance, short area-type frames (#1390, #1391, #1392); dialog keyboard focus on every open (#1382, #1395); art flush with an artboard (#1375); font rescan (#1376); symbol instance redraw cache (#1386); scores and hours unchanged; grid tool options, #1377 in part, scores unchanged; `.ai` placed (linked) files read from the editing data, #1264, scores unchanged; gradient shapes import as paths, #1304; white constant alpha masks, #1286 in part; Live Corners widget click selects its corner, #1239; scores and hours unchanged; custom ruler origin, #1212; Artboard click-to-fit verified for objects, groups, visible bounds, undo and cancellation (#1227); scores and hours unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; Localization: Korean catalog added, 54% → 63%, full readiness unchanged at ~62%; desktop print transport adopts craft-print, Windows 7 fallback retained, scores unchanged; Image Trace: an image over 64 megapixels traces scaled down instead of being refused, scores unchanged; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; Path operations: Simplify preview/counts and component selection (#1272); scores unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; Platforms: RPM runtime capabilities and glibc floor (#1275); scores unchanged; Raster effects: squared-distance texture redraws (#1257); pixels unchanged; scores and hours unchanged; Drawing: Curvature point display improved (#1236, in part); scores unchanged; Type core: full-name font matching (#1258), scores and hours unchanged; Selection: no-op anchor Align preserves history and saved state (#1180 follow-up); scores unchanged; UI chrome: Eyedropper cursor and precise-setting regressions (#1269); scores unchanged; Colour: Eyedropper reads visible locked and outside-isolation sources (#1251); scores and hours unchanged; Selection: segment click/Delete preserves neighboring edges (#1278); scores unchanged; Colour: unpainted zero-width strokes regain 1 pt when painted (#1253); scores and hours unchanged; graphs: designs and markers, data, Graph Type and label options; UI chrome: native macOS save Format menu, #866, scores unchanged; compound paths inherit the backmost appearance and member fill-rule edits reach their owner, #1197; scores unchanged; Type core: Middle Eastern digit types done, Character panel menu › Digits; PDF export warns when the pixel cap lowers raster-effect resolution; Drawing tools: Live Corners round corners between curved sides, #1144; Type advanced: proportional vertical metrics (`vpal`) done, #966; Shape Builder: #893 fixed, merged regions of crossing lines no longer keep seams; scores unchanged while #937 is open; #1034: document-point character controls after object/group scaling; full readiness recomputed as the standard's additive weighted sum, ~62%; per-audience hours; essentials-user score ~75% added; ready-for-real-work re-examined: 50% → 55%, mainstream 65% added; earlier the same day: full re-measure against Illustrator 2026 30.x; merged the ROADMAP's parity estimate, honest assessment and "Shipped so far" into this file; SVG knockout groups of opaque art export without masks; Image Trace: colour presets no longer shatter noisy flat art and photos trace into smooth tones, measured in `image-trace-quality.md`, score unchanged; Split Into Grid options, #1462; Transform Objects and Reflect across an angle, #1448 and #1460; Pathfinder panel on a group, #1450; unknown parameter keys refused, #1442; grayscale TIFFs with alpha, #1466 in part; scores and hours unchanged; Image Trace places edges to a fraction of a pixel in every mode, measured in `image-trace-quality.md`, score unchanged; 3D and Materials: Extrude & Bevel, Inflate and Rotate added, 3D ~8% → ~25% (estimated), menu stubs 25 → 22; Affinity text frames too short for their first line show it, #1423; Transform dialogs preview, #1412, and the transform tools and commands act on direct-selected anchors, #1408; `.ai` compound path paint, #1410; strokes wider than their shape, #1396; corner drags hide the bounding box, #1229; scores and hours unchanged; PDF and `.ai` import keep overprint, #1388, scores unchanged; `.ai` editing-data follow-ups: gradient stops, type of objects with an appearance, short area-type frames (#1390, #1391, #1392); dialog keyboard focus on every open (#1382, #1395); art flush with an artboard (#1375); font rescan (#1376); symbol instance redraw cache (#1386); scores and hours unchanged; grid tool options, #1377 in part, scores unchanged; `.ai` placed (linked) files read from the editing data, #1264, scores unchanged; gradient shapes import as paths, #1304; white constant alpha masks, #1286 in part; Live Corners widget click selects its corner, #1239; scores and hours unchanged; custom ruler origin, #1212; Artboard click-to-fit verified for objects, groups, visible bounds, undo and cancellation (#1227); scores and hours unchanged; Pathfinder single-result source names and SVG IDs retained, #1293; Localization: Korean catalog added, 54% → 63%, full readiness unchanged at ~62%; desktop print transport adopts craft-print, Windows 7 fallback retained, scores unchanged; Image Trace: an image over 64 megapixels traces scaled down instead of being refused, scores unchanged; Czech render-site localization follow-up; scores and estimates unchanged; Document Setup: Edit Artboards closes the modal after applying valid settings; pointer-click regressions; scores and hours unchanged; Artboards: Escape exits editing; an active drag cancels first; shortcut-routing regression; scores and hours unchanged; Path operations: Simplify preview/counts and component selection (#1272); scores unchanged; G2: Film Grain added; Photoshop effects 29/57; 28 filters remain; Platforms: RPM runtime capabilities and glibc floor (#1275); scores unchanged; Raster effects: squared-distance texture redraws (#1257); pixels unchanged; scores and hours unchanged; Drawing: Curvature point display improved (#1236, in part); scores unchanged; Type core: full-name font matching (#1258), scores and hours unchanged; Selection: no-op anchor Align preserves history and saved state (#1180 follow-up); scores unchanged; UI chrome: Eyedropper cursor and precise-setting regressions (#1269); scores unchanged; Colour: Eyedropper reads visible locked and outside-isolation sources (#1251); scores and hours unchanged; Selection: segment click/Delete preserves neighboring edges (#1278); scores unchanged; Colour: unpainted zero-width strokes regain 1 pt when painted (#1253); scores and hours unchanged; graphs: designs and markers, data, Graph Type and label options; UI chrome: native macOS save Format menu, #866, scores unchanged; compound paths inherit the backmost appearance and member fill-rule edits reach their owner, #1197; scores unchanged; Type core: Middle Eastern digit types done, Character panel menu › Digits; PDF export warns when the pixel cap lowers raster-effect resolution; Drawing tools: Live Corners round corners between curved sides, #1144; Type advanced: proportional vertical metrics (`vpal`) done, #966; Shape Builder: #893 fixed, merged regions of crossing lines no longer keep seams; scores unchanged while #937 is open; #1034: document-point character controls after object/group scaling; full readiness recomputed as the standard's additive weighted sum, ~62%; per-audience hours; essentials-user score ~75% added; ready-for-real-work re-examined: 50% → 55%, mainstream 65% added; earlier the same day: full re-measure against Illustrator 2026 30.x; merged the ROADMAP's parity estimate, honest assessment and "Shipped so far" into this file; SVG knockout groups of opaque art export without masks) · **Target:** Adobe Illustrator 2026 (30.x; public release notes through 30.7, August 2026)
+ 
+ The authoritative parity assessment. [`ROADMAP.md`](../ROADMAP.md) summarizes it; [`gaps.md`](gaps.md) is
+ the work list made from it. Deep areas have their own checklists: [UI and interaction](ui-parity.md),
+@@ -84,7 +84,7 @@ dominate; 3D, graphs and automation are specialist). They sum to 105. Feature de
+ | View & navigation | 3 | 70% | New View/Edit Views, multiple windows and Arrange, Snap to Glyph | 9–14 | estimated |
+ | Guides, grids, smart guides, snapping, rulers | 3 | 80% | 30.0's tangent and perpendicular snapping and its snapping panel, "intersect" smart guides, global/artboard ruler mode switch and video rulers, distance readouts while drawing | 4–7 | estimated (lowered from 85%: target moved) |
+ | File formats | 6 | 75% | `.ai` files open with a flattened or wrong layer structure in real cases (#951), guides lost (#779), no writing of Illustrator's editing data (#868), FreeHand/CorelDRAW/DWG/HEIC/JPEG 2000 import, 3D export; see [file-format-parity.md](file-format-parity.md) | 10–20 | estimated (lowered from 85%: open issues); DXF control-point SPLINE import closure regression-tested (#1299 follow-up after #1320) |
+-| Export for Screens, Asset Export, slices, Save for Web | 3 | 85% | anti-aliasing ghost borders (#983), TIFF in Export for Screens (30.2) | 2–4 | estimated |
++| Export for Screens, Asset Export, slices, Save for Web | 3 | 85% | anti-aliasing ghost borders (#983); TIFF choices and settings are implemented | 2–4 | estimated |
+ | Print, colour management, separations, flattener | 3 | 80% | print preview fidelity | 2–4 | estimated |
+ | Automation (Actions, Variables, scripting, batch) | 3 | 60% | a scripting surface (Illustrator: JavaScript/ExtendScript), Batch, image and graph variables, dataset import/export | 8–14 | estimated |
+ | UI chrome (panels, Properties, workspaces, preferences) | 6 | 80% | Properties per context, ~16 Preferences options stored but unused (#394), panels outside the window, SVG Interactivity, context menus beyond the canvas, accessibility | 13–20 | estimated; macOS save Format menu implemented (#866), score and hours unchanged; Eyedropper cursor and precise setting checked (#1269), OS visual QA unverified; numeric-field focus and normal text drags regression-tested (#1326, in part); movements below the click threshold still select all |
+@@ -369,6 +369,8 @@ since 2026-10-01.
+ 
+ ## Evidence: what ships today, by area
+ 
++- **TIFF in screen and asset export:** both format menus expose the existing TIFF encoder and Format Settings. Headless UI regressions choose TIFF and check scaled dimensions, artboard selection, filenames, encoding options, saved settings and collected-asset output. Public reference: [Export for Screens](https://helpx.adobe.com/illustrator/desktop/save-and-export/export-files-to-different-formats/export-for-screens.html).
++
+ Moved from the ROADMAP's "Shipped so far" on 2026-10-10. Update it when a feature lands.
+ 
+ - **Rulers (#1212):** drag the intersection to preview and set a document zero point, or double-click it to reset to the active artboard's top-left. Transform, Properties and Control X/Y fields measure from it and convert entered positions back to absolute command coordinates. The origin survives every native format version and compression; geometry, guides and patterns stay in place. Global/artboard mode switching and video rulers remain separate. Public reference: [Use rulers](https://helpx.adobe.com/ca/illustrator/desktop/measure-and-align/grids-and-guides/use-rulers.html).
+@@ -533,6 +535,7 @@ Moved from the ROADMAP's "Shipped so far" on 2026-10-10. Update it when a featur
+ | 2026-10-13 | minor | File formats: PDF and `.ai` import keep a stroke opaque and unmasked when the fill under it was faded or masked by its group, and a `.ai` read as its PDF part keeps its RGB numbers (#1434); SVG export writes knockout groups of opaque art without masks, and `convert` takes `--decimals` (#1435); grayscale TIFFs with an alpha channel or other extra channels place, relink and open (#1489, part of #1466; colourising 1-bit and grayscale images is still open); score and hours unchanged (estimated) |
+ | 2026-10-13 | minor | Path operations and transforms: Split Into Grid has its row and column sizes, gutters, totals, Add Guides and Preview (#1488, fixes #1462); the Pathfinder panel works on a group selected alone (#1493, for #1450; one plain path alone is not settled by the documentation); Transform Objects in the Transform dialogs and Transform Each, and Reflect across an angle (#1494, fixes #1448 and #1460); Fit Headline in a frame one line tall (#1445, fixes #1444); value fields: selected text is readable (#1490, part of #1465) and a focused field follows its value (#1497, fixes #1457); the many-object edits of #1430 and #1464 are under Performance already; scores and hours unchanged (estimated) |
+ | 2026-10-13 | minor | Image Trace: Black and White, Grayscale and Color place edges by the blend of the pixels across them and fit outlines as Flat Logo does; a harness measures every preset (`image-trace-quality.md`): Default's outlines 0.31 → 0.09 px off on average, Black and White Logo's 0.27 → 0.06 with 15 → 0.3 kinks, gaps between abutting paths 64 → 22 px. Score and hours unchanged (estimated) |
++| 2026-10-12 | minor | TIFF is available in Export for Screens and Asset Export with shared format settings; scores and hours unchanged |
+ | 2026-10-12 | minor | 3D and Materials: Extrude & Bevel, Inflate and Rotate with Position presets ([three-d.md](three-d.md)); 3D ~8% → ~25%, 50–85 → 30–55 h (estimated); menu 353/375 wired (measured from the stubs removed) |
+ | 2026-10-12 | minor | File formats: an Affinity text frame too short for its first line is made taller with a warning instead of showing nothing (#1423); synthetic-file test; score and hours unchanged (estimated) |
+ | 2026-10-12 | minor | File formats: a `.ai` compound path takes its last path's paint and keeps paths grouped inside it (#1426, fixes #1410; hand-written editing data test, no public documentation of which member carries the paint); a `.ai` whose PDF part draws only text opens from it when its editing data can't be read (#1414, fixes #1387); score and hours unchanged (estimated) |

@@ -1,0 +1,76 @@
+{
+  "unit": "artboard-delete",
+  "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-artboard-delete-8715130c",
+  "diff_sha256": "b66e7a05bf7bfde2ee68dcf9b4dcbbebc017ce98e7ed113cf81cd0ffd5b6929e",
+  "tree": "50c7b5b696cdd9739fffecd40b40a6f029f3599e",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/ui-egui/src/panels/artboards.rs",
+    "crates/ui-egui/src/panels/properties.rs",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md",
+    "docs/ui-parity.md"
+  ],
+  "required_tests": [
+    "panels::properties::tests::artboard_menu_deletes_selected_artboards_in_one_undo_step",
+    "panels::properties::tests::properties_deletes_selected_artboards_in_one_undo_step",
+    "panels::properties::tests::artboard_menu_preserves_all_selected_artboards",
+    "panels::properties::tests::properties_preserves_all_selected_artboards"
+  ],
+  "integration_adaptations": [
+    {
+      "path": "crates/ui-egui/src/panels/properties.rs",
+      "before": "        app.run(\"file.new\", json!({\"width\": 200, \"height\": 100, \"artboards\": count, \"columns\": count, \"spacing\": 50})).unwrap();",
+      "after": "        app.run(\"file.new\", json!({\"width\": 200, \"height\": 100, \"artboards\": count})).unwrap();",
+      "reason": "Remove formerly ignored top-level fixture parameters now rejected by upstream validation; preserve actual geometry and all assertions."
+    }
+  ],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791848985.858791,
+  "parent_source_proofs": {
+    "crates/ui-egui/src/panels/artboards.rs": {
+      "base_sha256": "fbe5c500e207527e729e73af164dbadbc2e2726265fb52f4aa4ff401d43486c2",
+      "candidate_sha256": "d0b113d8f370bd451ca3533fe2d2b6acbb26563472aee41ba7db7b4ef7c7f6b3",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/panels/properties.rs": {
+      "base_sha256": "ece6a3112f255c1263139c9e1127ad5b75124ed0fb0d0431a260ecd42f19d2b5",
+      "candidate_sha256": "fe01651d524c3f9a417044fb494d8dc0d128728898b7555fdda6838017dc6d2c",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/gaps.md": {
+      "base_sha256": "f0396c015f07a6cd176a6427c260b0f2dcb3c7b18f24817dfe6531ef11af2c0a",
+      "candidate_sha256": "77c1a71887b9838b890663a3fe854a543a40e2f8854ee50e1c61351b6c36f2eb",
+      "exact_original_feature_edits": 3,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "ff5eadca3c8c58258cf213ebaeb7c210cca60eae070970ea5eb0245dce041455",
+      "candidate_sha256": "94cf8e61e8814ae7896b55f221e0209ac5f7ead9eda2e7f4c7ec53edbf927991",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "ad63365f84d2ffe328e5be189af36f3704d4b3118bfee2ec3408805712b547a8",
+      "candidate_sha256": "98702c131c334aa06c35ba5e0828f06dba7fd179efd7cb4b9843997cfb1384c6",
+      "exact_original_feature_edits": 4,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/ui-parity.md": {
+      "base_sha256": "6c27809c925e51f8032cee973913d1f4d7796c830355fba2253892446be74afb",
+      "candidate_sha256": "585ac3b4a76c4ecab7fa41f14643cfc7b6a9dcb25d406e469434de251c35b931",
+      "accepted_feature_reversal_restores_upstream": true
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/artboard-delete.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/7fadeb4e/artboard-delete.json",
+    "sha256": "ec529e5f4116a9cc7df8ca93b7f8f67009cbd7f8b10d17cb8ec9cade1179f334"
+  },
+  "integration_proof": "Parent exact raw-blob equality for unchanged upstream paths; original-feature reversal restores both old and latest bases for shared docs. No runtime claim."
+}

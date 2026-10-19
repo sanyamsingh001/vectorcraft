@@ -1,0 +1,101 @@
+{
+  "unit": "screens-tiff",
+  "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-screens-tiff-8715130c",
+  "diff_sha256": "3a6f75f87474bc28166a877127a7d9b630960af987e61362f284c03b8f9c2854",
+  "tree": "fa9f2848e1e13045da5ed325897487f462dbd509",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/ui-egui/src/dialogs/export_for_screens.rs",
+    "crates/ui-egui/src/dialogs/mod.rs",
+    "crates/ui-egui/src/dialogs/tests_screens.rs",
+    "crates/ui-egui/src/panels/asset_export.rs",
+    "crates/ui-egui/src/panels/tests_asset_export.rs",
+    "docs/file-format-parity.md",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md"
+  ],
+  "required_tests": [
+    "dialogs::tests_screens::opens_on_defaults_and_draws_every_view",
+    "dialogs::tests_screens::checked_artboards_read_as_a_range",
+    "dialogs::tests_screens::exports_into_the_folder_and_shows_it",
+    "dialogs::tests_screens::the_web_downloads_one_zip_or_the_file",
+    "dialogs::tests_screens::a_preset_export_reopens_on_its_rows",
+    "dialogs::tests_screens::tiff_dropdown_exports_scaled_artboards_with_options_and_reopens",
+    "panels::tests_asset_export::an_empty_panel_says_how_to_add_assets_and_shows_the_export_settings",
+    "panels::tests_asset_export::art_dropped_on_the_panel_becomes_assets",
+    "panels::tests_asset_export::the_plus_button_collects_the_selection_and_the_bin_removes_selected_assets",
+    "panels::tests_asset_export::renaming_an_asset_runs_assets_rename",
+    "panels::tests_asset_export::the_rows_are_the_shared_export_settings",
+    "panels::tests_asset_export::export_writes_into_the_picked_folder",
+    "panels::tests_asset_export::tiff_dropdown_exports_only_the_selected_asset_and_shares_settings",
+    "panels::tests_asset_export::tiff_cmyk_defaults_match_screens_and_preserve_explicit_rgb",
+    "panels::tests_asset_export::tiff_panel_preserves_shared_antialias_and_explicit_overrides",
+    "cmd::fileio::tests_tiffbmp::tiff_options_reach_the_file",
+    "cmd::fileio::tests_screens::format_settings_apply_to_their_rows_and_rows_win",
+    "panels::tests_asset_export::tiff_saved_aliases_use_document_defaults_and_explicit_rgb"
+  ],
+  "integration_adaptations": [],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791849127.273438,
+  "parent_source_proofs": {
+    "crates/ui-egui/src/dialogs/export_for_screens.rs": {
+      "base_sha256": "2dabb9070c2ebddb273d42dd618daecafb89f76e062d186214403f75b79c40a4",
+      "candidate_sha256": "bc07bfe2fc085d07a342717c7640c1020f3495d98987b7e0fdcc8102e27fa6d4",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/dialogs/mod.rs": {
+      "base_sha256": "14767ed239d0ef7d13f900c38649027002e9d4a2885d67bb105825c644acd644",
+      "candidate_sha256": "b129a13f5a841278af531df749385930fff9c4f8cc0f7a1ec4f9c80971a9c76d",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/dialogs/tests_screens.rs": {
+      "base_sha256": "a556dc934b07872bac730e2907cb54ff605536cd91ad5c918b91fb954c44a48b",
+      "candidate_sha256": "e1fcc573f9eae3eb132744074cbfde681c9f6cbb1acff67a6bac27c91d4b7f8f",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/panels/asset_export.rs": {
+      "base_sha256": "11c3989db8e809d61e876e03bcf9157412e98aeccc21af0eef177efe2f63bda2",
+      "candidate_sha256": "42d59d2f640055fa0105aec8268f80ab6011aa6d10375be82641fbca4b2e938d",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/panels/tests_asset_export.rs": {
+      "base_sha256": "939e2d8d41bf4dff5bbd2e280bb042939b7bdbeabec9a98c26cdf4ed7cdb7b6b",
+      "candidate_sha256": "c83176379dba7b5f58371cad2cd97e04bc0015f3936deec21d39c7eb90f5ddcf",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/file-format-parity.md": {
+      "base_sha256": "9f70a84daa1d7e072e90cca6aeafe1670dc46fd52c9fddac7b785d8ddaa877d5",
+      "candidate_sha256": "8326ea103f5d57203182cc640321755ab21ef50067994ec3252d45ee651c845a",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/gaps.md": {
+      "base_sha256": "f0396c015f07a6cd176a6427c260b0f2dcb3c7b18f24817dfe6531ef11af2c0a",
+      "candidate_sha256": "34dfc03f7c427709f830ff619d9c2bbc1c1297e3705d8043982a5732cfcce1d9",
+      "exact_original_feature_edits": 4,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "ff5eadca3c8c58258cf213ebaeb7c210cca60eae070970ea5eb0245dce041455",
+      "candidate_sha256": "a6de77779f93beb8d833f4ba533ee0fe064a490a04e02d26482e7d7b2b05f2f6",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "ad63365f84d2ffe328e5be189af36f3704d4b3118bfee2ec3408805712b547a8",
+      "candidate_sha256": "71737976999c08696d2a21ab94e81b06f3ebb820b5ca7100778f741acc4bd237",
+      "exact_original_feature_edits": 4,
+      "accepted_feature_reversal_restores_upstream": true
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/screens-tiff.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/7fadeb4e/screens-tiff.json",
+    "sha256": "ab7ff55b44eefe880686bc0312797efec48a5b86accb01af1eede5ccbe3fcc1d"
+  },
+  "integration_proof": "Parent exact raw-blob equality for unchanged upstream paths; original-feature reversal restores both old and latest bases for shared docs. No runtime claim."
+}

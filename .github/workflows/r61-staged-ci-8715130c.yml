@@ -1,0 +1,72 @@
+name: R61 staged full CI proposal (8715130c)
+'on':
+  push:
+    branches: [codex/r61-staged-ci-8715130c-76a8b502f117426f]
+permissions:
+  contents: read
+concurrency:
+  group: codex/r61-staged-ci-8715130c-76a8b502f117426f
+  cancel-in-progress: false
+jobs:
+  verify:
+    name: ${{ matrix.unit }}
+    if: github.repository == 'sanyamsingh001/vectorcraft'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        unit: [width-shift, artboard-delete, screens-tiff, style-auto-leading]
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.0
+      CARGO_BUILD_JOBS: '1'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: never
+      CARGO_TARGET_DIR: ${{ runner.temp }}/r61-${{ matrix.unit }}-target
+      BINDINGS_SHA256: 8b6dd9df809cfe5809ea69f36f6b63e5c210a80496a687ed375f7c7c9e2f0b76
+      VERIFIER_SHA256: 7c48c92f9bdb228d62473196f273e2f97fefd1bf1b2c4a5b48e574d74ea0d35a
+    steps:
+      - name: Check out the helper-only carrier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: carrier
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Check out immutable application base separately
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: storytold/vectorcraft
+          ref: 8715130c8b11bace7e72860a3b15b893deebbb36
+          path: source
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Install original R60 Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev fonts-dejavu-core
+      - name: Install original R60 Rust toolchain
+        run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+      - name: Stage frozen source and run unmodified full CI
+        shell: bash
+        env:
+          TMPDIR: ${{ runner.temp }}/r61-${{ matrix.unit }}-tmp
+          TMP: ${{ runner.temp }}/r61-${{ matrix.unit }}-tmp
+          TEMP: ${{ runner.temp }}/r61-${{ matrix.unit }}-tmp
+        run: |
+          python3 carrier/.github/r61-staged-ci/verify.py \
+            --unit '${{ matrix.unit }}' \
+            --source "$GITHUB_WORKSPACE/source" \
+            --output "$RUNNER_TEMP/r61-${{ matrix.unit }}-evidence"
+      - name: Preserve source bindings and gate evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: r61-staged-${{ matrix.unit }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/r61-${{ matrix.unit }}-evidence
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7

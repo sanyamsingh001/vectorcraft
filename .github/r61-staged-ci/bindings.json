@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "status": "UNEXECUTED_PREPARED_CARRIER",
+  "repository": "sanyamsingh001/vectorcraft",
+  "source_repository": "storytold/vectorcraft",
+  "branch": "codex/r61-staged-ci-8715130c-76a8b502f117426f",
+  "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+  "base_tree": "209ec1201fbe4040b8e92e10a3640a0cf034adfe",
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "diff_flags": [
+    "--binary",
+    "--full-index",
+    "--no-renames",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--no-color",
+    "--unified=3",
+    "--src-prefix=a/",
+    "--dst-prefix=b/",
+    "--diff-algorithm=myers",
+    "--no-indent-heuristic"
+  ],
+  "steps": [
+    "fmt",
+    "clippy",
+    "test",
+    "assets",
+    "brands",
+    "layers",
+    "wasm"
+  ],
+  "units": {
+    "width-shift": {
+      "manifest": "frozen/width-shift.json",
+      "manifest_sha256": "e6c6b45666023200cfaf27fe8fd855a2eae53e955ac282f33eaad49b44fff431",
+      "patch": "frozen/width-shift.patch",
+      "patch_sha256": "c84b8eb483dd5ec45efe91d63ace2c21bf1c57a1795267d341945d938d032efd",
+      "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+      "tree": "ebeabd4dff230fa78299afa3c9e4bf3784f56a4d",
+      "full_index_diff_sha256": "9a2810739697ec600ec56a761ef5b6f753a4e66afceee043ee2a8e7ecacf54b0",
+      "required_test_count": 11
+    },
+    "artboard-delete": {
+      "manifest": "frozen/artboard-delete.json",
+      "manifest_sha256": "dda1dede40e0f80d94e3d4df3b5b5d9537d649421b59d4939aab9b1c54320b14",
+      "patch": "frozen/artboard-delete.patch",
+      "patch_sha256": "b66e7a05bf7bfde2ee68dcf9b4dcbbebc017ce98e7ed113cf81cd0ffd5b6929e",
+      "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+      "tree": "50c7b5b696cdd9739fffecd40b40a6f029f3599e",
+      "full_index_diff_sha256": "f56a2c958b6cc067d98ba1acd2a11c6c74f89612c67b1eaa22ec3330e2ef6371",
+      "required_test_count": 4
+    },
+    "screens-tiff": {
+      "manifest": "frozen/screens-tiff.json",
+      "manifest_sha256": "d50358ab8b8fbfedd85782c4cd17cfa45b1441450c629014e577aaaa82fbbd3a",
+      "patch": "frozen/screens-tiff.patch",
+      "patch_sha256": "3a6f75f87474bc28166a877127a7d9b630960af987e61362f284c03b8f9c2854",
+      "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+      "tree": "fa9f2848e1e13045da5ed325897487f462dbd509",
+      "full_index_diff_sha256": "6883760fe9abdfcb53486d5341e3e4fed3c53165fe0dfd073037c26917e0e482",
+      "required_test_count": 18
+    },
+    "style-auto-leading": {
+      "manifest": "frozen/style-auto-leading.json",
+      "manifest_sha256": "70b91a27a8a0273d79e1273c5eeb9f8c055eb434f3d4a9f036b092d5eded52af",
+      "patch": "frozen/style-auto-leading.patch",
+      "patch_sha256": "d1c925a42ff2050ecd7d2284d3fd8772d6fdccba68690cdb17bcf09c65289e39",
+      "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+      "tree": "512c4661d5c11622d80b95d820f958fb92b189cd",
+      "full_index_diff_sha256": "cb9cf271f3c8090c438597c132029b3b405d5eee893bf8fb71edf6b2156a500f",
+      "required_test_count": 8
+    }
+  }
+}
