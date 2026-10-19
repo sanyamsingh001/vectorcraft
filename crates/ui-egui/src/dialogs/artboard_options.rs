@@ -1,0 +1,162 @@
+//! Artboard Options (double-click with the Artboard tool): the artboard's fields, sizes parsed
+//! with units.
+
+use serde_json::{Value, json};
+
+use super::{DialogSpec, form, run_and_close};
+use crate::VectorcraftApp;
+use crate::state::Dialog;
+
+pub(super) const SPEC: DialogSpec = DialogSpec { heading: |_| tl!("Artboard Options").into(), body, confirm, ..DialogSpec::FORM };
+
+fn body(app: &mut VectorcraftApp, ui: &mut egui::Ui, d: &mut Dialog) -> bool {
+    form::grid(ui, d, app.session.general_unit());
+    form::check(ui, d, "scaleArt", "Scale Artwork with Artboard");
+    false
+}
+
+fn confirm(app: &mut VectorcraftApp, d: &Dialog) -> Result<Value, String> {
+    let mut p = Value::Object(d.fields.clone());
+    for k in ["x", "y", "width", "height"] {
+        if d.fields.contains_key(k) {
+            p[k] = json!(d.f64(k, 0.0));
+        }
+    }
+    let result = run_and_close(app, "artboard.setProps", p)?;
+    app.run("tool.setOption", json!({"tool": "artboard", "key": "scaleArt", "value": d.bool("scaleArt")}))?;
+    Ok(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{VectorcraftApp, panels};
+    use egui::{Event, Pos2, Rect, Shape, Ui, pos2, vec2};
+    use serde_json::json;
+    use vectorcraft_doc::NodeId;
+    use vectorcraft_engine::Session;
+    use vectorcraft_geom::Rect as DRect;
+
+    struct Harness {
+        app: VectorcraftApp,
+        ctx: egui::Context,
+        time: f64,
+        art: NodeId,
+    }
+    impl Harness {
+        fn new() -> Self {
+            let mut app = VectorcraftApp::new(Session::new(), Default::default());
+            app.run("file.new", json!({"width":100,"height":100})).unwrap();
+            let art = NodeId(app.run("shape.rectangle", json!({"x":10,"y":20,"width":10,"height":10})).unwrap()["id"].as_u64().unwrap());
+            app.select_tool("artboard");
+            let ctx = egui::Context::default();
+            crate::theme::install_fonts(&ctx);
+            Self { app, ctx, time: 0.0, art }
+        }
+        fn frame(&mut self, events: Vec<Event>, draw: fn(&mut VectorcraftApp, &mut Ui)) -> egui::FullOutput {
+            self.time += 0.1;
+            let mut out = self.ctx.run_ui(
+                egui::RawInput {
+                    events,
+                    time: Some(self.time),
+                    screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(700.0, 600.0))),
+                    ..Default::default()
+                },
+                |ui| draw(&mut self.app, ui),
+            );
+            out.textures_delta.clear();
+            out
+        }
+        fn settle(&mut self, draw: fn(&mut VectorcraftApp, &mut Ui)) -> egui::FullOutput {
+            self.frame(vec![], draw);
+            self.frame(vec![], draw)
+        }
+        fn click(&mut self, p: Pos2, draw: fn(&mut VectorcraftApp, &mut Ui)) -> egui::FullOutput {
+            self.frame(vec![Event::PointerMoved(p)], draw);
+            for pressed in [true, false] {
+                self.frame(vec![Event::PointerButton { pos: p, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() }], draw);
+            }
+            self.settle(draw)
+        }
+        fn bounds(&self) -> DRect {
+            self.app.session.active().unwrap().doc.node(self.art).unwrap().geometric_bounds().unwrap()
+        }
+    }
+    fn at(out: &egui::FullOutput, label: &str) -> Pos2 {
+        fn find(shape: &Shape, label: &str) -> Option<Pos2> {
+            match shape {
+                Shape::Text(t) if t.galley.text().trim() == label => Some(t.pos + vec2(4.0, 4.0)),
+                Shape::Vec(v) => v.iter().find_map(|s| find(s, label)),
+                _ => None,
+            }
+        }
+        out.shapes.iter().find_map(|s| find(&s.shape, label)).unwrap_or_else(|| panic!("missing {label}: {}", crate::tests_labels::shapes_text(out)))
+    }
+    fn dialog(app: &mut VectorcraftApp, ui: &mut Ui) {
+        super::super::show(app, ui.ctx());
+    }
+    fn control(app: &mut VectorcraftApp, ui: &mut Ui) {
+        crate::toolbar::control_bar_options(app, ui);
+    }
+    #[test]
+    fn scale_art_control_toggle_persists_and_the_transform_panel_can_turn_it_off() {
+        let mut h = Harness::new();
+        let out = h.settle(control);
+        h.click(at(&out, "Scale Artwork with Artboard"), control);
+        assert_eq!(h.app.session.tool_options()["scaleArt"], true);
+        h.app.select_tool("selection");
+        h.app.select_tool("artboard");
+        assert_eq!(h.app.session.tool_options()["scaleArt"], true);
+        let out = h.settle(panels::transform::show);
+        h.click(at(&out, "Scale Artwork with Artboard"), panels::transform::show);
+        assert_eq!(h.app.session.tool_options()["scaleArt"], false);
+        assert_eq!(h.bounds(), DRect::new(10.0, 20.0, 20.0, 30.0));
+    }
+    #[test]
+    fn scale_art_dialog_checkbox_applies_one_undoable_resize_and_cancel_keeps_the_option() {
+        let mut h = Harness::new();
+        super::super::open_tool_dialog(&mut h.app, "artboardOptions", json!({"index":0,"width":100,"height":100,"name":"Page"}));
+        let out = h.settle(dialog);
+        h.click(at(&out, "Scale Artwork with Artboard"), dialog);
+        let d = h.app.ui.dialog.as_mut().unwrap();
+        assert!(d.bool("scaleArt"));
+        d.fields.insert("width".into(), json!(200));
+        d.fields.insert("height".into(), json!(200));
+        let undo = h.app.session.active().unwrap().history.undo.len();
+        let out = h.settle(dialog);
+        h.click(at(&out, "OK"), dialog);
+        assert!(h.app.ui.dialog.is_none());
+        assert_eq!(h.app.session.tool_options()["scaleArt"], true);
+        assert_eq!(h.bounds(), DRect::new(20.0, 40.0, 40.0, 60.0));
+        assert_eq!(h.app.session.active().unwrap().history.undo.len(), undo + 1);
+        h.app.run("edit.undo", json!({})).unwrap();
+        assert_eq!(h.bounds(), DRect::new(10.0, 20.0, 20.0, 30.0));
+        super::super::open_tool_dialog(&mut h.app, "artboardOptions", json!({"index":0,"width":100,"height":100}));
+        let out = h.settle(dialog);
+        h.click(at(&out, "Scale Artwork with Artboard"), dialog);
+        let out = h.settle(dialog);
+        h.click(at(&out, "Cancel"), dialog);
+        assert_eq!(h.app.session.tool_options()["scaleArt"], true);
+        assert_eq!(h.bounds(), DRect::new(10.0, 20.0, 20.0, 30.0));
+    }
+    #[test]
+    fn scale_art_transform_width_edit_uses_the_artboard_reference_point() {
+        let mut h = Harness::new();
+        h.app.run("tool.setOption", json!({"key":"scaleArt","value":true})).unwrap();
+        let undo = h.app.session.active().unwrap().history.undo.len();
+        let out = h.settle(panels::transform::show);
+        h.click(at(&out, "100 pt"), panels::transform::show);
+        h.frame(
+            vec![Event::Key { key: egui::Key::A, physical_key: None, pressed: true, repeat: false, modifiers: egui::Modifiers::COMMAND }],
+            panels::transform::show,
+        );
+        h.frame(vec![Event::Text("200 pt".into())], panels::transform::show);
+        h.frame(
+            vec![Event::Key { key: egui::Key::Enter, physical_key: None, pressed: true, repeat: false, modifiers: Default::default() }],
+            panels::transform::show,
+        );
+        h.settle(panels::transform::show);
+        assert_eq!(h.app.session.active().unwrap().doc.artboards[0].rect, DRect::new(-50.0, 0.0, 150.0, 100.0));
+        assert_eq!(h.bounds(), DRect::new(-30.0, 20.0, -10.0, 30.0));
+        assert_eq!(h.app.session.active().unwrap().history.undo.len(), undo + 1);
+    }
+}
