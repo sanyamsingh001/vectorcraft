@@ -1,0 +1,277 @@
+name: Verify focused PR revisions (Linux)
+'on':
+  push:
+    branches:
+    - codex/verify-focused-prs-r60
+permissions:
+  contents: read
+concurrency:
+  group: verify-focused-prs-r60
+  cancel-in-progress: false
+jobs:
+  verify:
+    name: ${{ matrix.unit }}
+    if: github.repository == 'sanyamsingh001/vectorcraft'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+        - unit: pen-only
+          head: 1e1905da55becaa1cf7c9c1b229ecdcdd93d2637
+          tree: 602a219763bc9e46e888a2fd767de7af479d4dd0
+          commands:
+          - - cargo
+            - test
+            - --locked
+            - -p
+            - vectorcraft-tools
+            - --lib
+            - pen::tests::snapped_last_endpoint_converts_active_path_after_raw_miss
+            - --
+            - --exact
+            - --nocapture
+          - - cargo
+            - test
+            - --locked
+            - -p
+            - vectorcraft-tools
+            - --lib
+            - pen::tests::raw_other_endpoint_wins_before_snapped_active_last_endpoint
+            - --
+            - --exact
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-tools
+            - --lib
+            - pen::tests
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --test
+            - pen_endpoint_picking
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --lib
+            - pen_interactions
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --lib
+            - the_pen_continues_any_open_path_and_joins_another
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --lib
+            - join_takes_the_paths_and_the_ends_to_join
+        - unit: native-export
+          head: 26c424d8e9808d6ab5416485ca8fd59343824ecc
+          tree: c0a74d00a7a8a49e107eedd5f7c38b2fbb9c3789
+          commands:
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --lib
+            - tests_placed_document::svg_editing_keeps_placed_links_separate_from_drawn_previews
+            - --
+            - --exact
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --lib
+            - 'tests_placed_document::'
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-engine
+            - --lib
+            - 'cmd::fileio::'
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-ui-egui
+            - --lib
+            - dialogs::save_options::tests
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-ui-egui
+            - --lib
+            - tests_aisave
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-ui-egui
+            - --lib
+            - tests_nativeoptions
+        - unit: svg-attributes
+          head: 213e9804f074e9a6dd8da984487ab7b62f1b0981
+          tree: 9c5e2774ea1954227be2fe3390b497c6c09be5ef
+          commands:
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-svg
+            - --test
+            - data_attributes
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-ui-egui
+            - --lib
+            - dialogs::tests_svg_options_range
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-ui-egui
+            - --lib
+            - dialogs::svg_options::tests
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-svg
+        - unit: eps-control
+          head: ce31b19ce80b1b41c0445ba69d98395b05249661
+          tree: 5d06c612b2abf50e02131fb91c9f225b8d611eee
+          commands:
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-eps
+            - --lib
+        - unit: font-fallback
+          head: ae5fa0647ace0fa6bce765ac861bdeb2e341b59b
+          tree: ee0a32aa438c6900f483004aa5b35fe483913274
+          commands:
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-text
+            - --lib
+            - tests_font_coverage
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-text
+            - --lib
+            - --
+            - --nocapture
+        - unit: test-oracles
+          head: b4f183eb7e3dfcd4d97c5995a9c227430c2235ec
+          tree: 22246235e197656f61dce82193e76852eaebef22
+          commands:
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-text
+            - --lib
+            - 'tests_bidi::'
+            - --
+            - --nocapture
+          - - cargo
+            - test
+            - -p
+            - vectorcraft-pdf
+            - --test
+            - system_fonts
+            - --test
+            - embedded_system_fonts
+            - --
+            - --nocapture
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.0
+      CARGO_BUILD_JOBS: '1'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: never
+      UNIT: ${{ matrix.unit }}
+      EXPECTED_HEAD: ${{ matrix.head }}
+      EXPECTED_TREE: ${{ matrix.tree }}
+      FOCUSED_COMMANDS: ${{ toJSON(matrix.commands) }}
+    steps:
+    - name: Check out the published revision
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: ${{ matrix.head }}
+        persist-credentials: false
+    - name: Install Linux build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev fonts-dejavu-core
+    - name: Install Rust 1.99 and checks
+      run: |
+        rustup toolchain install 1.99.0 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+    - name: Run focused tests and full CI on the pinned source
+      shell: bash
+      run: |
+        python3 - <<'PY'
+        import hashlib, json, os, pathlib, platform, subprocess, sys, time
+        out = pathlib.Path('.git/codex-ci')
+        out.mkdir()
+        def git(*args):
+            return subprocess.check_output(['git', *args], text=True).strip()
+        def guard():
+            assert git('rev-parse', 'HEAD') == os.environ['EXPECTED_HEAD']
+            assert git('rev-parse', 'HEAD^{tree}') == os.environ['EXPECTED_TREE']
+            subprocess.run(['git', 'diff', '--exit-code', 'HEAD'], check=True)
+        guard()
+        rust = subprocess.check_output(['rustc', '-vV'], text=True)
+        assert rust.startswith('rustc 1.99.0 '), rust
+        source = {'unit': os.environ['UNIT'], 'head': git('rev-parse', 'HEAD'), 'tree': git('rev-parse', 'HEAD^{tree}'), 'rust': rust, 'cargo': subprocess.check_output(['cargo', '-vV'], text=True), 'platform': platform.platform(), 'cargo_lock_sha256': hashlib.sha256(pathlib.Path('Cargo.lock').read_bytes()).hexdigest(), 'environment': {k: os.environ.get(k) for k in ['RUSTUP_TOOLCHAIN', 'CARGO_BUILD_JOBS', 'CARGO_PROFILE_DEV_DEBUG', 'CARGO_PROFILE_TEST_DEBUG', 'CARGO_INCREMENTAL', 'RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'RUST_MIN_STACK', 'RUST_TEST_THREADS', 'PROPTEST_CASES', 'CRAFT_FONTS_DIR', 'CRAFT_FONTS_REQUIRED']}}
+        for name in ['RUST_MIN_STACK', 'RUST_TEST_THREADS', 'PROPTEST_CASES', 'RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'CRAFT_FONTS_DIR', 'CRAFT_FONTS_REQUIRED']:
+            assert not os.environ.get(name), name
+        (out / 'source.json').write_text(json.dumps(source, indent=2) + '\n')
+        commands = json.loads(os.environ['FOCUSED_COMMANDS'])
+        assert all(isinstance(c, list) and c[:2] == ['cargo', 'test'] and all(isinstance(a, str) for a in c) for c in commands)
+        commands.append(['cargo', 'xtask', 'ci'])
+        results = []
+        for index, command in enumerate(commands):
+            guard()
+            print('COMMAND', json.dumps(command), flush=True)
+            log = out / ('command-%02d.log' % index)
+            started = time.time()
+            with log.open('w') as stream:
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+                for line in process.stdout:
+                    stream.write(line)
+                    print(line, end='', flush=True)
+                status = process.wait()
+            guard()
+            results.append({'command': command, 'exit_code': status, 'source_unchanged': True, 'started': started, 'ended': time.time(), 'log': log.name, 'log_sha256': hashlib.sha256(log.read_bytes()).hexdigest()})
+            (out / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
+        guard()
+        assert len(results) == len(commands)
+        sys.exit(0 if all(row['exit_code'] == 0 for row in results) else 1)
+        PY
+    - name: Preserve validation evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: verification-${{ matrix.unit }}
+        path: .git/codex-ci
+        include-hidden-files: true
+        if-no-files-found: error
+        retention-days: 7
