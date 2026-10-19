@@ -1,0 +1,1322 @@
+//! Keyboard shortcuts: command shortcuts from the registry, single-key tool shortcuts, arrows,
+//! and tool keys (Enter/Esc/↑/↓ while drawing).
+
+use egui::{Key, KeyboardShortcut, Modifiers};
+use serde_json::json;
+use vectorcraft_engine::cmd::clipboard::{Flavour, TEXT};
+use vectorcraft_tools::{Mods, ToolKey};
+
+use crate::VectorcraftApp;
+
+/// Parse "Cmd+Shift+]" into an egui shortcut. `Cmd` is Command on macOS and Ctrl elsewhere.
+/// `+` and `=` name one chord key ([`Key::Equals`]): `+` is Shift+`=` on many layouts, so a
+/// `Cmd+=` chord also answers `+` however it is typed (see [`consume`]).
+pub fn parse(s: &str) -> Option<KeyboardShortcut> {
+    if s.is_empty() {
+        return None;
+    }
+    let (mods_part, key_part) =
+        if let Some(stripped) = s.strip_suffix("++") { (stripped.trim_end_matches('+'), "+") } else { s.rsplit_once('+').unwrap_or(("", s)) };
+    let mut m = Modifiers::NONE;
+    for part in mods_part.split('+').filter(|p| !p.is_empty()) {
+        match part {
+            "Cmd" => m |= Modifiers::COMMAND,
+            "Shift" => m |= Modifiers::SHIFT,
+            "Alt" => m |= Modifiers::ALT,
+            "Ctrl" => m |= Modifiers::CTRL,
+            _ => return None,
+        }
+    }
+    let key = match key_part {
+        "]" => Key::CloseBracket,
+        "[" => Key::OpenBracket,
+        ";" => Key::Semicolon,
+        "'" => Key::Quote,
+        "/" => Key::Slash,
+        "\\" => Key::Backslash,
+        "=" | "+" => Key::Equals,
+        "-" => Key::Minus,
+        "Delete" => Key::Delete,
+        "Backspace" => Key::Backspace,
+        "Tab" => Key::Tab,
+        "~" => Key::Backtick,
+        // A modifier alone is never a chord's key: it couldn't fire (#487).
+        k => Key::from_name(k).filter(|k| !is_modifier(*k))?,
+    };
+    Some(KeyboardShortcut::new(m, key))
+}
+
+/// The modifier keys, which egui also reports as key presses of their own.
+pub(crate) fn is_modifier(key: Key) -> bool {
+    matches!(
+        key,
+        Key::ShiftLeft | Key::ShiftRight | Key::ControlLeft | Key::ControlRight | Key::AltLeft | Key::AltRight | Key::SuperLeft | Key::SuperRight
+    )
+}
+
+/// Every command shortcut in effect (user overrides from Edit → Keyboard Shortcuts win), with the
+/// command's params: `{}`, or `{panel}` for the panel shortcuts (`window.panel`).
+pub(crate) fn all_shortcuts() -> Vec<(KeyboardShortcut, &'static str, serde_json::Value)> {
+    let mut v = vec![];
+    for c in vectorcraft_engine::command_specs() {
+        if let Some(sc) = crate::menus::shortcut_of(c.id).and_then(parse) {
+            v.push((sc, c.id, json!({})));
+        }
+    }
+    for c in crate::menus::UI_COMMANDS {
+        if let Some(sc) = crate::menus::shortcut_of(c.0).and_then(parse) {
+            v.push((sc, c.0, json!({})));
+        }
+    }
+    for (panel, _) in crate::state::all_panels() {
+        if let Some(sc) = crate::shortcut_editor::panel_shortcut(panel).and_then(parse) {
+            v.push((sc, "window.panel", json!({ "panel": panel })));
+        }
+    }
+    settings_chord(&mut v, cfg!(target_os = "macos"));
+    // Most specific (most modifiers) first so Cmd+Shift+Z isn't eaten by Cmd+Z.
+    v.sort_by_key(|(sc, ..)| {
+        std::cmp::Reverse(sc.modifiers.shift as u8 + sc.modifiers.alt as u8 + sc.modifiers.command as u8 + sc.modifiers.ctrl as u8)
+    });
+    v
+}
+
+/// On a Mac, Cmd+, opens Settings as in every Mac app (#663), beside Preferences' own shortcut,
+/// unless a command or a user's shortcut already took it.
+fn settings_chord(v: &mut Vec<(KeyboardShortcut, &'static str, serde_json::Value)>, mac: bool) {
+    if let Some(sc) = parse("Cmd+,").filter(|sc| mac && !v.iter().any(|(s, ..)| s == sc)) {
+        v.push((sc, "edit.preferences", json!({})));
+    }
+}
+
+/// Consume a press of `sc`. A `=` chord also takes [`Key::Plus`], which is how `+` arrives from
+/// the numpad and from layouts where it has its own key (Shift+`=` arrives as either; extra Shift
+/// is ignored).
+pub(crate) fn consume(i: &mut egui::InputState, sc: &KeyboardShortcut) -> bool {
+    i.consume_shortcut(sc)
+        || (sc.logical_key == Key::Equals && i.consume_key(sc.modifiers, Key::Plus))
+        || (sc.modifiers.shift && shifted(sc.logical_key).is_some_and(|k| i.consume_key(sc.modifiers, k)))
+}
+
+/// The key a shifted punctuation key arrives as: egui reports the character typed, so Cmd+Shift+[
+/// comes in as Cmd+Shift+`{` (US-style layouts).
+fn shifted(k: Key) -> Option<Key> {
+    Some(match k {
+        Key::OpenBracket => Key::OpenCurlyBracket,
+        Key::CloseBracket => Key::CloseCurlyBracket,
+        Key::Slash => Key::Questionmark,
+        Key::Semicolon => Key::Colon,
+        Key::Backslash => Key::Pipe,
+        _ => return None,
+    })
+}
+
+/// Keys that paste with Cmd, or alone. (Shift+Insert is left out: Ctrl+Insert copies.)
+const PASTE_KEYS: [Key; 2] = [Key::V, Key::Paste];
+
+/// The paste command whose V chord `held` holds (Paste in Place for Cmd+Shift+V by default), else
+/// Paste: egui reports every Cmd+V chord as a paste, never as its key.
+pub(crate) fn paste_command(held: Modifiers) -> &'static str {
+    all_shortcuts()
+        .into_iter()
+        .find(|(sc, id, _)| sc.logical_key == Key::V && id.starts_with("edit.paste") && held.matches_logically(sc.modifiers))
+        .map_or("edit.paste", |(_, id, _)| id)
+}
+
+/// Keyboard pastes of something other than text. egui swallows a paste chord's key press and
+/// sends a Paste event only when the clipboard holds text, so a paste key released without its
+/// press (or a Paste event) reported was a paste of a bitmap or a PDF.
+#[derive(Default)]
+pub(crate) struct PasteChord {
+    /// Paste keys whose press was reported (typed, not pasting).
+    pressed: Vec<Key>,
+    /// A Paste event came since the last paste key was released.
+    pasted: bool,
+}
+
+impl PasteChord {
+    /// Follow one frame's `events` → the modifiers of a paste egui sent no event for (the chord's,
+    /// as its key is released).
+    pub(crate) fn textless_paste(&mut self, events: &[egui::Event]) -> Option<Modifiers> {
+        let mut fire = None;
+        for e in events {
+            match e {
+                egui::Event::Paste(_) => self.pasted = true,
+                // A release that comes while the window is away is never seen.
+                egui::Event::WindowFocused(false) => *self = Self::default(),
+                egui::Event::Key { key, pressed: true, .. } if PASTE_KEYS.contains(key) && !self.pressed.contains(key) => self.pressed.push(*key),
+                egui::Event::Key { key, pressed: false, modifiers, .. } if PASTE_KEYS.contains(key) => {
+                    match self.pressed.iter().position(|k| k == key) {
+                        Some(i) => {
+                            self.pressed.swap_remove(i);
+                        }
+                        // Unless a Paste event came (the guard takes it either way).
+                        None if !std::mem::take(&mut self.pasted) => fire = Some(*modifiers),
+                        None => {}
+                    }
+                }
+                _ => {}
+            }
+        }
+        fire
+    }
+}
+
+/// End an IME composition outside the IME (a click away, the IME going away): the
+/// marked text stays as typed, and the system IME is told to drop it.
+pub(crate) fn keep_marked_text(app: &mut VectorcraftApp) {
+    let Some(m) = app.ime_marked.take() else { return };
+    app.ime_discard = true;
+    if app.session.tool_composing() {
+        // Errors are already reported by the engine's interaction.
+        let _ = app.session.tool_text(&m, app.view_info());
+    }
+}
+
+/// Typed text and IME events, in the order they came, to the Type tool.
+fn type_text(app: &mut VectorcraftApp, ctx: &egui::Context) {
+    let view = app.view_info();
+    // Switching apps mid-composition needs nothing: the macOS IME keeps its marked text and goes
+    // on with it when the window comes back (measured with Kotoeri), as the tool does.
+    let events: Vec<egui::Event> =
+        ctx.input(|i| i.events.iter().filter(|e| matches!(e, egui::Event::Text(_) | egui::Event::Ime(_))).cloned().collect());
+    for e in events {
+        // Errors are already reported by the engine's interaction (a failed preview keeps it).
+        let _ = match e {
+            // Keys the IME passed through come as text only when nothing is marked.
+            egui::Event::Text(t) if !app.session.tool_composing() => app.session.tool_text(&t, view),
+            egui::Event::Ime(egui::ImeEvent::Preedit { text, active_range_chars }) => {
+                app.ime_marked = Some(text.clone()).filter(|t| !t.is_empty());
+                app.session.tool_preedit(&text, active_range_chars, view)
+            }
+            // A bare line break confirms the composition (Enter): the marked text, not a newline.
+            egui::Event::Ime(egui::ImeEvent::Commit(t)) if t == "\n" || t == "\r" => {
+                keep_marked_text(app);
+                Ok(vec![])
+            }
+            egui::Event::Ime(egui::ImeEvent::Commit(t)) => {
+                app.ime_marked = None;
+                app.session.tool_text(&t, view)
+            }
+            // `DeleteSurrounding` isn't sent by egui-winit (desktop); the web host has no IME
+            // path to the canvas yet.
+            _ => Ok(vec![]),
+        };
+    }
+}
+
+pub fn handle(app: &mut VectorcraftApp, ctx: &egui::Context) {
+    // Followed before anything returns, so a key typed in a field isn't taken for a paste.
+    let textless_paste = ctx.input(|i| app.paste_chord.textless_paste(&i.events));
+    // A numeric field being scrubbed has the keyboard: Escape cancels the drag.
+    if crate::scrub::phase(ctx) != crate::scrub::Phase::Idle {
+        return;
+    }
+    if app.ui.dialog.is_some() || app.ui.palette_open {
+        if crate::shortcut_editor::is_recording(app) {
+            return;
+        }
+        if ctx.input(|i| i.key_pressed(Key::Escape)) {
+            crate::dialogs::cancel(app);
+            app.ui.palette_open = false;
+        }
+        return;
+    }
+    let typing = ctx.egui_wants_keyboard_input();
+    let view = app.view_info();
+    // While an IME composes, Enter and Escape are its own (confirm / cancel).
+    let composing = app.session.tool_composing();
+    // Tool keys first (Enter/Escape end paths; arrows change polygon sides while dragging).
+    let busy = app.session.tool_busy();
+    for (k, tk) in [(Key::Enter, ToolKey::Enter), (Key::Escape, ToolKey::Escape)] {
+        if !typing && !composing && ctx.input(|i| i.key_pressed(k)) {
+            // A key the tool claims (Esc with a loaded place cursor) is only the tool's.
+            let claimed = app.session.tool_claims_key(tk, view);
+            let r = app.session.tool_key(tk, Mods::default(), view);
+            // Enter also takes what the tool asks of the UI: Rotate, Scale, Reflect and Shear open
+            // their dialog with it.
+            if claimed || (k == Key::Enter && !busy) {
+                crate::canvas::apply_requests(app, r);
+            }
+            if k == Key::Escape && !busy && !claimed {
+                // Escape leaves Presentation Mode first: it hides the menus and panels.
+                if app.ui.screen_mode == 3 {
+                    let _ = app.run("view.presentation", json!({}));
+                } else if app.session.active().is_some_and(|d| d.doc.pattern_edit.is_some()) {
+                    let _ = app.run("object.pattern.done", json!({}));
+                } else if app.session.active().is_some_and(|d| d.isolation.is_some()) {
+                    let _ = app.run("object.exitIsolation", json!({}));
+                } else if app.ui.flyout.is_some() {
+                    app.ui.flyout = None;
+                }
+            }
+            if k == Key::Enter && !busy && !claimed {
+                // Enter with a selection tool opens the Move dialog, as a double-click on its button
+                // does.
+                let tool = app.session.tool_id();
+                if app.ui.dialog.is_none() && vectorcraft_tools::catalog::is_selection_tool(tool) {
+                    // Nothing selected: it fails and nothing opens (the menu item is disabled then too).
+                    let _ = crate::toolbar::open_options(app, tool);
+                }
+                // The Enter that opened a dialog isn't also its OK: dialogs take Enter, this frame too.
+                if app.ui.dialog.is_some() {
+                    ctx.input_mut(|i| i.consume_key(Modifiers::NONE, Key::Enter));
+                }
+            }
+        }
+    }
+    if typing {
+        return;
+    }
+    // Tab is ours when no field has the keyboard (it shows and hides the panels, or goes to the
+    // Type tool): left to egui, it would also move the focus on to a field, and every key after it
+    // would count as typing.
+    if ctx.input(|i| i.key_pressed(Key::Tab)) {
+        ctx.memory_mut(|m| m.move_focus(egui::FocusDirection::None));
+    }
+    // Type tool editing: text, IME composition and editing keys go to the tool.
+    if app.session.tool_wants_text() {
+        type_text(app, ctx);
+        // Keys of a frame that began composing are the IME's too (a Backspace that empties the
+        // marked text must not delete the committed character before it).
+        if composing || app.session.tool_composing() {
+            // The IME owns the keyboard until it commits: no editing keys, clipboard or shortcuts.
+            ctx.input_mut(|i| {
+                i.events.retain(|e| !matches!(e, egui::Event::Key { .. } | egui::Event::Copy | egui::Event::Cut | egui::Event::Paste(_)))
+            });
+            return;
+        }
+        // Editing keys with modifiers and the clipboard (Cmd+A is Select All's, below: the text).
+        crate::panels::character::route_type_input(app, ctx);
+        // Enter was already delivered above as ToolKey::Enter (newline).
+        let fire = all_shortcuts().into_iter().filter(|(sc, ..)| sc.modifiers.command).find(|(sc, ..)| ctx.input_mut(|i| consume(i, sc)));
+        if let Some((_, id, p)) = fire {
+            crate::menus::invoke(app, id, p);
+        }
+        return;
+    }
+    // Clipboard keys arrive as events, not key presses; the chord held says which paste.
+    let mut clip = vec![];
+    ctx.input_mut(|i| {
+        let held = i.modifiers;
+        i.events.retain(|e| {
+            let (id, text) = match e {
+                egui::Event::Copy => ("edit.copy", None),
+                egui::Event::Cut => ("edit.cut", None),
+                egui::Event::Paste(t) => (paste_command(held), Some(t.clone())),
+                _ => return true,
+            };
+            clip.push((id, text));
+            false
+        })
+    });
+    // Only the system clipboard service reads what isn't text.
+    if let Some(id) = textless_paste.map(paste_command)
+        && app.services.system_clipboard.is_some()
+    {
+        clip.push((id, None));
+    }
+    for (id, text) in clip {
+        app.clipboard_in = text.map(|t| Flavour { mime: TEXT, data: t.into_bytes() });
+        crate::menus::invoke(app, id, json!({}));
+    }
+    if busy {
+        // The arrows while dragging: a polygon's sides, a grid's rows (↑/↓) and columns (←/→)…
+        let arrows =
+            [(Key::ArrowUp, ToolKey::Up), (Key::ArrowDown, ToolKey::Down), (Key::ArrowLeft, ToolKey::Left), (Key::ArrowRight, ToolKey::Right)];
+        for (k, tk) in arrows {
+            if ctx.input_mut(|i| i.consume_key(Modifiers::NONE, k)) {
+                let _ = app.session.tool_key(tk, Mods::default(), view);
+            }
+        }
+        // Digits (5 while dragging with the Perspective Selection tool), once per press.
+        let digits: Vec<u8> = ctx.input(|i| {
+            i.events
+                .iter()
+                .filter_map(|e| match e {
+                    egui::Event::Key { key, pressed: true, repeat: false, .. } => digit_of(*key),
+                    _ => None,
+                })
+                .collect()
+        });
+        for d in digits {
+            let _ = app.session.tool_key(ToolKey::Digit(d), Mods::default(), view);
+        }
+        return;
+    }
+    // Keys the active tool claims ahead of their shortcuts (the Gradient tool's selected stop:
+    // Delete/Backspace remove it, ←/→ nudge it; the loaded place cursor: the arrows cycle files).
+    let m = ctx.input(|i| i.modifiers);
+    for (k, tk) in [
+        (Key::Delete, ToolKey::Delete),
+        (Key::Backspace, ToolKey::Backspace),
+        (Key::ArrowLeft, ToolKey::Left),
+        (Key::ArrowRight, ToolKey::Right),
+        (Key::ArrowUp, ToolKey::Up),
+        (Key::ArrowDown, ToolKey::Down),
+    ] {
+        if ctx.input(|i| i.key_pressed(k)) && app.session.tool_claims_key(tk, view) && ctx.input_mut(|i| i.consume_key(m, k)) {
+            let r = app.session.tool_key(tk, crate::canvas::mods(m, false), view);
+            crate::canvas::apply_requests(app, r);
+            return;
+        }
+    }
+    // Digits the active tool or the perspective grid takes (1–4 pick the plane while it shows).
+    if !(m.command || m.alt || m.ctrl) {
+        let digits: Vec<(u8, Key)> = ctx.input(|i| {
+            i.events
+                .iter()
+                .filter_map(|e| match e {
+                    egui::Event::Key { key, pressed: true, .. } => digit_of(*key).map(|d| (d, *key)),
+                    _ => None,
+                })
+                .collect()
+        });
+        for (d, k) in digits {
+            if app.session.tool_claims_key(ToolKey::Digit(d), view) && ctx.input_mut(|i| i.consume_key(m, k)) {
+                // The digit's text is the key's too: no single-key shortcut sees it.
+                let text = d.to_string();
+                ctx.input_mut(|i| i.events.retain(|e| !matches!(e, egui::Event::Text(t) if *t == text)));
+                let r = app.session.tool_key(ToolKey::Digit(d), crate::canvas::mods(m, false), view);
+                crate::canvas::apply_requests(app, r);
+                return;
+            }
+        }
+    }
+    // Command shortcuts.
+    let mut fire = None;
+    for (sc, id, p) in all_shortcuts() {
+        // Letter / punctuation keys without Cmd/Alt/Ctrl are handled below as text (tool shortcuts,
+        // X, D, /, `,` and `.`).
+        let plain = !(sc.modifiers.command || sc.modifiers.alt || sc.modifiers.ctrl);
+        if plain && (sc.logical_key.name().len() == 1 || matches!(sc.logical_key, Key::Slash | Key::Comma | Key::Period)) {
+            continue;
+        }
+        if ctx.input_mut(|i| consume(i, &sc)) {
+            fire = Some((id, p));
+            break;
+        }
+    }
+    if let Some((id, p)) = fire {
+        crate::menus::invoke(app, id, p);
+        return;
+    }
+    // Arrow nudges (Shift = ×10, Alt = copy).
+    let arrows = [(Key::ArrowLeft, -1.0, 0.0), (Key::ArrowRight, 1.0, 0.0), (Key::ArrowUp, 0.0, -1.0), (Key::ArrowDown, 0.0, 1.0)];
+    for (k, dx, dy) in arrows {
+        let m = ctx.input(|i| i.modifiers);
+        if ctx.input_mut(|i| i.consume_key(m, k)) && app.session.active().is_some_and(|d| d.selection.has_objects_or_guides()) {
+            let _ = app.run("object.nudge", json!({"dx": dx, "dy": dy, "big": m.shift, "copy": m.alt}));
+        }
+    }
+    // Delete / Backspace clear the selection.
+    if ctx.input_mut(|i| i.consume_key(Modifiers::NONE, Key::Backspace)) && app.session.active().is_some_and(|d| d.selection.has_objects_or_guides())
+    {
+        let _ = app.run("edit.clear", json!({}));
+    }
+    // Single-key tool shortcuts (no Cmd/Ctrl/Alt).
+    let events: Vec<(String, Modifiers)> = ctx.input(|i| {
+        i.events
+            .iter()
+            .filter_map(|e| match e {
+                egui::Event::Text(t) => Some((t.clone(), i.modifiers)),
+                _ => None,
+            })
+            .collect()
+    });
+    for (text, m) in events {
+        if m.command || m.alt || m.ctrl {
+            continue;
+        }
+        let upper = text.to_uppercase();
+        let key = if m.shift && text.chars().all(|c| c.is_alphabetic()) { format!("Shift+{upper}") } else { upper.clone() };
+        // A shifted punctuation character can also be written with its Shift (the Curvature tool's
+        // Shift+~ arrives as `~`).
+        let shifted = m.shift.then(|| format!("Shift+{text}"));
+        let lookup = |find: fn(&str) -> Option<&'static str>| find(&key).or_else(|| find(&text)).or_else(|| shifted.as_deref().and_then(find));
+        // Single-key command shortcuts (X, Shift+X, D, /, Shift+D, F, Shift+F by default).
+        if let Some(id) = lookup(crate::shortcut_editor::command_for_key) {
+            let _ = app.run(id, json!({}));
+            continue;
+        }
+        if let Some(t) = lookup(crate::shortcut_editor::tool_for_key) {
+            app.select_tool(t);
+        }
+    }
+}
+
+/// The digit a number-row or keypad key types.
+fn digit_of(k: Key) -> Option<u8> {
+    const DIGITS: [Key; 10] = [Key::Num0, Key::Num1, Key::Num2, Key::Num3, Key::Num4, Key::Num5, Key::Num6, Key::Num7, Key::Num8, Key::Num9];
+    DIGITS.iter().position(|d| *d == k).map(|i| i as u8)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// One headless frame delivering `events` to the shortcut handler.
+    fn frame(app: &mut VectorcraftApp, events: Vec<egui::Event>) -> egui::FullOutput {
+        let ctx = egui::Context::default();
+        let mut out = ctx.run_ui(egui::RawInput { events, ..Default::default() }, |ui| {
+            handle(app, ui.ctx());
+            app.logic(ui.ctx());
+        });
+        out.textures_delta.clear();
+        out
+    }
+
+    /// Use the full app and its actual tab widget IDs, including the first frame of opening and closing.
+    #[test]
+    fn modal_keyboard_protects_real_document_tabs_and_releases_focus_after_closing() {
+        fn full_frame(app: &mut VectorcraftApp, ctx: &egui::Context, events: Vec<egui::Event>) -> egui::FullOutput {
+            let mut out = ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1600.0, 900.0))),
+                    events,
+                    ..Default::default()
+                },
+                |ui| {
+                    app.logic(ui.ctx());
+                    app.ui(ui);
+                },
+            );
+            out.textures_delta.clear();
+            out
+        }
+        fn key(key: Key, pressed: bool) -> egui::Event {
+            egui::Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE }
+        }
+        fn text_rects(out: &egui::FullOutput, matches: fn(&str) -> bool) -> Vec<egui::Rect> {
+            fn collect(shape: &egui::Shape, matches: fn(&str) -> bool, rects: &mut Vec<egui::Rect>) {
+                match shape {
+                    egui::Shape::Text(t) if matches(t.galley.text()) => rects.push(egui::Rect::from_min_size(t.pos, t.galley.size())),
+                    egui::Shape::Vec(shapes) => shapes.iter().for_each(|s| collect(s, matches, rects)),
+                    _ => {}
+                }
+            }
+            let mut rects = vec![];
+            out.shapes.iter().for_each(|s| collect(&s.shape, matches, &mut rects));
+            rects
+        }
+        fn widget_for_text(ctx: &egui::Context, text: egui::Rect) -> (egui::Id, egui::Rect) {
+            ctx.viewport(|vp| {
+                vp.prev_pass
+                    .widgets
+                    .layers()
+                    .flat_map(|(_, w)| w.iter())
+                    .filter(|w| w.rect.contains_rect(text))
+                    .min_by(|a, b| a.rect.area().total_cmp(&b.rect.area()))
+                    .map(|w| (w.id, w.rect))
+                    .unwrap()
+            })
+        }
+        fn fixture(large_tabs: bool, close: bool) -> (VectorcraftApp, egui::Context, (egui::Id, egui::Rect)) {
+            let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+            for _ in 0..2 {
+                app.run("file.new", json!({"width": 400, "height": 300})).unwrap();
+            }
+            app.run("prefs.set", json!({"key": "largeTabs", "value": large_tabs})).unwrap();
+            app.session.prefs.interface_language = "en".into();
+            app.ui.home = None;
+            app.ui.control_bar = false;
+            app.ui.dock = false;
+            app.ui.toolbar = false;
+            app.ui.status_bar = false;
+            let ctx = egui::Context::default();
+            let mut out = full_frame(&mut app, &ctx, vec![]);
+            for _ in 0..3 {
+                out = full_frame(&mut app, &ctx, vec![]);
+            }
+            // Read the actual tab titles and hit targets, independent of the Large Tabs style.
+            let mut titles = text_rects(&out, |s| s.contains(" @ "));
+            titles.sort_by(|a, b| a.left().total_cmp(&b.left()));
+            assert_eq!(titles.len(), 2, "the full app must render both document tabs");
+            let tabs: Vec<_> = titles.iter().map(|r| widget_for_text(&ctx, *r)).collect();
+            assert_ne!(tabs[0].0, tabs[1].0, "each title belongs to a different tab");
+            let widgets = ctx.viewport(|vp| vp.prev_pass.widgets.layers().flat_map(|(_, w)| w.iter()).map(|w| (w.id, w.rect)).collect::<Vec<_>>());
+            let target = if close {
+                widgets
+                    .iter()
+                    .copied()
+                    .filter(|(_, r)| tabs[0].1.contains_rect(*r) && r.width() == r.height() && r.right() <= titles[0].left())
+                    .max_by(|a, b| a.1.area().total_cmp(&b.1.area()))
+                    .unwrap()
+            } else {
+                tabs[0]
+            };
+            assert_eq!(app.session.active_index(), Some(1));
+            (app, ctx, target)
+        }
+        fn documents(app: &VectorcraftApp) -> Vec<u64> {
+            app.session.documents().iter().map(|d| d.uid).collect()
+        }
+        fn assert_acted(app: &VectorcraftApp, before: &[u64], close: bool) {
+            if close {
+                assert_eq!(documents(app), vec![before[1]], "the real first document was closed");
+            } else {
+                assert_eq!(documents(app), before);
+                assert_eq!(app.session.active_index(), Some(0), "the real first document became active");
+            }
+        }
+        for large_tabs in [false, true] {
+            for close in [false, true] {
+                // Seed a pre-existing keyboard focus, then prove Space reaches the actual app action.
+                let (mut positive, ctx, target) = fixture(large_tabs, close);
+                let before = documents(&positive);
+                ctx.memory_mut(|m| m.request_focus(target.0));
+                full_frame(&mut positive, &ctx, vec![key(Key::Space, true), key(Key::Space, false)]);
+                assert_acted(&positive, &before, close);
+                for phase in ["opening", "settled", "refocused background"] {
+                    let first_frame = phase == "opening";
+                    let (mut app, ctx, target) = fixture(large_tabs, close);
+                    let before = documents(&app);
+                    ctx.memory_mut(|m| m.request_focus(target.0));
+                    crate::prefs_dialog::open(&mut app, Some("User Interface"));
+                    if !first_frame {
+                        let mut out = full_frame(&mut app, &ctx, vec![]);
+                        for _ in 0..3 {
+                            out = full_frame(&mut app, &ctx, vec![]);
+                        }
+                        if phase == "refocused background" {
+                            ctx.memory_mut(|m| m.request_focus(target.0));
+                        } else {
+                            // A real dialog category button must retain its keyboard focus while
+                            // the early boundary leaves the already shown modal layer alone.
+                            let general = text_rects(&out, |s| s == "General");
+                            assert_eq!(general.len(), 1);
+                            let field = widget_for_text(&ctx, general[0]).0;
+                            ctx.memory_mut(|m| m.request_focus(field));
+                            for _ in 0..2 {
+                                full_frame(&mut app, &ctx, vec![]);
+                                assert_eq!(ctx.memory(|m| m.focused()), Some(field), "dialog focus survives another frame");
+                            }
+                        }
+                    }
+                    full_frame(&mut app, &ctx, vec![key(Key::Space, true), key(Key::Space, false)]);
+                    if phase == "settled" {
+                        assert_eq!(app.ui.dialog.as_ref().unwrap().str("__category"), "General", "Space reaches the focused dialog button");
+                    }
+                    assert_eq!(documents(&app), before, "large={large_tabs}, close={close}, phase={phase}: modal protects the documents");
+                    assert_eq!(
+                        app.session.active_index(),
+                        Some(1),
+                        "large={large_tabs}, close={close}, phase={phase}: the modal protects the active document"
+                    );
+                    assert_ne!(
+                        ctx.memory(|m| m.focused()),
+                        Some(target.0),
+                        "large={large_tabs}, close={close}, phase={phase}: the background tab cannot retain modal focus"
+                    );
+                    assert_eq!(app.ui.dialog.as_ref().unwrap().kind, "preferences");
+                    // The first keyboard frame after Escape closes the modal must accept a tool letter.
+                    full_frame(&mut app, &ctx, vec![key(Key::Escape, true)]);
+                    assert!(app.ui.dialog.is_none());
+                    full_frame(&mut app, &ctx, vec![key(Key::Escape, false), key(Key::P, true), key(Key::P, false), egui::Event::Text("p".into())]);
+                    assert_eq!(app.session.tool_id(), "pen", "closing the modal releases keyboard focus immediately");
+                    assert_eq!(documents(&app), before);
+                    // Real pointer events remain a positive control after closing, for both tab actions.
+                    let pos = target.1.center();
+                    full_frame(&mut app, &ctx, vec![egui::Event::PointerMoved(pos)]);
+                    for pressed in [true, false] {
+                        full_frame(
+                            &mut app,
+                            &ctx,
+                            vec![egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE }],
+                        );
+                    }
+                    assert_acted(&app, &before, close);
+                }
+            }
+        }
+    }
+
+    /// Escape must roll back a live preview just as clicking Cancel does, keeping both history stacks.
+    #[test]
+    fn modal_escape_rolls_back_preview_like_the_cancel_button() {
+        use serde_json::Value;
+
+        fn frame(app: &mut VectorcraftApp, ctx: &egui::Context, events: Vec<egui::Event>) -> egui::FullOutput {
+            let input = egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 900.0))),
+                events,
+                ..Default::default()
+            };
+            let mut out = ctx.run_ui(input, |ui| {
+                app.logic(ui.ctx());
+                app.ui(ui);
+            });
+            out.textures_delta.clear();
+            out
+        }
+        fn text_at(out: &egui::FullOutput, label: &str) -> egui::Pos2 {
+            fn find(shape: &egui::Shape, label: &str) -> Option<egui::Pos2> {
+                match shape {
+                    egui::Shape::Text(t) if t.galley.text() == label => Some(t.visual_bounding_rect().center()),
+                    egui::Shape::Vec(v) => v.iter().find_map(|shape| find(shape, label)),
+                    _ => None,
+                }
+            }
+            out.shapes.iter().find_map(|shape| find(&shape.shape, label)).unwrap_or_else(|| panic!("missing {label}"))
+        }
+        fn click(app: &mut VectorcraftApp, ctx: &egui::Context, pos: egui::Pos2) {
+            frame(app, ctx, vec![egui::Event::PointerMoved(pos)]);
+            for pressed in [true, false] {
+                frame(app, ctx, vec![egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE }]);
+            }
+            frame(app, ctx, vec![]);
+        }
+        fn snapshot(app: &VectorcraftApp) -> Value {
+            let st = app.session.active().unwrap();
+            let entries = |v: &[vectorcraft_engine::HistoryEntry]| -> Vec<Value> {
+                v.iter().map(|e| json!({"label": e.label, "doc": e.doc.as_ref(), "selection": e.selection})).collect()
+            };
+            json!({"doc": st.doc.as_ref(), "selection": st.selection, "undo": entries(&st.history.undo),
+                "redo": entries(&st.history.redo), "limit": st.history.limit, "interaction": st.interaction.is_some()})
+        }
+        fn count(app: &VectorcraftApp) -> usize {
+            app.session.active().unwrap().doc.layers.iter().map(|l| l.children().map_or(0, |c| c.len())).sum()
+        }
+        fn preview(app: &mut VectorcraftApp, ctx: &egui::Context) {
+            crate::menus::invoke(app, "object.path.offsetPath", json!({}));
+            for _ in 0..3 {
+                frame(app, ctx, vec![]);
+            }
+            let out = frame(app, ctx, vec![]);
+            click(app, ctx, text_at(&out, "Preview"));
+            assert_eq!(count(app), 2, "the checkbox must actually modify the document");
+            assert!(app.session.in_interaction(), "a live preview is running");
+        }
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.run("file.new", json!({"width": 400, "height": 400})).unwrap();
+        app.run("shape.rectangle", json!({"x": 100, "y": 100, "width": 80, "height": 60})).unwrap();
+        // A redo entry makes clearing or changing either history stack observable.
+        app.run("shape.ellipse", json!({"x": 10, "y": 10, "width": 20, "height": 20})).unwrap();
+        app.run("edit.undo", json!({})).unwrap();
+        let ctx = egui::Context::default();
+        for _ in 0..3 {
+            frame(&mut app, &ctx, vec![]);
+        }
+        let before = snapshot(&app);
+        assert_eq!((before["undo"].as_array().unwrap().len(), before["redo"].as_array().unwrap().len()), (1, 1));
+        preview(&mut app, &ctx);
+        let out = frame(&mut app, &ctx, vec![]);
+        click(&mut app, &ctx, text_at(&out, "Cancel"));
+        assert!(app.ui.dialog.is_none());
+        let cancelled = snapshot(&app);
+        assert_eq!(cancelled, before, "Cancel restores the document, selection, undo/redo entries and interaction");
+        eprintln!(
+            "Cancel: objects={}, undo={}, redo={}, interaction={}",
+            count(&app),
+            cancelled["undo"].as_array().unwrap().len(),
+            cancelled["redo"].as_array().unwrap().len(),
+            cancelled["interaction"]
+        );
+        preview(&mut app, &ctx);
+        frame(
+            &mut app,
+            &ctx,
+            vec![egui::Event::Key { key: Key::Escape, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE }],
+        );
+        frame(
+            &mut app,
+            &ctx,
+            vec![egui::Event::Key { key: Key::Escape, physical_key: None, pressed: false, repeat: false, modifiers: Modifiers::NONE }],
+        );
+        assert!(app.ui.dialog.is_none());
+        let escaped = snapshot(&app);
+        eprintln!(
+            "Escape: objects={}, undo={}, redo={}, interaction={}",
+            count(&app),
+            escaped["undo"].as_array().unwrap().len(),
+            escaped["redo"].as_array().unwrap().len(),
+            escaped["interaction"]
+        );
+        assert_eq!(count(&app), 1, "Escape must remove the previewed object just as Cancel does");
+        assert_eq!(escaped, cancelled, "Escape must match Cancel's document, selection, full undo/redo history and interaction");
+    }
+
+    /// A library Area creates its own UI, so the root modal disable must cover retained focus there too.
+    #[test]
+    fn modal_keyboard_protects_independent_library_window() {
+        use crate::panels::{library_panel, swatches::SwatchLibraries};
+        use serde_json::Value;
+
+        fn full_frame(app: &mut VectorcraftApp, ctx: &egui::Context, events: Vec<egui::Event>) {
+            let mut out = ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1600.0, 900.0))),
+                    events,
+                    ..Default::default()
+                },
+                |ui| {
+                    app.logic(ui.ctx());
+                    app.ui(ui);
+                },
+            );
+            out.textures_delta.clear();
+        }
+        fn key(key: Key, pressed: bool) -> egui::Event {
+            egui::Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE }
+        }
+        fn fixture() -> (VectorcraftApp, egui::Context, egui::Id) {
+            let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+            app.run("file.new", json!({"width": 400, "height": 300})).unwrap();
+            let id = app.run("shape.rectangle", json!({"x": 20, "y": 20, "width": 60, "height": 40})).unwrap()["id"].clone();
+            app.run("select.set", json!({"ids": [id]})).unwrap();
+            app.session.prefs.interface_language = "en".into();
+            app.ui.home = None;
+            app.run("window.swatchLibrary", json!({"library": "Pastels"})).unwrap();
+            let ctx = egui::Context::default();
+            crate::theme::install_fonts(&ctx);
+            for _ in 0..4 {
+                full_frame(&mut app, &ctx, vec![]);
+            }
+            let tile = library_panel::tile_id::<SwatchLibraries>("Pastel Teal");
+            let response = ctx.read_response(tile).expect("the full app renders the real library tile");
+            assert!(response.enabled());
+            assert_eq!(response.id, tile);
+            assert!(app.session.doc().unwrap().doc.swatch("Pastel Teal").is_none());
+            (app, ctx, tile)
+        }
+        fn snapshot(app: &VectorcraftApp) -> Value {
+            let st = app.session.active().unwrap();
+            let entries = |v: &[vectorcraft_engine::HistoryEntry]| -> Vec<Value> {
+                v.iter().map(|e| json!({"label": e.label, "doc": e.doc.as_ref(), "selection": e.selection})).collect()
+            };
+            json!({"uid": st.uid, "doc": st.doc.as_ref(), "selection": st.selection,
+                "undo": entries(&st.history.undo), "redo": entries(&st.history.redo), "limit": st.history.limit,
+                "interaction": st.interaction.is_some(), "fill": app.session.paint.fill, "stroke": app.session.paint.stroke,
+                "fill_active": app.session.fill_active})
+        }
+        fn assert_acted(app: &VectorcraftApp, undo: usize) {
+            let st = app.session.active().unwrap();
+            let swatch = st.doc.swatch("Pastel Teal").expect("Space adds the actual library swatch");
+            assert_eq!(app.session.paint.fill, vectorcraft_color::Paint::solid(swatch.paint.color().unwrap()));
+            assert_eq!(st.history.undo.len(), undo + 1, "the library action is one undo step");
+        }
+
+        let (mut positive, ctx, tile) = fixture();
+        let undo = positive.session.active().unwrap().history.undo.len();
+        ctx.memory_mut(|m| m.request_focus(tile));
+        full_frame(&mut positive, &ctx, vec![key(Key::Space, true), key(Key::Space, false)]);
+        assert_acted(&positive, undo);
+
+        for phase in ["opening", "settled", "refocused background"] {
+            let (mut app, ctx, tile) = fixture();
+            let before = snapshot(&app);
+            let undo = app.session.active().unwrap().history.undo.len();
+            ctx.memory_mut(|m| m.request_focus(tile));
+            app.run("edit.preferences", json!({"category": "User Interface"})).unwrap();
+            if phase != "opening" {
+                for _ in 0..4 {
+                    full_frame(&mut app, &ctx, vec![]);
+                }
+                if phase == "refocused background" {
+                    ctx.memory_mut(|m| m.request_focus(tile));
+                }
+            }
+            full_frame(&mut app, &ctx, vec![key(Key::Space, true), key(Key::Space, false)]);
+            assert_eq!(snapshot(&app), before, "{phase}: the modal protects artwork, paint and history");
+            assert_eq!(app.ui.dialog.as_ref().unwrap().kind, "preferences");
+            assert_ne!(ctx.memory(|m| m.focused()), Some(tile), "{phase}: background library focus cannot survive");
+
+            full_frame(&mut app, &ctx, vec![key(Key::Escape, true)]);
+            assert!(app.ui.dialog.is_none());
+            full_frame(&mut app, &ctx, vec![key(Key::Escape, false), key(Key::P, true), key(Key::P, false), egui::Event::Text("p".into())]);
+            assert_eq!(app.session.tool_id(), "pen", "{phase}: Escape immediately releases the keyboard");
+            assert_eq!(snapshot(&app), before);
+            ctx.memory_mut(|m| m.request_focus(tile));
+            full_frame(&mut app, &ctx, vec![key(Key::Space, true), key(Key::Space, false)]);
+            assert_acted(&app, undo);
+        }
+    }
+
+    mod independent_modal_cases {
+        use super::*;
+        use serde_json::Value;
+
+        const LAYER_NAME: &str = "Modal eye target";
+
+        fn frame(app: &mut VectorcraftApp, ctx: &egui::Context, events: Vec<egui::Event>) -> egui::FullOutput {
+            let mut out = ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1600.0, 900.0))),
+                    events,
+                    ..Default::default()
+                },
+                |ui| {
+                    app.logic(ui.ctx());
+                    app.ui(ui);
+                },
+            );
+            out.textures_delta.clear();
+            out
+        }
+        fn key(key: Key, pressed: bool) -> egui::Event {
+            egui::Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE }
+        }
+        fn space() -> Vec<egui::Event> {
+            vec![key(Key::Space, true), key(Key::Space, false)]
+        }
+        fn base() -> (VectorcraftApp, egui::Context) {
+            let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+            app.run("file.new", json!({"width": 400, "height": 300})).unwrap();
+            app.session.prefs.interface_language = "en".into();
+            app.ui.home = None;
+            let ctx = egui::Context::default();
+            crate::theme::install_fonts(&ctx);
+            (app, ctx)
+        }
+        fn settle(app: &mut VectorcraftApp, ctx: &egui::Context) -> egui::FullOutput {
+            let mut out = frame(app, ctx, vec![]);
+            for _ in 0..3 {
+                out = frame(app, ctx, vec![]);
+            }
+            out
+        }
+        fn snapshot(app: &VectorcraftApp) -> Value {
+            let st = app.session.active().unwrap();
+            let entries = |v: &[vectorcraft_engine::HistoryEntry]| -> Vec<Value> {
+                v.iter().map(|e| json!({"label": e.label, "doc": e.doc.as_ref(), "selection": e.selection})).collect()
+            };
+            json!({"uid": st.uid, "doc": st.doc.as_ref(), "selection": st.selection,
+                "undo": entries(&st.history.undo), "redo": entries(&st.history.redo), "limit": st.history.limit,
+                "interaction": st.interaction.is_some(), "fill": app.session.paint.fill, "stroke": app.session.paint.stroke,
+                "fill_active": app.session.fill_active})
+        }
+        fn open_modal(app: &mut VectorcraftApp, ctx: &egui::Context, target: egui::Id, phase: &str) {
+            ctx.memory_mut(|m| m.request_focus(target));
+            app.run("edit.preferences", json!({"category": "User Interface"})).unwrap();
+            if phase != "opening" {
+                settle(app, ctx);
+                if phase == "refocused background" {
+                    ctx.memory_mut(|m| m.request_focus(target));
+                }
+            }
+        }
+        fn close_modal(app: &mut VectorcraftApp, ctx: &egui::Context) {
+            frame(app, ctx, vec![key(Key::Escape, true)]);
+            assert!(app.ui.dialog.is_none());
+            frame(app, ctx, vec![key(Key::Escape, false), key(Key::P, true), key(Key::P, false), egui::Event::Text("p".into())]);
+            assert_eq!(app.session.tool_id(), "pen", "Escape immediately releases the keyboard");
+        }
+        fn named_rects(shape: &egui::Shape, rects: &mut Vec<egui::Rect>) {
+            match shape {
+                egui::Shape::Text(t) if t.galley.text() == LAYER_NAME => rects.push(egui::Rect::from_min_size(t.pos, t.galley.size())),
+                egui::Shape::Vec(v) => v.iter().for_each(|s| named_rects(s, rects)),
+                _ => {}
+            }
+        }
+        fn layers_fixture(floated: bool) -> (VectorcraftApp, egui::Context, u64, egui::Id) {
+            let (mut app, ctx) = base();
+            let layer = app.run("layer.new", json!({"name": LAYER_NAME})).unwrap()["id"].as_u64().unwrap();
+            app.run("shape.rectangle", json!({"x": 20, "y": 20, "width": 60, "height": 40})).unwrap();
+            app.run("window.collapseDock", json!({"collapsed": true})).unwrap();
+            let area = if floated {
+                app.run("window.panel.float", json!({"panel": "layers", "x": 40, "y": 140})).unwrap();
+                crate::floating::area_id("layers")
+            } else {
+                app.run("window.panel", json!({"panel": "layers"})).unwrap();
+                egui::Id::new("icon-panel")
+            };
+            let out = settle(&mut app, &ctx);
+            let bounds = ctx.memory(|m| m.area_rect(area)).expect("the requested independent Layers Area is shown");
+            let mut labels = vec![];
+            out.shapes.iter().for_each(|s| named_rects(&s.shape, &mut labels));
+            labels.retain(|r| bounds.contains_rect(*r));
+            assert_eq!(labels.len(), 1, "the named layer is painted inside the target Area");
+            let widgets = ctx.viewport(|vp| {
+                vp.prev_pass
+                    .widgets
+                    .layers()
+                    .filter(|(layer, _)| layer.id == area)
+                    .flat_map(|(_, w)| w.iter())
+                    .filter(|w| w.sense.senses_drag())
+                    .map(|w| (w.id, w.rect))
+                    .collect::<Vec<_>>()
+            });
+            let rows: Vec<_> = widgets.iter().filter(|(_, r)| r.height() == app.ui.layers_panel.row() && r.contains_rect(labels[0])).collect();
+            assert_eq!(rows.len(), 1, "the painted name resolves to one real row response");
+            let row = rows[0].1;
+            // The eye is the row's leftmost narrow response; derive its actual width and ID.
+            let eyes: Vec<_> = widgets
+                .iter()
+                .filter(|(_, r)| r.left() == row.left() && r.top() == row.top() && r.bottom() == row.bottom() && r.width() < row.width())
+                .collect();
+            assert_eq!(eyes.len(), 1, "the row resolves to one real eye response");
+            let eye = ctx.read_response(eyes[0].0).unwrap();
+            assert!(eye.enabled());
+            assert_eq!(eye.rect, eyes[0].1);
+            assert!(visible(&app, layer));
+            (app, ctx, layer, eye.id)
+        }
+        fn visible(app: &VectorcraftApp, layer: u64) -> bool {
+            app.session.active().unwrap().doc.layers.iter().find(|n| n.id.0 == layer).unwrap().visible
+        }
+        fn assert_eye_acted(app: &VectorcraftApp, layer: u64, undo: usize) {
+            assert!(!visible(app, layer), "Space hides the actual named layer");
+            assert_eq!(app.session.active().unwrap().history.undo.len(), undo + 1, "the real eye action adds one undo step");
+        }
+        fn layers_case(floated: bool) {
+            let (mut positive, ctx, layer, eye) = layers_fixture(floated);
+            let undo = positive.session.active().unwrap().history.undo.len();
+            ctx.memory_mut(|m| m.request_focus(eye));
+            frame(&mut positive, &ctx, space());
+            assert_eye_acted(&positive, layer, undo);
+
+            for phase in ["opening", "settled", "refocused background"] {
+                let (mut app, ctx, layer, eye) = layers_fixture(floated);
+                let before = snapshot(&app);
+                let undo = app.session.active().unwrap().history.undo.len();
+                open_modal(&mut app, &ctx, eye, phase);
+                frame(&mut app, &ctx, space());
+                assert!(visible(&app, layer), "floated={floated}, {phase}: modal protects layer visibility");
+                assert_eq!(snapshot(&app), before, "floated={floated}, {phase}: modal protects artwork, paint and history");
+                assert_eq!(app.ui.dialog.as_ref().unwrap().kind, "preferences");
+                assert_ne!(ctx.memory(|m| m.focused()), Some(eye), "floated={floated}, {phase}: the background eye loses focus");
+                close_modal(&mut app, &ctx);
+                assert_eq!(snapshot(&app), before);
+                ctx.memory_mut(|m| m.request_focus(eye));
+                frame(&mut app, &ctx, space());
+                assert_eye_acted(&app, layer, undo);
+            }
+        }
+        #[test]
+        fn floated_layers_eye_is_modal() {
+            layers_case(true);
+        }
+        #[test]
+        fn icon_flyout_layers_eye_is_modal() {
+            layers_case(false);
+        }
+        fn find_query(ctx: &egui::Context) -> String {
+            ctx.data(|d| d.get_temp::<String>(egui::Id::new("swatches-library-find"))).unwrap_or_default()
+        }
+        fn find_fixture() -> (VectorcraftApp, egui::Context, egui::Id) {
+            let (mut app, ctx) = base();
+            app.run("window.swatchLibrary", json!({"library": "Pastels"})).unwrap();
+            settle(&mut app, &ctx);
+            let field = ctx.read_response(egui::Id::new("swatches-library-find").with("edit")).expect("the real library Find TextEdit is shown");
+            assert!(field.enabled());
+            assert!(find_query(&ctx).is_empty());
+            (app, ctx, field.id)
+        }
+        fn assert_find_acted(ctx: &egui::Context) {
+            use crate::panels::{library_panel, swatches::SwatchLibraries};
+            assert_eq!(find_query(ctx), "teal", "text reaches the actual library Find field");
+            assert!(ctx.read_response(library_panel::tile_id::<SwatchLibraries>("Pastel Teal")).is_some());
+            assert!(ctx.read_response(library_panel::tile_id::<SwatchLibraries>("Soft Blue")).is_none(), "the real library tiles are filtered");
+        }
+        #[test]
+        fn library_find_is_modal() {
+            let (mut positive, ctx, field) = find_fixture();
+            let before = snapshot(&positive);
+            ctx.memory_mut(|m| m.request_focus(field));
+            frame(&mut positive, &ctx, vec![egui::Event::Text("teal".into())]);
+            assert_eq!(find_query(&ctx), "teal", "the positive input updates Find immediately");
+            // Retire prior-pass tile responses before checking the filtered list.
+            frame(&mut positive, &ctx, vec![]);
+            assert_find_acted(&ctx);
+            assert_eq!(snapshot(&positive), before, "searching leaves the document unchanged");
+
+            for phase in ["opening", "settled", "refocused background"] {
+                let (mut app, ctx, field) = find_fixture();
+                let before = snapshot(&app);
+                open_modal(&mut app, &ctx, field, phase);
+                frame(&mut app, &ctx, vec![egui::Event::Text("teal".into())]);
+                assert!(find_query(&ctx).is_empty(), "{phase}: modal protects the library Find query");
+                assert_eq!(snapshot(&app), before);
+                assert_eq!(app.ui.dialog.as_ref().unwrap().kind, "preferences");
+                assert_ne!(ctx.memory(|m| m.focused()), Some(field), "{phase}: background Find focus cannot survive");
+                close_modal(&mut app, &ctx);
+                assert!(find_query(&ctx).is_empty());
+                assert_eq!(snapshot(&app), before);
+                ctx.memory_mut(|m| m.request_focus(field));
+                frame(&mut app, &ctx, vec![egui::Event::Text("teal".into())]);
+                assert_eq!(find_query(&ctx), "teal", "the post-close input updates Find immediately");
+                frame(&mut app, &ctx, vec![]);
+                assert_find_acted(&ctx);
+                assert_eq!(snapshot(&app), before);
+            }
+        }
+    }
+
+    /// Tab shows and hides the panels, and in the Type tool it types a tab, without moving the
+    /// keyboard focus on to a field: the keys after it (a tool letter, the next letter typed) still
+    /// work.
+    #[test]
+    fn tab_leaves_the_keyboard_to_the_shortcuts_and_the_type_tool() {
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 200, "height": 200})).unwrap();
+        let ctx = egui::Context::default();
+        let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1600.0, 850.0));
+        let run = |app: &mut VectorcraftApp, events: Vec<egui::Event>| {
+            let mut out = ctx.run_ui(egui::RawInput { events, screen_rect: Some(screen), ..Default::default() }, |ui| {
+                app.logic(ui.ctx());
+                app.ui(ui);
+            });
+            out.textures_delta.clear();
+        };
+        let press = |key| egui::Event::Key { key, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE };
+        for _ in 0..3 {
+            run(&mut app, vec![]);
+        }
+        assert!(app.ui.dock && app.ui.toolbar);
+        run(&mut app, vec![press(Key::Tab)]);
+        run(&mut app, vec![]);
+        assert!(!app.ui.dock && !app.ui.toolbar, "Tab hid the panels");
+        run(&mut app, vec![press(Key::Tab)]);
+        run(&mut app, vec![]);
+        assert!(app.ui.dock && app.ui.toolbar, "a second Tab shows them again");
+        run(&mut app, vec![press(Key::P), egui::Event::Text("p".into())]);
+        assert_eq!(app.session.tool_id(), "pen", "and a tool letter after it works");
+        // The Type tool: a, Tab, b is one text.
+        app.select_tool("type");
+        let view = app.view_info();
+        for kind in [vectorcraft_tools::PointerKind::Down, vectorcraft_tools::PointerKind::Up] {
+            app.session.pointer(&vectorcraft_tools::PointerEvent::new(kind, 50.0, 50.0), view).unwrap();
+        }
+        run(&mut app, vec![egui::Event::Text("a".into())]);
+        run(&mut app, vec![press(Key::Tab)]);
+        run(&mut app, vec![egui::Event::Text("b".into())]);
+        let doc = app.session.execute("document.inspect", &json!({})).unwrap();
+        assert_eq!(doc["layers"][0]["children"][0]["name"], "a\tb");
+    }
+
+    #[test]
+    fn copy_and_paste_events_use_the_system_clipboard() {
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 200, "height": 200})).unwrap();
+        let id = app.session.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 10, "height": 10})).unwrap()["id"].clone();
+        app.session.execute("select.set", &json!({"ids": [id]})).unwrap();
+        // Copy publishes SVG to the system clipboard (egui's CopyText output command).
+        let out = frame(&mut app, vec![egui::Event::Copy]);
+        let copied = out.platform_output.commands.iter().find_map(|c| match c {
+            egui::OutputCommand::CopyText(t) => Some(t.clone()),
+            _ => None,
+        });
+        let svg = copied.expect("copy publishes SVG");
+        assert!(svg.contains("<svg"));
+        // Pasting our own SVG back uses the internal clipboard; foreign SVG replaces it.
+        frame(&mut app, vec![egui::Event::Paste(svg)]);
+        assert_eq!(app.session.doc().unwrap().doc.layers[0].children().unwrap().len(), 2);
+        let foreign = r##"<svg xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="5"/><circle cx="20" cy="5" r="5"/><circle cx="35" cy="5" r="5"/></svg>"##;
+        frame(&mut app, vec![egui::Event::Paste(foreign.into())]);
+        assert_eq!(app.session.doc().unwrap().doc.layers[0].children().unwrap().len(), 5);
+        // Plain text is not art: nothing is pasted from it (the internal clipboard is reused).
+        frame(&mut app, vec![egui::Event::Paste("hello".into())]);
+        assert_eq!(app.session.doc().unwrap().doc.layers[0].children().unwrap().len(), 8);
+    }
+
+    /// While a grid is dragged out, ↑/↓ change its rows and ←/→ its columns.
+    #[test]
+    fn arrows_while_dragging_a_grid_change_its_rows_and_columns() {
+        use vectorcraft_tools::{PointerEvent, PointerKind};
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 400, "height": 300})).unwrap();
+        app.select_tool("rectangularGrid");
+        let view = app.view_info();
+        // Drag a grid out, pressing `keys` on the way: its (horizontal, vertical) dividers.
+        let grid = |app: &mut VectorcraftApp, keys: &[Key]| {
+            app.session.pointer(&PointerEvent::new(PointerKind::Down, 100.0, 80.0), view).unwrap();
+            app.session.pointer(&PointerEvent::new(PointerKind::Drag, 300.0, 220.0), view).unwrap();
+            for &key in keys {
+                let press = egui::Event::Key { key, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE };
+                frame(app, vec![press]);
+            }
+            app.session.pointer(&PointerEvent::new(PointerKind::Up, 300.0, 220.0), view).unwrap();
+            let d = &app.session.doc().unwrap().doc;
+            let g = d.layers[0].children().unwrap().last().unwrap().clone();
+            let vectorcraft_doc::NodeKind::Group { children, .. } = &g.kind else { panic!("not a grid: {:?}", g.kind) };
+            let bounds: Vec<_> = children.iter().filter_map(|c| c.geometric_bounds()).collect();
+            (bounds.iter().filter(|b| b.height() < 0.5).count(), bounds.iter().filter(|b| b.width() < 0.5).count())
+        };
+        let (rows, columns) = grid(&mut app, &[]);
+        assert_eq!(grid(&mut app, &[Key::ArrowRight, Key::ArrowRight, Key::ArrowUp]), (rows + 1, columns + 2));
+        assert_eq!(grid(&mut app, &[Key::ArrowLeft, Key::ArrowDown]), (rows, columns + 1));
+    }
+
+    /// Enter opens the tool's dialog: the Move dialog for the selection tools, the tool's own for
+    /// Rotate, Scale, Reflect and Shear. The Enter that opens it isn't also its OK.
+    #[test]
+    fn enter_opens_the_tools_dialog_and_leaves_it_open() {
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 400, "height": 300})).unwrap();
+        let ctx = egui::Context::default();
+        let enter = || egui::Event::Key { key: Key::Enter, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE };
+        // A whole app frame: the shortcuts first, then the UI, where a dialog takes its Enter.
+        let frame = |app: &mut VectorcraftApp, events: Vec<egui::Event>| {
+            let screen_rect = Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0)));
+            let mut out = ctx.run_ui(egui::RawInput { events, screen_rect, ..Default::default() }, |ui| {
+                app.logic(ui.ctx());
+                app.ui(ui);
+            });
+            out.textures_delta.clear();
+        };
+        let kind = |app: &VectorcraftApp| app.ui.dialog.as_ref().map(|d| d.kind.clone());
+        let steps = |app: &VectorcraftApp| app.session.active().unwrap().history.undo.len();
+        app.select_tool("selection");
+        frame(&mut app, vec![enter()]);
+        assert_eq!(kind(&app), None, "nothing is selected");
+        app.session.execute("shape.rectangle", &json!({"x": 10, "y": 10, "width": 50, "height": 30})).unwrap();
+        for (tool, dialog) in [
+            ("selection", "move"),
+            ("directSelection", "move"),
+            ("groupSelection", "move"),
+            ("rotate", "rotate"),
+            ("scale", "scale"),
+            ("reflect", "reflect"),
+            ("shear", "shear"),
+        ] {
+            app.select_tool(tool);
+            let before = steps(&app);
+            frame(&mut app, vec![enter()]);
+            assert_eq!(kind(&app).as_deref(), Some(dialog), "{tool}: Enter opens it");
+            frame(&mut app, vec![]);
+            assert_eq!(kind(&app).as_deref(), Some(dialog), "{tool}: and it stays open");
+            assert_eq!(steps(&app), before, "{tool}: the Enter that opened it didn't confirm it");
+            // The next Enter is its OK.
+            frame(&mut app, vec![enter()]);
+            assert_eq!((kind(&app), steps(&app)), (None, before + 1), "{tool}: Enter confirms");
+        }
+        app.select_tool("rectangle");
+        frame(&mut app, vec![enter()]);
+        assert_eq!(kind(&app), None, "another tool has its own Enter");
+    }
+
+    #[test]
+    fn comma_and_period_reapply_the_last_colour_and_gradient() {
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 200, "height": 200})).unwrap();
+        app.session.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 10, "height": 10})).unwrap();
+        app.session.execute("paint.setFill", &json!({"gradient": {"kind": "linear"}})).unwrap();
+        app.session.execute("paint.setFill", &json!({"color": "#336699"})).unwrap();
+        let fill = |app: &VectorcraftApp| crate::panels::current_paints(app).0;
+        frame(&mut app, vec![egui::Event::Text(".".into())]);
+        assert!(matches!(fill(&app), vectorcraft_color::Paint::Gradient(_)), "`.` applies the last gradient");
+        frame(&mut app, vec![egui::Event::Text(",".into())]);
+        assert_eq!(fill(&app).color().unwrap().to_hex(), "#336699", "`,` applies the last colour");
+    }
+
+    #[test]
+    fn shifted_punctuation_shortcuts_work_as_typed() {
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 200, "height": 200})).unwrap();
+        let a = app.session.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 50, "height": 50})).unwrap()["id"].clone();
+        let b = app.session.execute("shape.ellipse", &json!({"x": 20, "y": 20, "width": 50, "height": 50})).unwrap()["id"].clone();
+        app.session.execute("select.set", &json!({"ids": [a]})).unwrap();
+        let order =
+            |app: &VectorcraftApp| -> Vec<u64> { app.session.doc().unwrap().doc.layers[0].children().unwrap().iter().map(|n| n.id.0).collect() };
+        let (a, b) = (a.as_u64().unwrap(), b.as_u64().unwrap());
+        assert_eq!(order(&app), [a, b]);
+        let press = |key, modifiers| egui::Event::Key { key, physical_key: None, pressed: true, repeat: false, modifiers };
+        let cmd_shift = Modifiers::COMMAND | Modifiers::SHIFT;
+        // Recorded in the Keyboard Shortcuts editor, they read as the keys (and so conflict).
+        assert_eq!(crate::shortcut_editor::chord_from_event(Key::CloseCurlyBracket, cmd_shift).as_deref(), Some("Cmd+Shift+]"));
+        assert_eq!(crate::shortcut_editor::chord_from_event(Key::Questionmark, cmd_shift).as_deref(), Some("Cmd+Shift+/"));
+        // Cmd+Shift+] arrives as Cmd+Shift+`}`, Cmd+Shift+[ as Cmd+Shift+`{`.
+        frame(&mut app, vec![press(Key::CloseCurlyBracket, cmd_shift)]);
+        assert_eq!(order(&app), [b, a], "Bring to Front");
+        frame(&mut app, vec![press(Key::OpenCurlyBracket, cmd_shift)]);
+        assert_eq!(order(&app), [a, b], "Send to Back");
+        // Cmd+Shift+/ arrives as Cmd+Shift+`?`: Search Commands.
+        frame(&mut app, vec![press(Key::Questionmark, cmd_shift)]);
+        assert!(app.ui.palette_open, "Search Commands");
+        app.ui.palette_open = false;
+        // The Curvature tool's Shift+~ arrives as the text `~` with Shift.
+        frame(&mut app, vec![egui::Event::ModifiersChanged(Modifiers::SHIFT), egui::Event::Text("~".into())]);
+        assert_eq!(app.session.tool_id(), "curvature");
+    }
+
+    #[test]
+    fn plus_typed_any_way_zooms_in() {
+        assert_eq!(parse("Cmd++"), parse("Cmd+="), "`+` and `=` are one chord key");
+        assert_eq!(crate::shortcut_editor::chord_from_event(Key::Plus, Modifiers::COMMAND).as_deref(), Some("Cmd+="), "a recorded `+` too");
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 200, "height": 200})).unwrap();
+        let zoom = |app: &mut VectorcraftApp| app.view_mut().unwrap().zoom;
+        let press = |key, modifiers| egui::Event::Key { key, physical_key: None, pressed: true, repeat: false, modifiers };
+        let cmd_shift = Modifiers::COMMAND | Modifiers::SHIFT;
+        // `=`, Shift+`=` (reported as `=` or as `+`), and the numpad `+` / a layout's own `+` key.
+        for (key, m) in [(Key::Equals, Modifiers::COMMAND), (Key::Equals, cmd_shift), (Key::Plus, cmd_shift), (Key::Plus, Modifiers::COMMAND)] {
+            let before = zoom(&mut app);
+            frame(&mut app, vec![press(key, m)]);
+            assert!(zoom(&mut app) > before, "{key:?} with {m:?} zooms in");
+        }
+        let before = zoom(&mut app);
+        frame(&mut app, vec![press(Key::Minus, Modifiers::COMMAND)]);
+        assert!(zoom(&mut app) < before, "Cmd+- zooms out");
+    }
+
+    #[test]
+    fn digit_keys_reach_a_dragging_tool_once_per_press() {
+        use vectorcraft_tools::{PointerEvent, PointerKind};
+        let mut app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
+        app.session.execute("file.new", &json!({"width": 800, "height": 600})).unwrap();
+        app.session.execute("perspective.grid.preset", &json!({"kind": 2})).unwrap();
+        let id = app.session.execute("shape.rectangle", &json!({"x": 450, "y": 380, "width": 60, "height": 60})).unwrap()["id"].clone();
+        app.session.execute("perspective.attach", &json!({"ids": [id], "plane": "right"})).unwrap();
+        app.select_tool("perspectiveSelection");
+        let v = app.view_info();
+        let c =
+            app.session.doc().unwrap().doc.node(vectorcraft_engine::doc::NodeId(id.as_u64().unwrap())).unwrap().geometric_bounds().unwrap().center();
+        app.session.pointer(&PointerEvent::new(PointerKind::Down, c.x, c.y), v).unwrap();
+        app.session.pointer(&PointerEvent::new(PointerKind::Drag, c.x + 30.0, c.y), v).unwrap();
+        let key = |repeat| egui::Event::Key { key: Key::Num5, physical_key: None, pressed: true, repeat, modifiers: Modifiers::NONE };
+        // A held key repeats: only its first press toggles.
+        frame(&mut app, vec![key(false), key(true)]);
+        let preview = app.session.doc().unwrap().interaction.as_ref().unwrap().preview.clone().unwrap();
+        assert_eq!((preview.0.as_str(), &preview.1["perpendicular"]), ("perspective.move", &json!(true)));
+        assert_eq!(digit_of(Key::Num0), Some(0));
+        assert_eq!(digit_of(Key::A), None);
+    }
+
+    /// Cmd+, opens Settings on a Mac only, and never takes a chord a command already has.
+    #[test]
+    fn cmd_comma_opens_settings_on_a_mac() {
+        let comma = parse("Cmd+,").unwrap();
+        let mut v = vec![];
+        super::settings_chord(&mut v, false);
+        assert!(v.is_empty(), "not elsewhere");
+        super::settings_chord(&mut v, true);
+        assert_eq!(v.len(), 1);
+        assert_eq!((v[0].0, v[0].1), (comma, "edit.preferences"));
+        let mut taken = vec![(comma, "view.zoomIn", json!({}))];
+        super::settings_chord(&mut taken, true);
+        assert_eq!(taken.len(), 1, "a command that has it keeps it");
+        if cfg!(target_os = "macos") {
+            assert!(super::all_shortcuts().iter().any(|(sc, id, _)| *sc == comma && *id == "edit.preferences"));
+        }
+    }
+
+    #[test]
+    fn parses() {
+        let s = parse("Cmd+Shift+]").unwrap();
+        assert_eq!(s.logical_key, Key::CloseBracket);
+        assert!(s.modifiers.shift && s.modifiers.command);
+        assert_eq!(parse("Cmd+=").unwrap().logical_key, Key::Equals);
+        assert_eq!(parse("Cmd+Alt+2").unwrap().logical_key, Key::Num2);
+        assert_eq!(parse("F12").unwrap().logical_key, Key::F12);
+        assert!(parse("").is_none());
+    }
+
+    #[test]
+    fn all_registered_shortcuts_parse() {
+        for c in vectorcraft_engine::command_specs() {
+            if let Some(s) = c.shortcut
+                && s != "D"
+                && s != "X"
+                && s != "Shift+X"
+                && s != "/"
+            {
+                assert!(parse(s).is_some(), "{} has unparsable shortcut {s}", c.id);
+            }
+        }
+        for c in crate::menus::UI_COMMANDS {
+            if !c.2.is_empty() && c.2 != "F" && c.2 != "Shift+F" {
+                assert!(parse(c.2).is_some(), "{} has unparsable shortcut {}", c.0, c.2);
+            }
+        }
+    }
+}
