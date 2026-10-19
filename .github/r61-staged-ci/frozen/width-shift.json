@@ -1,0 +1,73 @@
+{
+  "unit": "width-shift",
+  "base": "3752b3ec3120108f027ece8fd9a9241706fc221c",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-width-shift-3752b3ec",
+  "diff_sha256": "87c9cabac44e9f6e39d5ec38c87f3f93a46fde6965a228fa48df7919389f282a",
+  "tree": "07076c96dd561798a7554f793ee840d9251432bc",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/tools/src/distort/width.rs",
+    "crates/ui-egui/src/dialogs/width_point.rs",
+    "crates/ui-egui/src/menus.rs",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md",
+    "docs/ui-parity.md"
+  ],
+  "required_tests": [
+    "distort::width::tests::drag_outward_creates_symmetric_width_point",
+    "distort::width::tests::alt_drag_changes_one_side_and_move_slides",
+    "distort::width::tests::shift_click_selects_several_points_that_drag_together",
+    "distort::width::tests::alt_drag_copies_and_dropping_onto_a_point_snaps_to_it",
+    "distort::width::tests::compound_path_strokes_are_edited_through_the_compound",
+    "distort::width::tests::width_points_show_on_every_subpath",
+    "distort::width::tests::the_cursor_says_what_a_drag_does",
+    "distort::width::tests::double_click_on_a_width_point_opens_width_point_edit",
+    "dialogs::width_point::tests::double_click_opens_it_and_ok_sets_the_widths",
+    "dialogs::width_point::tests::delete_removes_the_point",
+    "dialogs::width_point::tests::it_does_not_stretch_to_the_screen"
+  ],
+  "integration_adaptations": [],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791854617.6922095,
+  "parent_source_proofs": {
+    "crates/tools/src/distort/width.rs": {
+      "base_sha256": "c61f99d6d6d29d4ff6c638263ca13fc5eb5ed602d0643d4d293d9e6ea0041535",
+      "candidate_sha256": "db4992ff5dcf8f8f0b09a1cff32f3f5b1919d5a3c90a7d9b06849bde2d1dd0d3"
+    },
+    "crates/ui-egui/src/dialogs/width_point.rs": {
+      "base_sha256": "e9f8c7fe844fd41be8a07ea5f8fbb712807ff6d4d0c8e109b95f39ab647eb33d",
+      "candidate_sha256": "2a60e79989b601628d6a7446d5d5077b7b98bd51307446f6d75045d6b8e1857a"
+    },
+    "crates/ui-egui/src/menus.rs": {
+      "base_sha256": "f7a8686925889fdfbbf63290b0bdc546a7dec6567f2ba07982c7773d914d5cbd",
+      "candidate_sha256": "99b79d9d504f5b0b49ede7b1ba99bc0afa303569cd823dd1489524513b6c8808"
+    },
+    "docs/gaps.md": {
+      "base_sha256": "90f8e5b9bd9db929b3567603cbe6da3aaa71ad2ecf0ef5a0d834411ece1f8c05",
+      "candidate_sha256": "858d2d97d28280e2157054341519310de8449c7acbc8da4a192a09270b411982"
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "3c0ea0952beef0ad94756b47815411cd1104c152f3f80038477a6d3519d2c221",
+      "candidate_sha256": "0d098b474a914014b377c0abafb751ce5cf42a5f565690cc8394eb34fd170226"
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "8b83f790b824c37a634897b9d15c727b9b2c63880ac0aa84c786bc1486a7ac83",
+      "candidate_sha256": "077592f5f04ffda8de094ac6a642e3c2b4d350d059d98d219acff98cd7035f7f"
+    },
+    "docs/ui-parity.md": {
+      "base_sha256": "89b3797c975b54b754783d80f23fab85c80409c7abd9a4af2609e8bc42d5d838",
+      "candidate_sha256": "f2004034323acfb8c275f80dca56b926ddeea6f4dd409d11a0256e0502e71613"
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/3752b3ec/width-shift.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/width-shift.json",
+    "sha256": "e6c6b45666023200cfaf27fe8fd855a2eae53e955ac282f33eaad49b44fff431"
+  },
+  "integration_proof": "Parent independently verified unchanged accepted Rust bytes and exact original-feature reversal restoring both old and latest bases for all16 shared docs. No runtime claim."
+}
