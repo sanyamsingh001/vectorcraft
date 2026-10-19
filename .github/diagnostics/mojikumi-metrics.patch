@@ -1,0 +1,26 @@
+--- a/crates/text/src/tests_vertical.rs
++++ b/crates/text/src/tests_vertical.rs
+@@ -339,7 +339,22 @@
+         t.xf = Affine::IDENTITY;
+         t.vertical = vertical_type;
+         t.para.mojikumi = m;
+-        layout(FontDb::global(), &t)
++        let result = layout(FontDb::global(), &t);
++        // Temporary control-only diagnostics; original inputs, layout calls and assertions stay intact.
++        if !vertical_type && text == "一。" {
++            for (index, glyph) in result.glyphs.iter().enumerate() {
++                let face = FontDb::global().face_by_id(glyph.font_id);
++                let font = face.as_ref().map(|f| (
++                    f.family.as_str(), f.style.as_str(), f.version.as_str(), f.path(),
++                    f.face_index(), f.units_per_em(), f.advance(glyph.gid), f.covers('。'), f.covers('一'),
++                ));
++                eprintln!(
++                    "MOJIKUMI_METRICS mode={:?} index={} byte={} len={} gid={} font_id={} advance={:.17} font=(family,style,version,path,face_index,upem,intrinsic_advance,covers_period,covers_ideograph):{:?}",
++                    t.para.mojikumi, index, glyph.byte, glyph.len, glyph.gid, glyph.font_id, glyph.advance, font,
++                );
++            }
++        }
++        result
+     };
+     let solid = lay("一。", Mojikumi::None, false);
+     if (solid.glyphs[1].advance - 20.0).abs() > 2.0 {
