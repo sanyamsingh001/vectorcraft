@@ -1,0 +1,73 @@
+{
+  "unit": "style-auto-leading",
+  "base": "8715130c8b11bace7e72860a3b15b893deebbb36",
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r61-style-auto-leading-8715130c",
+  "diff_sha256": "d1c925a42ff2050ecd7d2284d3fd8772d6fdccba68690cdb17bcf09c65289e39",
+  "tree": "512c4661d5c11622d80b95d820f958fb92b189cd",
+  "cargo_lock_sha256": "b4b2227405290a2832edbe4e7578ae2562ec2da7870113633b563462387dcd0d",
+  "files": [
+    "crates/engine/src/cmd/textstyles.rs",
+    "crates/ui-egui/src/panels/text_styles.rs",
+    "docs/gaps.md",
+    "docs/roadmap.md",
+    "docs/target-app-parity.md",
+    "docs/type-parity.md"
+  ],
+  "required_tests": [
+    "cmd::textstyles::tests::char_style_new_apply_range_redefine_keeps_overrides",
+    "cmd::textstyles::tests::new_from_selection_rename_delete_and_undo",
+    "cmd::textstyles::tests::styles_take_attributes_left_out_at_their_defaults",
+    "cmd::textstyles::tests::auto_leading_redefine_keeps_overrides_and_history",
+    "cmd::textstyles::tests::auto_leading_new_distinguishes_unset_attributes",
+    "cmd::textstyles::tests::paragraph_styles_and_survive_save",
+    "panels::text_styles::tests::panels_draw_and_apply_headless",
+    "panels::text_styles::tests::auto_leading_style_marks_only_real_overrides"
+  ],
+  "integration_adaptations": [],
+  "ci_args": [
+    "cargo",
+    "xtask",
+    "ci"
+  ],
+  "prepared_at": 1791849127.8099654,
+  "parent_source_proofs": {
+    "crates/engine/src/cmd/textstyles.rs": {
+      "base_sha256": "6b158096c88491e4734888cd4295d60957a58c113a5151112c185e84b6e40dee",
+      "candidate_sha256": "0c597547f05b3da9fc663ed51a63d78cc1e1fdb64cd52d15ee5e2ccd6fac896d",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "crates/ui-egui/src/panels/text_styles.rs": {
+      "base_sha256": "e42cb7d6ac6bcdd780c6f3ada869e63b033e0b48fd51fa0dc9b41c972e0f9cb6",
+      "candidate_sha256": "03b5bcbed442226f7a803bbc3bc4d01ce91a78403ce411baf2a8d7537b8199fd",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/gaps.md": {
+      "base_sha256": "f0396c015f07a6cd176a6427c260b0f2dcb3c7b18f24817dfe6531ef11af2c0a",
+      "candidate_sha256": "c8ed9ebd757b9e6f30e1da5a4b7a32d7843126d68e16781ffd89fde27cdeb710",
+      "exact_original_feature_edits": 3,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/roadmap.md": {
+      "base_sha256": "ff5eadca3c8c58258cf213ebaeb7c210cca60eae070970ea5eb0245dce041455",
+      "candidate_sha256": "bbc7ca4242745c98ca1c6d43cbbdc3a4d14dabacc5a9b858ef63687efc8b926e",
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/target-app-parity.md": {
+      "base_sha256": "ad63365f84d2ffe328e5be189af36f3704d4b3118bfee2ec3408805712b547a8",
+      "candidate_sha256": "e2e15a5bbaeb4cf7045449c7408f1cebdfcff1c8525aab3caf3b91d9e735c0a9",
+      "exact_original_feature_edits": 4,
+      "accepted_feature_reversal_restores_upstream": true
+    },
+    "docs/type-parity.md": {
+      "base_sha256": "e6bc6ce19f6a44b4435c1ab45e637c543d49389b3a6ec8c76a261e8f400423b2",
+      "candidate_sha256": "477ad5c03bd91e6c96180da6ea6831e40bf0224f58b93e583e4ed2a5a7ce3580",
+      "accepted_feature_reversal_restores_upstream": true
+    }
+  },
+  "patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/8715130c/style-auto-leading.patch",
+  "prior_frozen_manifest": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/frozen-baf/7fadeb4e/style-auto-leading.json",
+    "sha256": "c07534693453609bc498cd1f68afb4f90250bae271d25ea508d9fcd7e153dc84"
+  },
+  "integration_proof": "Parent exact raw-blob equality for unchanged upstream paths; original-feature reversal restores both old and latest bases for shared docs. No runtime claim."
+}
