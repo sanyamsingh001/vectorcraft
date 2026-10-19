@@ -1,0 +1,16 @@
+{
+  "controller_pid": 1434172,
+  "child_pid": 1434942,
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "vectorcraft-engine",
+    "-p",
+    "vectorcraft-ui-egui",
+    "--lib",
+    "image_trace"
+  ],
+  "guard": "a48b6857711a45898d5ef425e5290dc194d12961a3dc01a5b9a52ed52acf31da",
+  "started": 1791481257.597427
+}

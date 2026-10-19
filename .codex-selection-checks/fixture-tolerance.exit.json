@@ -1,0 +1,6 @@
+{
+  "step": "fixture-tolerance",
+  "exit_code": 101,
+  "expected_exit": 0,
+  "elapsed_seconds": 0.08177328109741211
+}

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 8.839876890182495,
+  "max_rss_kb": 129800,
+  "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true
+}

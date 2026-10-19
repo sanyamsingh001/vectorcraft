@@ -1,0 +1,14 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "-p",
+    "vectorcraft-trace"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 12.356959819793701,
+  "max_rss_kb": 212356,
+  "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true
+}

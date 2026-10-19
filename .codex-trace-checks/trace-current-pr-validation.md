@@ -1,0 +1,4 @@
+- Recovered guarded evidence: 32 trace tests passed, one timing test ignored; scoped formatting and Clippy passed in the original worktree.
+- Fresh bounded rerun before this standalone review: 31 trace tests, 432 complete ordered baseline-output comparisons, and 96 paired anchor-budget comparisons passed using cached binaries with c26 geometry/path-operation dependencies. The 1024-square shortcut oracle and timing benchmark were excluded.
+- Read-only `trace-current` review on `e037064`: all six trace source hashes match that evidence; staged diff checks pass. No new functional finding, source edit, build, or test rerun in this standalone review.
+- Pending: parent's sequential full CI on the e037064 candidate and its current dependencies. The two final fully staffed global rounds remain pending until the composition is frozen.

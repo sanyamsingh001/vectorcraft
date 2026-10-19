@@ -1,0 +1,15 @@
+{
+  "results": [
+    {
+      "exit_code": 0,
+      "step": 0
+    },
+    {
+      "exit_code": 0,
+      "step": 1
+    }
+  ],
+  "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true
+}

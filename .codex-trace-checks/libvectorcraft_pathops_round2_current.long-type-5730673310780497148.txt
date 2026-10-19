@@ -1,0 +1,1 @@
+Map<std::slice::Iter<'_, (BezPath, usize)>, {closure@/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/image-trace/.codex-trace-checks/round2-current-dependencies/crates/pathops/src/planar.rs:493:118: 493:126}>

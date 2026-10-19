@@ -1,0 +1,87 @@
+{
+  "base": "c26c4a20609e8c1019eb98def978f6844082965a",
+  "source_guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "changed_paths": [
+    "ROADMAP.md",
+    "crates/trace/src/contour.rs",
+    "crates/trace/src/quantize.rs"
+  ],
+  "canonical_staged_roadmap_sha256": "f59dcf30f340d82b51b610c5e30818fd59de4ae9de7236a2cdf9c58bd233b470",
+  "old_patch_sha256": "8a3314d8fbe5be3a6e21588d01d1c61025e5e852ee4cc3bfe7dd52ecefebde4d",
+  "canonical_apply_check": {
+    "exit_code": 0,
+    "output": ""
+  },
+  "canonical_staged_apply_check": {
+    "exit_code": 0,
+    "output": ""
+  },
+  "candidate_equals_assigned_trace": true,
+  "unchanged_trace_files": [
+    "crates/trace/src/fit.rs",
+    "crates/trace/src/lib.rs",
+    "crates/trace/src/mosaic.rs",
+    "crates/trace/src/tests.rs"
+  ],
+  "fresh_patch_apply_check": {
+    "exit_code": 0,
+    "output": ""
+  },
+  "fresh_patch_sha256": "40d85537d3241e4da14ce21015ec3f7d26aa60a5954927f0e0cfe1e17f822c3d",
+  "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "source_sha256": {
+    "ROADMAP.md": {
+      "base": "c052e05608dd332ab160e268ab2c7bb7b5f5d2c2750cce898418b298c2782d72",
+      "patched": "f7a8ecae54b24dea2d86fb436699357f5b43e244ca4b606dd8cdfd8c31c080a5"
+    },
+    "crates/trace/src/contour.rs": {
+      "base": "a30d1e7f2e999a4a1f9a4484acd574c294ebe7079a4a9f9e1814b7a8df8e065e",
+      "patched": "d9f08a65a5146e37e11f1775e8105eea6a43a7f845530ce014e42c9e38808d1e"
+    },
+    "crates/trace/src/fit.rs": {
+      "base": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+      "patched": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18"
+    },
+    "crates/trace/src/lib.rs": {
+      "base": "29a96cd9cd88bc02b80df9452254437761ab13eb0ae65bc1c416b5d888acf0e5",
+      "patched": "29a96cd9cd88bc02b80df9452254437761ab13eb0ae65bc1c416b5d888acf0e5"
+    },
+    "crates/trace/src/mosaic.rs": {
+      "base": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+      "patched": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a"
+    },
+    "crates/trace/src/quantize.rs": {
+      "base": "195d22d3f8354b9a7f45529e72e57d53866e4caa868ab9bb06f3412d4f69342c",
+      "patched": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5"
+    },
+    "crates/trace/src/tests.rs": {
+      "base": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17",
+      "patched": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17"
+    }
+  },
+  "fresh_patch_staged_apply_check": {
+    "exit_code": 0,
+    "output": "",
+    "same_as_old_patch_result": true
+  },
+  "staged_roadmap_unrelated_bytes_preserved": true,
+  "trace_roadmap_edits": [
+    {
+      "before": "2f35f62f1f8c566484c193c3e883ef1fcb4d6656ad7f5ffef00a76ea756daeb6",
+      "after": "7a759b72011749a3906a9f07f5909cec147281a3c28650495f4614db88cf4def"
+    },
+    {
+      "before": "b618b33e00bd0ce05e84422ef91e89c494c1a839dbb4bad33cee6a132c528528",
+      "after": "4855276c8a08d9d62d82f1e95d73f5056c5d4227d402188505ac4723b61f6bd6"
+    },
+    {
+      "before": "f5f336e0ed111bd8162d9ba41c2eaf51bb66ca2311294b7fd704cafd4fa051d7",
+      "after": "335c6d3418bf4f874ee69bf1965fcc881ab10654ec9dca5062381a0eb70f60b0"
+    },
+    {
+      "before": "a2b6e59d40455e23af16be94f53df54b82d2ca97225f8e549a82d536df2dbb14",
+      "after": "c3159525a4165dde00ca6dd727f3f020647770ef76349e7b92a2405819bb3fc4"
+    }
+  ]
+}

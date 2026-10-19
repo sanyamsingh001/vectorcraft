@@ -1,0 +1,52 @@
+{
+  "source_guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "input_hashes": {
+    ".codex-trace-checks/round2-adversarial.rs": "9a57ee736f9507464a07444d9ddd946549b40799c3803539f4a00982a8ca1625",
+    ".codex-trace-checks/round2-controller.py": "4db1ee14df7d98cb64caa099b93babf0e97bef0210181fb55ebe0d195c957bfe",
+    ".codex-trace-checks/round2-c26c4a2.patch": "40d85537d3241e4da14ce21015ec3f7d26aa60a5954927f0e0cfe1e17f822c3d",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/contour.rs": "a30d1e7f2e999a4a1f9a4484acd574c294ebe7079a4a9f9e1814b7a8df8e065e",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/lib.rs": "29a96cd9cd88bc02b80df9452254437761ab13eb0ae65bc1c416b5d888acf0e5",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/quantize.rs": "195d22d3f8354b9a7f45529e72e57d53866e4caa868ab9bb06f3412d4f69342c",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/tests.rs": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/contour.rs": "d9f08a65a5146e37e11f1775e8105eea6a43a7f845530ce014e42c9e38808d1e",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/lib.rs": "29a96cd9cd88bc02b80df9452254437761ab13eb0ae65bc1c416b5d888acf0e5",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/tests.rs": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17",
+    ".codex-trace-checks/libvectorcraft_trace_round1_upstream557.rlib": "5cc8c9dd2a5858bc9648db615ca4fd0c629ad941bd2aabad2d0681d32e51c89f",
+    ".codex-trace-checks/libvectorcraft_trace_round1_upstream557_optimized.rlib": "6f64b193eea71a1ec8fd16de9d4ca30f5edc8cca9f9267bb2bd2a86bd06102cf",
+    ".codex-trace-checks/round1-upstream-tests": "3a76afac2dea4e782171785a624931ed4821707ed441ae7a03fd5f36c72f56ef"
+  },
+  "steps": [
+    {
+      "step": "compile",
+      "exit_code": 0,
+      "elapsed_seconds": 2.815528154373169,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "adversarial",
+      "exit_code": 0,
+      "elapsed_seconds": 1.639122486114502,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "composed-recovered",
+      "exit_code": 0,
+      "elapsed_seconds": 0.31374621391296387,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    }
+  ],
+  "cached_production_sources_equal_c26": true,
+  "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "inputs_unchanged": true,
+  "exit_code": 0,
+  "finished": 1791490433.232068
+}

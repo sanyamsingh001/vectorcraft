@@ -1,0 +1,191 @@
+--- a/crates/tools/src/direct.rs
++++ b/crates/tools/src/direct.rs
+@@ -201,12 +201,16 @@
+     v
+ }
+ 
+-/// Anchor of any visible path or area type frame under `p`, topmost first: (id, si, ai, where it is).
++/// Nearest anchor within `tol` of the topmost visible path or area type frame: (id, si, ai, where it is).
+ fn hit_anchor(cx: &ToolContext, p: Point, tol: f64) -> Option<(NodeId, usize, usize, Point)> {
+     let owners = anchor_owners(cx, |n| matches!(n.kind, NodeKind::Path { .. }) || is_area_type(n));
+     owners.into_iter().find_map(|id| {
+         let pd = cx.doc.node(id).and_then(editable_path)?;
+-        pd.anchors().find(|(_, _, a)| a.p.distance(p) <= tol).map(|(si, ai, a)| (id, si, ai, a.p))
++        pd.anchors()
++            .map(|(si, ai, a)| ((si, ai, a.p), a.p.distance(p)))
++            .filter(|(_, distance)| *distance <= tol)
++            .min_by(|a, b| a.1.total_cmp(&b.1))
++            .map(|((si, ai, point), _)| (id, si, ai, point))
+     })
+ }
+ 
+@@ -608,15 +612,9 @@
+     }
+ }
+ 
+-/// The anchor within the selection tolerance of `p`, of a selected path or the path under `p`:
+-/// what Highlight anchors on mouse over marks (a press there picks it).
++/// The anchor a press at `p` picks: what Highlight anchors on mouse over marks.
+ fn hovered_anchor(cx: &ToolContext, p: Point) -> Option<(NodeId, Point)> {
+-    let under = hit_test(cx.doc, p, cx.hit_options()).map(|h| h.leaf);
+-    let tol = cx.pick_tol();
+-    cx.selection.objects.iter().copied().chain(under).find_map(|id| {
+-        let path = cx.doc.node(id).and_then(editable_path)?;
+-        path.anchors().find(|(_, _, a)| a.p.distance(p) <= tol).map(|(_, _, a)| (id, a.p))
+-    })
++    hit_anchor(cx, p, cx.pick_tol()).map(|(id, _, _, point)| (id, point))
+ }
+ 
+ /// The frame anchors of the selected area type, which Direct Selection drags.
+@@ -1025,3 +1023,151 @@
+         }
+     }
+ }
++
++#[cfg(test)]
++mod issue593_functional_tests {
++    use super::*;
++    use crate::select::SelectionTool;
++    use crate::testutil::{cx, paint};
++    use vectorcraft_doc::{Appearance, Document, Selection};
++    use vectorcraft_geom::SubPath;
++
++    fn add_path(d: &mut Document, points: &[Point]) -> NodeId {
++        let id = d.alloc_id();
++        let layer = d.layers[0].id;
++        let at = d.layers[0].children().unwrap().len();
++        d.insert(Some(layer), at, Node::path(id, PathData::single(SubPath::polyline(points, false)), Appearance::default_art())).unwrap();
++        id
++    }
++
++    fn highlight(t: &DirectSelectionTool, cx: &ToolContext) -> Option<Point> {
++        t.overlays(cx).into_iter().find_map(|o| match o {
++            Overlay::Anchor { p, size, .. } if size > 5.0 => Some(p),
++            _ => None,
++        })
++    }
++
++    #[test]
++    fn selection_tolerance_is_screen_pixels_for_press_and_hover() {
++        for zoom in [0.5, 1.0, 2.0] {
++            for tolerance in [1.0, 3.0, 8.0] {
++                let mut d = Document::new(500.0, 500.0);
++                let first = Point::new(100.0, 300.0);
++                let id = add_path(&mut d, &[first, Point::new(200.0, 300.0)]);
++                let (s, paint) = (Selection::default(), paint());
++                let cx = ToolContext {
++                    zoom,
++                    selection_tolerance: tolerance,
++                    smart_guides: false,
++                    snap_to_point: false,
++                    corner_widgets: false,
++                    show_bbox: false,
++                    ..cx(&d, &s, &paint)
++                };
++                for pixels in [0.0, tolerance * 0.75, tolerance] {
++                    let p = Point::new(first.x - pixels / zoom, first.y);
++                    let mut t = DirectSelectionTool::new(false);
++                    t.pointer(&cx, &PointerEvent::new(PointerKind::Move, p.x, p.y));
++                    assert_eq!(highlight(&t, &cx), Some(first), "zoom={zoom}, tolerance={tolerance}, pixels={pixels}");
++                    assert_eq!(t.cursor(&cx, p, Mods::default()), Cursor::ArrowHollow);
++                    assert_eq!(
++                        t.pointer(&cx, &PointerEvent::new(PointerKind::Down, p.x, p.y)),
++                        vec![Action::Exec("select.anchors".into(), json!({"id": id.0, "anchors": [[0, 0]], "mode": "set"}))]
++                    );
++                    let mid = Point::new(150.0, 300.5 + pixels / zoom);
++                    assert_eq!(
++                        SelectionTool::default().pointer(&cx, &PointerEvent::new(PointerKind::Down, mid.x, mid.y)),
++                        vec![Action::Exec("select.set".into(), json!({"ids": [id.0]}))],
++                        "zoom={zoom}, tolerance={tolerance}, pixels={pixels}, mid={mid:?}"
++                    );
++                }
++                let outside = Point::new(first.x - (tolerance + 0.5) / zoom, first.y);
++                let mut t = DirectSelectionTool::new(false);
++                t.pointer(&cx, &PointerEvent::new(PointerKind::Move, outside.x, outside.y));
++                assert_eq!(highlight(&t, &cx), None);
++                // Outside the anchor halo a press may still pick the painted segment, selecting both ends.
++                assert_ne!(
++                    t.pointer(&cx, &PointerEvent::new(PointerKind::Down, outside.x, outside.y)),
++                    vec![Action::Exec("select.anchors".into(), json!({"id": id.0, "anchors": [[0, 0]], "mode": "set"}))]
++                );
++                let mid = Point::new(150.0, 300.5 + (tolerance + 0.5) / zoom);
++                assert!(SelectionTool::default().pointer(&cx, &PointerEvent::new(PointerKind::Down, mid.x, mid.y)).is_empty());
++            }
++        }
++    }
++
++    #[test]
++    fn nearby_anchors_pick_and_highlight_the_nearest_on_the_path() {
++        let mut failures = vec![];
++        for zoom in [0.5, 1.0, 2.0] {
++            for tolerance in [1.0, 3.0, 8.0] {
++                let mut d = Document::new(500.0, 500.0);
++                let first = Point::new(100.0, 300.0);
++                let second = Point::new(100.0 + tolerance * 0.75 / zoom, 300.0);
++                let id = add_path(&mut d, &[first, second, Point::new(200.0, 300.0)]);
++                let (s, paint) = (Selection::default(), paint());
++                let cx = ToolContext {
++                    zoom,
++                    selection_tolerance: tolerance,
++                    smart_guides: false,
++                    snap_to_point: false,
++                    corner_widgets: false,
++                    ..cx(&d, &s, &paint)
++                };
++                for (p, ai, anchor) in [
++                    (first, 0, first),
++                    (second, 1, second),
++                    (Point::new(second.x + tolerance * 0.125 / zoom, second.y), 1, second),
++                    (Point::new((first.x + second.x) * 0.5, first.y), 0, first),
++                ] {
++                    let mut t = DirectSelectionTool::new(false);
++                    t.pointer(&cx, &PointerEvent::new(PointerKind::Move, p.x, p.y));
++                    let shown = highlight(&t, &cx);
++                    let pressed = t.pointer(&cx, &PointerEvent::new(PointerKind::Down, p.x, p.y));
++                    let expected = vec![Action::Exec("select.anchors".into(), json!({"id": id.0, "anchors": [[0, ai]], "mode": "set"}))];
++                    if shown != Some(anchor) || pressed != expected {
++                        failures.push(format!(
++                            "zoom={zoom}, tolerance={tolerance}, pointer={p:?}: hover={shown:?}, press={pressed:?}, expected anchor={ai}"
++                        ));
++                    }
++                }
++            }
++        }
++        assert!(failures.is_empty(), "{} failures:\n{}", failures.len(), failures.join("\n"));
++    }
++
++    #[test]
++    fn hover_matches_press_when_a_selected_path_is_behind_another_path() {
++        let mut failures = vec![];
++        for zoom in [0.5, 1.0, 2.0] {
++            for tolerance in [1.0, 3.0, 8.0] {
++                let mut d = Document::new(500.0, 500.0);
++                let rear = add_path(&mut d, &[Point::new(100.0, 300.0), Point::new(200.0, 300.0)]);
++                let front_anchor = Point::new(100.0 + tolerance * 0.5 / zoom, 300.0);
++                let front = add_path(&mut d, &[front_anchor, Point::new(200.0, 310.0)]);
++                let mut s = Selection::default();
++                s.set([rear]);
++                let paint = paint();
++                let cx = ToolContext {
++                    zoom,
++                    selection_tolerance: tolerance,
++                    smart_guides: false,
++                    snap_to_point: false,
++                    corner_widgets: false,
++                    ..cx(&d, &s, &paint)
++                };
++                for pointer in [front_anchor, Point::new(100.0, 300.0)] {
++                    let mut t = DirectSelectionTool::new(false);
++                    t.pointer(&cx, &PointerEvent::new(PointerKind::Move, pointer.x, pointer.y));
++                    let shown = highlight(&t, &cx);
++                    let pressed = t.pointer(&cx, &PointerEvent::new(PointerKind::Down, pointer.x, pointer.y));
++                    let expected = vec![Action::Exec("select.anchors".into(), json!({"id": front.0, "anchors": [[0, 0]], "mode": "set"}))];
++                    if shown != Some(front_anchor) || pressed != expected {
++                        failures.push(format!("zoom={zoom}, tolerance={tolerance}: hover={shown:?}, press={pressed:?}, expected front={front:?}"));
++                    }
++                }
++            }
++        }
++        assert!(failures.is_empty(), "{} failures:\n{}", failures.len(), failures.join("\n"));
++    }
++}

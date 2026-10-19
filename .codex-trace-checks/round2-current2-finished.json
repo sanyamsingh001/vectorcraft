@@ -1,0 +1,144 @@
+{
+  "source_guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "input_hashes": {
+    ".codex-trace-checks/round2-current2-controller.py": "c4339c647be545905dfe26d259b3284f7cbf9776c1d5a61c544e7bbe2a08e4fc",
+    ".codex-trace-checks/round2-adversarial.rs": "9a57ee736f9507464a07444d9ddd946549b40799c3803539f4a00982a8ca1625",
+    ".codex-trace-checks/round2-c26c4a2.patch": "40d85537d3241e4da14ce21015ec3f7d26aa60a5954927f0e0cfe1e17f822c3d",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/arc.rs": "5d09e44db3b037d41f7883f28fc515adfcccebd0ac836eb03785e48086b46e99",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/bez.rs": "df7162503992c9f6be8053b971663ee7e2d259c1f192547112d861c2f30d7a2b",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/corners.rs": "ba9a99db2007f8368432d9f7d8efe2566766503c734393fa3e89c88d71ca30ee",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/hit.rs": "e40768c84d116d6cba3a1612f20dbff47fab567a4a775aa7242f44e3e29befd0",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/lib.rs": "99fafcc67881cb2814ea5c8de7ca5e5d277dade727e1f2afabe5c9f8a8c5c591",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/path.rs": "d14a9847610d18298ee172cb7c010ab04c9a30130b3f473a5d2bea5b80cae265",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/projective.rs": "bd5f3a71fb897c9e1c9fd0a845e2f5efd549791f1396303a7cc612b8017aa89c",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/recognize.rs": "d428270dc1fae6abf01a2d1d85f4e7429f11a4ed48c4840963ace2e71208e593",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/shapes.rs": "8cf7bc00a12e95778eb292c5e31355e43da343583be5ab060724d1407321cd43",
+    ".codex-trace-checks/round2-current-dependencies/crates/geom/src/snap.rs": "6b4dde0cb670994d6a06920f47f8f7458f562d469f1b7af34374d44931779b54",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/boolean.rs": "3473aa3f99db806fc246c2444fd60f5c1fbdf775281bad3f513da39a281e6900",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/edit.rs": "8e91ec0c908b8fd204c9bd8f06ed5da5c186e80c333eb13d3acfbe731de52c2e",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/fit.rs": "9241a366c5202952dfec085ec111fe1fa0900ea71d6967112d4b6c0e916d5c19",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/lib.rs": "e79686cd21f2a01fa80fae880b7740e51dc9fe45bcb3abc9e42c638678ae844f",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/offset.rs": "2880d9a867c28b8915bcfb9869aedc7c516eb77420102c9f45de3be33dade396",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/pathfinder.rs": "439e17e8ac58d43cfadc5962900d9b5d41e6aa272c2a861e9d34609ed475a962",
+    ".codex-trace-checks/round2-current-dependencies/crates/pathops/src/planar.rs": "ae9ef65f973280e6dadfb21e1245393727564b63c32771bf67e426cbe543adf4",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/contour.rs": "a30d1e7f2e999a4a1f9a4484acd574c294ebe7079a4a9f9e1814b7a8df8e065e",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/lib.rs": "29a96cd9cd88bc02b80df9452254437761ab13eb0ae65bc1c416b5d888acf0e5",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/quantize.rs": "195d22d3f8354b9a7f45529e72e57d53866e4caa868ab9bb06f3412d4f69342c",
+    ".codex-trace-checks/round2-c26-base/crates/trace/src/tests.rs": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/contour.rs": "d9f08a65a5146e37e11f1775e8105eea6a43a7f845530ce014e42c9e38808d1e",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/lib.rs": "29a96cd9cd88bc02b80df9452254437761ab13eb0ae65bc1c416b5d888acf0e5",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round2-c26-optimized/crates/trace/src/tests.rs": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17"
+  },
+  "steps": [
+    {
+      "step": "geom-compile",
+      "exit_code": 0,
+      "elapsed_seconds": 2.9361796379089355,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "pathops-compile",
+      "exit_code": 0,
+      "elapsed_seconds": 7.405043363571167,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "baseline-compile",
+      "exit_code": 0,
+      "elapsed_seconds": 8.543029308319092,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "candidate-compile",
+      "exit_code": 0,
+      "elapsed_seconds": 7.366211175918579,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "suite-compile",
+      "exit_code": 0,
+      "elapsed_seconds": 7.741595506668091,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "suite",
+      "exit_code": 0,
+      "elapsed_seconds": 0.30507946014404297,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "probe-compile",
+      "exit_code": 0,
+      "elapsed_seconds": 1.8301653861999512,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "adversarial",
+      "exit_code": 0,
+      "elapsed_seconds": 3.0139529705047607,
+      "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    }
+  ],
+  "external_rlibs": {
+    "kurbo": {
+      "path": "target/debug/deps/libkurbo-3e0ca2f0ffd584e6.rlib",
+      "sha256": "6b4488ef79d9d171a496a1430ad455fc85b667621f223fb9759e2cbfb0584ea7"
+    },
+    "serde": {
+      "path": "target/debug/deps/libserde-c6f04a5e9c82bf62.rlib",
+      "sha256": "e15508238d55e195809758d3d976809ba77a4baecff7e7d9f93007a2545d005a"
+    },
+    "thiserror": {
+      "path": "target/debug/deps/libthiserror-bb4da68871498438.rlib",
+      "sha256": "39a9a85bf443360d8dd6257ef05ab01b30a786fc4479fc6bb97ca07a71cfb7a1"
+    },
+    "linesweeper": {
+      "path": "target/debug/deps/liblinesweeper-96c206fc5174b415.rlib",
+      "sha256": "314768ddce1e662d9f1ccc27b040a3e1505177d8808095a04e85fbb9ae3bf414"
+    },
+    "image": {
+      "path": "target/debug/deps/libimage-e26d2ae53c9e4bab.rlib",
+      "sha256": "05d15508e1c367d7f66251bc76b43f0ce2558ed7cba9d7aad3561e9305ed8a98"
+    },
+    "serde_json": {
+      "path": "target/debug/deps/libserde_json-160e40cebf7c5b27.rlib",
+      "sha256": "50d31822af90cf7299ea2598fa78dbcc4c2234c59741497f6251bb2889540ed6"
+    }
+  },
+  "built_rlibs": {
+    "vectorcraft_geom": {
+      "path": ".codex-trace-checks/libvectorcraft_geom_round2_current2.rlib",
+      "sha256": "709bdaeefb13f0f5c1b4edcc30a2387564c075df40f0a831accc9a680ab3394a"
+    },
+    "vectorcraft_pathops": {
+      "path": ".codex-trace-checks/libvectorcraft_pathops_round2_current2.rlib",
+      "sha256": "2cdede76a55120a3ec1461a2fff8df53883b67a31f3f4f06960c041ac2afb205"
+    },
+    "baseline": {
+      "path": ".codex-trace-checks/libvectorcraft_trace_round2_current2_baseline.rlib",
+      "sha256": "ae7362609c025092bd4680ca4167beff01220ab6d2c84cf34a635385645adac3"
+    },
+    "candidate": {
+      "path": ".codex-trace-checks/libvectorcraft_trace_round2_current2_candidate.rlib",
+      "sha256": "50d643a36a011736857b098f4fe643dd888a917ed78a53b7dd071c3d6a1f84c1"
+    }
+  },
+  "source_guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "inputs_unchanged": true,
+  "exit_code": 0,
+  "finished": 1791490733.926914
+}

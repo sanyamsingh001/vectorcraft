@@ -1,0 +1,41 @@
+{
+  "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "input_hashes": {
+    ".codex-trace-checks/round3-readonly-controller.py": "b2987f0931b84f996d9f8f3ce6ee9ac0d1c065373b39cd946e657b6abfe63492",
+    ".codex-trace-checks/round3-readonly-probe.rs": "3b563703a1e1780a6b8ce7c78fdd353a2716326d608690891d838ecca6eb1aa1",
+    ".codex-trace-checks/round3-readonly-probe-source/codex_scratch_probe.rs": "da728156618be736042312e1b5faf0bfbfbaeced64a45f52283deda47ab116b9",
+    ".codex-trace-checks/round3-readonly-probe-source/contour.rs": "849c42646f7d97988e898775bde70a45fafd16c418fa2653d4bd6d9017c04cbe",
+    ".codex-trace-checks/round3-readonly-probe-source/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round3-readonly-probe-source/lib.rs": "5a57506f73a22c72c86aad834a71ed7e8165f9a86155bf07bce1b5b6ac10bd7b",
+    ".codex-trace-checks/round3-readonly-probe-source/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round3-readonly-probe-source/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round3-readonly-probe-source/tests.rs": "27060266f0c9d20b4ef425e2b2b05dd2740b8de1e20694f187277eff9875ec17"
+  },
+  "steps": [
+    {
+      "step": "library",
+      "exit_code": 0,
+      "elapsed_seconds": 7.7507336139678955,
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "probe",
+      "exit_code": 0,
+      "elapsed_seconds": 1.6734769344329834,
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "tiny-run",
+      "exit_code": 0,
+      "elapsed_seconds": 0.01943373680114746,
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "inputs_unchanged": true
+    }
+  ],
+  "exit_code": 0,
+  "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "inputs_unchanged": true
+}

@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "patch": "round3-cumulative-c26.patch",
+      "exit_code": 0,
+      "output": "",
+      "sha256": "6c96b7931f2a8fcb6cc745772b358e77f499b5a365104af55d7f04264d6f78db"
+    },
+    {
+      "patch": "round3-resource-only.patch",
+      "exit_code": 0,
+      "output": "",
+      "sha256": "1be9383234cca2f3bdc602c4cea59bf0faee90fdcee99ee88c79394b52e9c7b6"
+    },
+    {
+      "target": "canonical_staged_snapshot",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "staged_roadmap_unrelated_bytes_preserved": true,
+  "staged_roadmap_sha256": "f59dcf30f340d82b51b610c5e30818fd59de4ae9de7236a2cdf9c58bd233b470",
+  "changed_paths": [
+    "4\t4\tROADMAP.md",
+    "39\t0\tcrates/trace/src/contour.rs",
+    "134\t1\tcrates/trace/src/quantize.rs",
+    "25\t5\tcrates/trace/src/lib.rs",
+    "64\t0\tcrates/trace/src/tests.rs"
+  ],
+  "guard_only_paths": [
+    "1\t1\tROADMAP.md",
+    "25\t5\tcrates/trace/src/lib.rs",
+    "64\t0\tcrates/trace/src/tests.rs"
+  ]
+}

@@ -1,0 +1,1 @@
+Map<Enumerate<std::slice::Iter<'_, (BezPath, vectorcraft_geom::FillRule)>>, {closure@/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/image-trace/.codex-trace-checks/round2-current-dependencies/crates/pathops/src/boolean.rs:276:72: 276:85}>

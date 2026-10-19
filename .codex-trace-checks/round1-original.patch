@@ -1,0 +1,822 @@
+diff --git a/ROADMAP.md b/ROADMAP.md
+index 5cc39bf..9c3fd59 100644
+--- a/ROADMAP.md
++++ b/ROADMAP.md
+@@ -70,7 +70,7 @@ Ordered by how much each gap blocks someone from switching. Sizes are one-agent
+ 7. **Views and windows:** multiple windows and arrange, Consolidate All Windows, video
+    rulers. 15–25 h.
+ 8. **Hardening at scale:** a corpus of real-world SVG/PDF/EPS files, idle-machine perf budgets, Windows, Linux and
+-   browser QA, pen tablets on Wayland and pen pressure beyond Windows (winit 0.31's tablet input, #491), accessibility, packaging. 50–80 h.
++   browser QA, photographic Image Trace quality and performance (#525; bounded allocation/output failures handled), pen tablets on Wayland and pen pressure beyond Windows (winit 0.31's tablet input, #491), accessibility, packaging. 50–80 h.
+ 
+ ### Where we're going
+ 
+@@ -140,7 +140,7 @@ grade by behaviour against `plan/illustrator/`, not by whether a menu item exist
+ - **Type:** Text Wrap, Type on a Path effects (Rainbow/Skew/3D Ribbon/Stair Step/Gravity) and Options (Flip, Align to Path, Spacing; OK keeps the type where it is), type on a path's start, centre and end brackets (Selection and Direct Selection drag them to set where the type runs, slide it along its path and, across the path, flip it: #429), Character and Paragraph Styles (override-preserving redefine), Area Type Options (rows/columns/inset/first baseline), threaded text across any closed shapes, Fit Headline. Area type resizes like Illustrator's type areas: a bounding-box handle drag (Selection tool) or Area Type Options Width/Height size the frame and the text reflows at its size (threads too); Direct Selection drags a frame corner or edge (`text.reshapeArea`). Point type still scales. The Selection tool shows the type widget beside selected type's bounding box (hollow on point type, filled on area type); double-clicking it converts between them (Type › Convert To Area Type / Convert To Point Type), keeping the text and its styles in place. Variable fonts list every named instance as a style of their family (Figtree Light to Black and their italics, Bahnschrift, Segoe UI Variable), and the instance chosen is shaped, drawn, outlined and measured at its axis settings; PDF and SVG embed it as that instance. Variation axis sliders are not done. Hebrew and Arabic are laid out right to left with the Unicode bidirectional algorithm (embedded Latin and numbers keep their direction, lines put in visual order after wrapping) in point, area and path type, with caret, selection and arrow keys in visual order; each paragraph's direction comes from its first strong character unless Paragraph Direction sets it (Paragraph panel with Show Indic Options, `text.setFormat {direction}`), and new type aligns to the start of its direction. SVG export outlines right-to-left text. Font Size and Leading are combo boxes in the Character and Properties panels (Font Size in the Control bar too, beside the Character link, font family and style): type, step with ↑/↓ or the spinner, scrub the label, or pick a preset (6–72 pt, shown in the type unit; Leading also Auto), each pick one undo step; Kerning and Tracking list -100…200; a size, leading, kerning or tracking the selected text doesn't share shows blank (#458).
+ - **Interface languages, vertical type:** VectorCraft ▸ Language (or Preferences ▸ User Interface) picks Automatic (the system locale) or a registered language, persisted as `interfaceLanguage`. Translations come from per-language catalogs (`i18n/*.tsv`): Traditional and Simplified Chinese, Japanese, Spanish (neutral international Spanish, for every `es-*` locale) and Italian (every `it-*` locale) cover the whole interface, Czech and Brazilian Portuguese every menu label, Brazilian Portuguese the shell's `tl!` literals too (tested); Spanish and Italian also translate status-bar and error messages as they are shown (`@msg` templates, every message literal tested; the messages themselves stay English for agents); untranslated text stays English. Japanese and Chinese glyphs come from the craft-fonts build input (release builds) or the installed fonts, Czech, Spanish and Italian ones from the bundled UI fonts. The web app follows the browser's languages (or `?lang=`). The Basic toolbar's Type button holds Vertical Type in its flyout. Vertical Type, Vertical Area Type and Vertical Type on a Path create vertical text (columns right to left, upright CJK glyphs and marks with `vert` alternates, Latin and longer numbers on their side, two- and three-digit numbers set as tate-chu-yoko in one em of the column (kept whole when justified), upright glyphs centred on the column (tracked or justified too), point type's anchor on the first column's centre line); kinsoku (the strict set) applies to horizontal and vertical Japanese, and justified Japanese lines spread their room between characters (not inside Latin words); Paragraph panel › Mojikumi Set (shown with Preferences › Type › Show East Asian Options, `text.setFormat {mojikumi}`): None or Line-end Punctuation Half Width (new type's default, as in Illustrator; older documents and imported text keep None) shares one half-em space between consecutive punctuation, sets a closing mark ending a line half width and an opening bracket starting a wrapped line flush with its start, and puts a quarter em between Japanese and Latin letters or digits; Paragraph panel menu › Top-to-Top / Bottom-to-Bottom Leading measures leading from em box top to top (area type's first line touches the frame) or from baseline to baseline; Paragraph panel menu › Burasagari None / Regular / Force (`text.setFormat {burasagari: "none"|"standard"|"forced"}`) hangs an East Asian comma or full stop (、。，．､｡) ending an area type line outside it, Regular (new type's default) when it doesn't fit and Force always (the rest of the line then fills the measure; closing brackets and Latin punctuation don't hang); Character panel menu › Character Alignment (with the East Asian options; `text.setFormat` or `text.setRangeStyle {charAlign}`) lines characters smaller than the largest on their line up on the Roman baseline or the em box top/right, centre or bottom/left (ICF top and bottom not yet); Type ▸ Type Orientation switches existing text; caret, selection, hit testing and arrow keys follow the writing direction. Vertical text exports to PDF as real text and to SVG as outlines.
+ - **Transparency:** opacity masks (clip/invert/disable/link), exported as SVG `<mask>` and PDF soft masks.
+-- **Advanced art:** live Blends (steps/distance/smooth colour, editable spine, anchor-targeted Blend tool, faithful interpolation, knockout), Envelope Distort (warp/mesh/top object, Reset, full Envelope Options, mesh handles, Edit Contents; type, images, symbols, gradients, patterns and appearance distorted everywhere), Liquify tools with options and pen pressure, Puppet Warp with rotating pins, Perspective Grid with presets, movable planes and projected type (choosing a perspective tool shows the grid; Hide Grid hides it with the tool still chosen), Gradient Mesh, Shape Builder (stroke-only open paths and lines cut the regions they cross and enclose regions of their own; filled open paths count as closed; erase mode while Alt/Option is held: a minus pointer, red highlights of what will go, a click or drag deletes the regions touched, the pieces of open lines and the edges (outline pieces between the points where paths meet, opening their paths there) it passes over, one undo step, `shapeBuilder.merge {erase}` and `shapeBuilder.regions` edges over MCP), Live Paint (every path an edge, open lines included), Image Trace (12 presets; with an image selected the Control bar and the Properties panel show Image Trace, whose arrow traces with any preset, Mask (`object.maskImage`: a clipping path on the image's outline, selected so its handles crop), Crop Image and Embed or Unembed in place of Fill and Stroke; with an Image Trace object selected, its Preset (choosing another traces again), the Image Trace panel and Expand, plus Release in Properties; the View modes are not done), pattern swatches with pattern editing mode, live Repeat (radial/grid/mirror).
++- **Advanced art:** live Blends (steps/distance/smooth colour, editable spine, anchor-targeted Blend tool, faithful interpolation, knockout), Envelope Distort (warp/mesh/top object, Reset, full Envelope Options, mesh handles, Edit Contents; type, images, symbols, gradients, patterns and appearance distorted everywhere), Liquify tools with options and pen pressure, Puppet Warp with rotating pins, Perspective Grid with presets, movable planes and projected type (choosing a perspective tool shows the grid; Hide Grid hides it with the tool still chosen), Gradient Mesh, Shape Builder (stroke-only open paths and lines cut the regions they cross and enclose regions of their own; filled open paths count as closed; erase mode while Alt/Option is held: a minus pointer, red highlights of what will go, a click or drag deletes the regions touched, the pieces of open lines and the edges (outline pieces between the points where paths meet, opening their paths there) it passes over, one undo step, `shapeBuilder.merge {erase}` and `shapeBuilder.regions` edges over MCP), Live Paint (every path an edge, open lines included), Image Trace (12 presets from the engine catalogue, also listed in the Make and Make and Expand dialogs (#543); raster and contour working-set limits and separate emitted-path/anchor limits report an error before replacing the image, uniform overlapping layers avoid pixel-sized contour scratch buffers, and denoise stops counting neighbours once a region meets Noise (bounded resource fixes for #525; photographic edge quality and performance at scale remain open); with an image selected the Control bar and the Properties panel show Image Trace, whose arrow traces with any preset, Mask (`object.maskImage`: a clipping path on the image's outline, selected so its handles crop), Crop Image and Embed or Unembed in place of Fill and Stroke; with an Image Trace object selected, its Preset (choosing another traces again), the Image Trace panel and Expand, plus Release in Properties; the View modes are not done), pattern swatches with pattern editing mode, live Repeat (radial/grid/mirror).
+ - **Paint and appearance (M3):**
+   - **Swatches:** names follow the colour model and are unique; Swatch Options (process/spot, Global, Gray/RGB/HSB/CMYK/Web, live preview); editing a global or spot swatch recolours every linked fill, stroke and text run in one undo step; multi-select and delete with confirmation; New Swatch and New Color Group dialogs (a group from the selected artwork's colours); swatches in colour groups convert, separate and count like any other. The Swatches panel selects ranges and whole groups, has a find field, and drags swatches to reorder, regroup or paint art; Add Used Colors, Select All Unused, Merge, Ungroup and Sort by Kind; a CMYK document keeps applied colours in CMYK. Swatch libraries: nine generated colour libraries and five gradient libraries in a library panel, saved and loaded as `.vcswatches`, `.gpl` or CSS. Tints of global and spot colours ("Name 40%") stay linked and separate as a percentage of their plate. Spot colours can be defined in Lab (Spot Colors options). A built-in [Registration] swatch prints on every plate.
+   - **Colour:** a Color Picker (colour field, H/S/B/R/G/B channel slider, HSB/RGB/Lab/CMYK fields, hex, web-only snapping, out-of-gamut correction); the Color panel follows each colour's own model and Alt-click paints the other proxy; proxies look through groups and show "?" for mixed paint; Invert, Complement, Apply Last Color (`,`) and Apply Last Gradient (`.`) keep the colour model; every paint command feeds the recent colours. The Color Guide has 21 harmony rules, Steps and Variation options and Limit to Library. Adjust Color Balance (its Global mode shifts tints) and Saturate preview live; Edit Colors and Recolor also reach meshes, images and patterns. Recolor Artwork has colour reduction, five recolour methods, presets, Limit to Library, a colour-wheel Edit tab and Edit Color Group; a local Color Themes panel saves five-colour themes. Fill/Stroke chips open swatch and mixer popovers (the Properties panel has the Control bar's Fill and Stroke chips, Stroke link and weight spinner, with nothing selected too), panels have Illustrator's Window menu keys (Align Shift+F7, Transform Shift+F8, Pathfinder Cmd+Shift+F9, Layers F7, Character Cmd+T…; every panel can be given one in Edit › Keyboard Shortcuts), and Eyedropper Options pick up and apply chosen attributes (Alt and Shift+Alt, image pixels). Fills and strokes can overprint (Attributes panel, Overprint Black options), and CMYK documents blend in inks on screen, in PDF and when flattening. Document Color Mode converts the art, symbols, pattern tiles and swatches through the colour settings: Gray stays Gray, RGB greys separate into four-colour greys and a rich black as Illustrator does, or go on the black plate only with `grays: "black"` (also for `document.open {colorMode}`).
+@@ -178,7 +178,7 @@ grade by behaviour against `plan/illustrator/`, not by whether a menu item exist
+ | M9 | Live effects (+ 3D & Materials) | 🟡 2D effects done incl. Effect → Pathfinder and Color Adjustments; SVG Filters, Document Raster Effects Settings, 3D pending | 86–135 |
+ | M10 | Brushes, symbols, patterns, Repeat | 🟡 pattern swatches (5 tile types, Pattern Options, editing mode, SVG `<pattern>`/PDF export) and live Repeat (radial/grid/mirror) done; brushes/symbols in progress | 23–37 |
+ | M11 | Artboards & views (artboard panel/tool, Trim View, middle-button pan, print tiling and the status bar's artboard navigator done; multiple windows, presentation polish) | 🟡 | 15–25 |
+-| M12 | Advanced color & art (CMYK/ICC, separations, Gradient Mesh, Live Paint, Image Trace, Graphs) | 🟡 Gradient Mesh, Live Paint, Image Trace (12 presets, 18 ms/1k² image), Recolor Artwork, colour management (ICC, soft proofing, separations preview), Graphs (all 9 tools, Graph Data/Type, regenerate in place) done; graph Design/Column/Marker designs pending | 6–10 |
++| M12 | Advanced color & art (CMYK/ICC, separations, Gradient Mesh, Live Paint, Image Trace, Graphs) | 🟡 Gradient Mesh, Live Paint, Image Trace (12 presets with Make dialog dropdowns, bounded contour/output resources; the earlier 18 ms/1k² measurement was B&W, photographic performance remains open), Recolor Artwork, colour management (ICC, soft proofing, separations preview), Graphs (all 9 tools, Graph Data/Type, regenerate in place) done; graph Design/Column/Marker designs pending | 6–10 |
+ | M13 | Automation (Actions ✅ record/playback, persisted; variables, scripting, batch) | 🟡 | 18–27 |
+ | M14 | 1.0 polish (preferences, shortcut editor, workspaces, accessibility, packaging for all OSes) | 🟡 Preferences, shortcut editor (chords with Shift and a punctuation key fire as typed), workspaces, a custom title bar on Windows/Linux with a Home button, content-sized dialogs and menus that scroll when longer than the window done; an experimental, unsupported Windows 7 x64 portable OpenGL build (not verified by maintainers); accessibility and broader Windows/Linux packaging/QA pending | 18–28 |
+ | — | Interaction fidelity pass (every tool's modifiers, Properties panel per context, isolation, nuance) | ⬜ | 60–90 |
+@@ -211,7 +211,7 @@ about 1–1.5 agent-hours each, so the other rows (estimated on the older scale)
+ | Type core | 9 | 79% | Middle Eastern features beyond bidi layout and Paragraph Direction (Character Direction, digit types, kashidas, the Middle Eastern composers, editable bidirectional SVG text, a split caret where directions meet); composer/hyphenation options, Optical Margin Alignment, hidden characters, Transform Again after a type-area resize (it scales the type), partial selection of type-area anchors by marquee | 15–20 |
+ | Type advanced | 4 | 50% | CJK composition for vertical type (ruby, mojikumi beyond Line-end Punctuation Half Width — the other sets (and their paragraph-start bracket and indent rules), kinsoku sets and the Mojikumi Settings dialog —, proportional vertical metrics, manual tate-chu-yoko, Character Alignment on the ICF top and bottom), variable font axis sliders (named instances are styles), tab leaders, spell check (open dictionary), Touch Type, Retype; vertical point/area/path type and Type Orientation have initial support | 20–28 |
+ | Symbols, blends, envelopes, Repeat, perspective | 5 | 88% | symbol libraries (original), dynamic symbols, envelope Anti-Alias/Preserve Shape output and warp point editing, brush interpolation in blends (M8 fidelity pass done) | 5–8 |
+-| Image Trace, graphs, image tools | 3 | 70% | graph Design/Column/Marker, Create Object Mosaic, Crop Image polish (an on-canvas crop box), Image Trace View modes (Outlines, Source Image) (Vector Halftone is done) | 6–10 |
++| Image Trace, graphs, image tools | 3 | 70% | graph Design/Column/Marker, Create Object Mosaic, Crop Image polish (an on-canvas crop box), Image Trace View modes (Outlines, Source Image), photographic trace quality and performance at scale (#525; resource limits and uniform-layer contour allocation fixed) (Vector Halftone is done) | 6–10 |
+ | Layers, artboards, document setup | 5 | 82% | Layers panel: a confirmation before deleting layers that hold art, Collect for Export, row context menus, the Layer Options dialog for several rows with mixed values, Paste Remembers Layers for sublayers, drag-scrolling a long panel while dragging rows; artboard presets/rearrange polish (Document Setup, New Document and the rest of the Layers panel are done) | 4–7 |
+ | View & navigation | 3 | 70% | New View/Edit Views, multiple windows/arrange, Snap to Pixel/Glyph (print tiling is done) | 9–14 |
+ | Guides, grids, smart guides, snapping, rulers | 3 | 82% | global/video rulers, smart-guide preference depth, Alt swapping a ruler guide's orientation, ruler guides selected together with art (marquee, Shift-click), ruler guides as Layers rows with their own lock and hide (#451: Lock Guides locks them all; Make Guides paths are Layers rows already) (dragging existing guides is done, #414; new guides snapping to side midpoints and artboards, and artboard guides, #451) | 3–5 |
+diff --git a/crates/engine/src/cmd/buildcmds.rs b/crates/engine/src/cmd/buildcmds.rs
+index 668da3d..3f6b565 100644
+--- a/crates/engine/src/cmd/buildcmds.rs
++++ b/crates/engine/src/cmd/buildcmds.rs
+@@ -670,8 +670,8 @@ fn trace_make(s: &mut Session, p: &Value, expand: bool) -> Result<Value> {
+             .ok_or_else(|| bad(C, "select an image (or an Image Trace group)"))?
+     };
+     let blob = s.doc()?.doc.images.get(&img.key).ok_or_else(|| EngineError::Other(format!("image data `{}` is missing", img.key)))?;
+-    let raster = tr::Raster::decode(&blob.bytes).map_err(|e| EngineError::Other(e.to_string()))?;
+-    let res = tr::trace(&raster, &params);
++    let raster = tr::Raster::decode_for_trace(&blob.bytes).map_err(|e| EngineError::Other(e.to_string()))?;
++    let res = tr::trace(&raster, &params).map_err(|e| EngineError::Other(e.to_string()))?;
+     // Pixel space of the decoded raster → the image object's pixel space → document.
+     let sx = img.width.max(1) as f64 / raster.width.max(1) as f64;
+     let sy = img.height.max(1) as f64 / raster.height.max(1) as f64;
+diff --git a/crates/engine/src/tests_build.rs b/crates/engine/src/tests_build.rs
+index 04af2e0..a49549c 100644
+--- a/crates/engine/src/tests_build.rs
++++ b/crates/engine/src/tests_build.rs
+@@ -704,3 +704,20 @@ fn image_trace_object_remembers_its_settings() {
+     let id = st.selection.in_paint_order(&st.doc)[0];
+     assert!(st.doc.node(id).unwrap().trace.is_none());
+ }
++
++#[test]
++fn image_trace_resource_failure_preserves_document_selection_and_undo() {
++    for command in ["imageTrace.make", "imageTrace.makeAndExpand"] {
++        let mut s = session();
++        let raster = vectorcraft_trace::Raster::from_fn(450, 450, |x, y| if (x + y) % 2 == 0 { [0, 0, 0, 255] } else { [255, 255, 255, 255] });
++        let image = add_image(&mut s, &raster, Affine::IDENTITY);
++        let before = vectorcraft_format::save(&s.doc().unwrap().doc, false);
++        let err = s.execute(command, &json!({"preset": "Black and White Logo", "params": {"noise": 0}})).unwrap_err();
++        assert!(err.to_string().contains("component working set limit"), "{err}");
++        assert_eq!(vectorcraft_format::save(&s.doc().unwrap().doc, false), before);
++        assert_eq!(s.doc().unwrap().selection.objects, vec![image]);
++        // No trace undo entry was created; the previous image insertion is what Undo removes.
++        s.execute("edit.undo", &json!({})).unwrap();
++        assert!(s.doc().unwrap().doc.node(image).is_none());
++    }
++}
+diff --git a/crates/trace/src/contour.rs b/crates/trace/src/contour.rs
+index ebd3d6a..d49c1b0 100644
+--- a/crates/trace/src/contour.rs
++++ b/crates/trace/src/contour.rs
+@@ -6,6 +6,8 @@
+ //! touching only diagonally) the walk turns right, which keeps diagonal neighbours apart — the
+ //! same 4-connectivity used to label components.
+ 
++use crate::{MAX_BOUNDARY_POINTS, MAX_COMPONENTS, MAX_LOOP_POINTS, TraceError, pixel_count};
++
+ /// A closed boundary loop.
+ #[derive(Clone, Debug, PartialEq)]
+ pub struct Loop {
+@@ -48,7 +50,7 @@ fn step(d: u8) -> (i32, i32) {
+ }
+ 
+ /// 4-connected component labels (`u32::MAX` outside) and per-component pixel counts.
+-fn label(mask: &[bool], w: usize, h: usize) -> (Vec<u32>, Vec<usize>) {
++fn label(mask: &[bool], w: usize, h: usize, max_components: usize) -> Result<(Vec<u32>, Vec<usize>), TraceError> {
+     let mut comp = vec![u32::MAX; w * h];
+     let mut sizes = Vec::new();
+     let mut stack = Vec::new();
+@@ -56,6 +58,9 @@ fn label(mask: &[bool], w: usize, h: usize) -> (Vec<u32>, Vec<usize>) {
+         if !mask[s] || comp[s] != u32::MAX {
+             continue;
+         }
++        if sizes.len() >= max_components {
++            return Err(TraceError::ResourceLimit { resource: "component working set", limit: MAX_COMPONENTS });
++        }
+         let id = sizes.len() as u32;
+         let mut n = 0usize;
+         comp[s] = id;
+@@ -84,13 +89,50 @@ fn label(mask: &[bool], w: usize, h: usize) -> (Vec<u32>, Vec<usize>) {
+         }
+         sizes.push(n);
+     }
+-    (comp, sizes)
++    Ok((comp, sizes))
+ }
+ 
+ /// Trace every component of `mask` (row-major, `w × h`).
+-pub fn trace_mask(mask: &[bool], w: usize, h: usize) -> Vec<Component> {
+-    assert_eq!(mask.len(), w * h);
+-    let (comp, sizes) = label(mask, w, h);
++pub fn trace_mask(mask: &[bool], w: usize, h: usize) -> Result<Vec<Component>, TraceError> {
++    trace_mask_bounded(mask, w, h, MAX_COMPONENTS, MAX_BOUNDARY_POINTS)
++}
++
++pub(crate) fn trace_mask_bounded(mask: &[bool], w: usize, h: usize, max_components: usize, max_points: usize) -> Result<Vec<Component>, TraceError> {
++    let pixels = pixel_count(w, h)?;
++    if mask.len() != pixels {
++        return Err(TraceError::InvalidRaster);
++    }
++    if pixels == 0 {
++        return Ok(Vec::new());
++    }
++    // Opaque overlapping traces begin with a solid image-sized bottom layer. Its contour
++    // is already known: avoid a pixel-sized component table, flood stack and edge grid.
++    if let Some(&inside) = mask.first()
++        && mask.iter().all(|&m| m == inside)
++    {
++        if !inside {
++            return Ok(Vec::new());
++        }
++        if max_components == 0 {
++            return Err(TraceError::ResourceLimit { resource: "component working set", limit: MAX_COMPONENTS });
++        }
++        if max_points < 4 {
++            return Err(TraceError::ResourceLimit { resource: "boundary point", limit: MAX_BOUNDARY_POINTS });
++        }
++        return Ok(vec![Component {
++            outer: Loop { pts: vec![(0, 0), (w as i32, 0), (w as i32, h as i32), (0, h as i32)], area2: 2 * pixels as i64 },
++            holes: Vec::new(),
++            pixels,
++        }]);
++    }
++    collect_contours(mask, w, h, max_components, max_points)
++}
++
++/// The general boundary walk, also used as the exact oracle for the uniform shortcut.
++fn collect_contours(mask: &[bool], w: usize, h: usize, max_components: usize, max_points: usize) -> Result<Vec<Component>, TraceError> {
++    // This independent working-set ceiling bounds loop/hole storage before fitting or hole
++    // filtering. It is not the emitted path budget. Denoising has already run in trace().
++    let (comp, sizes) = label(mask, w, h, max_components)?;
+     let vw = w + 1;
+     let mut dirs = vec![0u8; vw * (h + 1)];
+     let inside = |x: isize, y: isize| x >= 0 && y >= 0 && (x as usize) < w && (y as usize) < h && mask[y as usize * w + x as usize];
+@@ -116,6 +158,7 @@ pub fn trace_mask(mask: &[bool], w: usize, h: usize) -> Vec<Component> {
+     }
+     let mut outers: Vec<Option<Loop>> = vec![None; sizes.len()];
+     let mut holes: Vec<Vec<Loop>> = vec![Vec::new(); sizes.len()];
++    let mut points = 0;
+     for start in 0..dirs.len() {
+         // Every loop has an R edge (the top edge of some inside pixel); start there so the loop
+         // closes exactly (right-turn rule at the start vertex, too).
+@@ -123,6 +166,10 @@ pub fn trace_mask(mask: &[bool], w: usize, h: usize) -> Vec<Component> {
+             let (sx, sy) = ((start % vw) as i32, (start / vw) as i32);
+             let owner = comp[sy as usize * w + sx as usize];
+             dirs[start] &= !R;
++            if points >= max_points {
++                return Err(TraceError::ResourceLimit { resource: "boundary point", limit: MAX_BOUNDARY_POINTS });
++            }
++            points += 1;
+             let mut pts = vec![(sx, sy)];
+             let (mut x, mut y) = (sx + 1, sy);
+             let mut d = R;
+@@ -157,6 +204,15 @@ pub fn trace_mask(mask: &[bool], w: usize, h: usize) -> Vec<Component> {
+                 dirs[v] &= !next;
+                 // Keep only turn vertices.
+                 if next != d {
++                    // A long loop expands into many samples in the curve fitter. Bound it
++                    // here before storing the vertices, rather than dropping fitted detail.
++                    if pts.len() >= MAX_LOOP_POINTS {
++                        return Err(TraceError::ResourceLimit { resource: "points per contour", limit: MAX_LOOP_POINTS });
++                    }
++                    if points >= max_points {
++                        return Err(TraceError::ResourceLimit { resource: "boundary point", limit: MAX_BOUNDARY_POINTS });
++                    }
++                    points += 1;
+                     pts.push((x, y));
+                 }
+                 let (dx, dy) = step(next);
+@@ -181,5 +237,24 @@ pub fn trace_mask(mask: &[bool], w: usize, h: usize) -> Vec<Component> {
+             out.push(Component { outer, holes: std::mem::take(&mut holes[i]), pixels: sizes[i] });
+         }
+     }
+-    out
++    Ok(out)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn uniform_shortcut_matches_the_general_boundary_walk_exactly() {
++        for (w, h) in [(1, 1), (1, 127), (127, 1), (3, 2), (64, 128), (1024, 1024)] {
++            for inside in [false, true] {
++                let mask = vec![inside; w * h];
++                let general = collect_contours(&mask, w, h, MAX_COMPONENTS, MAX_BOUNDARY_POINTS).unwrap();
++                let fast = trace_mask(&mask, w, h).unwrap();
++                // Exact loop order, vertices, winding, holes and pixel counts. Thus the fitter
++                // receives identical inputs; no art is approximated by this shortcut.
++                assert_eq!(fast, general, "{w}x{h}, inside={inside}");
++            }
++        }
++    }
+ }
+diff --git a/crates/trace/src/lib.rs b/crates/trace/src/lib.rs
+index 8776d80..e77f1b3 100644
+--- a/crates/trace/src/lib.rs
++++ b/crates/trace/src/lib.rs
+@@ -27,6 +27,7 @@ mod fit;
+ mod mosaic;
+ mod quantize;
+ 
++use image::ImageDecoder;
+ use serde::{Deserialize, Serialize};
+ use vectorcraft_geom::PathData;
+ 
+@@ -34,13 +35,32 @@ pub use contour::{Component, Loop, trace_mask};
+ pub use mosaic::mosaic;
+ pub use quantize::{Quantized, TRANSPARENT, denoise, quantize};
+ 
+-/// Errors decoding a raster.
++// Bound both raster work buffers and the vector/curve-fitting output. These are resource
++// ceilings, not quality settings: exceeding one returns an error without a partial trace.
++const MAX_PIXELS: usize = 16_777_216;
++const MAX_PATHS: usize = 50_000;
++const MAX_COMPONENTS: usize = 50_000;
++const MAX_ANCHORS: usize = 250_000;
++const MAX_BOUNDARY_POINTS: usize = 1_000_000;
++const MAX_LOOP_POINTS: usize = 16_384;
++
++/// Errors decoding or tracing a raster.
+ #[derive(Debug, thiserror::Error)]
+ pub enum TraceError {
+     #[error("could not decode image: {0}")]
+     Decode(String),
+     #[error("image is empty")]
+     Empty,
++    #[error("invalid raster: RGBA length does not match its dimensions")]
++    InvalidRaster,
++    #[error("tracing parameters must be finite")]
++    InvalidParams,
++    #[error("Image Trace exceeds the {resource} limit ({limit}); use fewer colors, increase Noise, or reduce the image resolution")]
++    ResourceLimit { resource: &'static str, limit: usize },
++}
++
++fn pixel_count(width: usize, height: usize) -> Result<usize, TraceError> {
++    width.checked_mul(height).filter(|n| *n <= MAX_PIXELS).ok_or(TraceError::ResourceLimit { resource: "pixel", limit: MAX_PIXELS })
+ }
+ 
+ /// An RGBA8 raster (row-major, top row first).
+@@ -76,6 +96,19 @@ impl Raster {
+         }
+         Ok(Self { width: w, height: h, rgba: img.into_raw() })
+     }
++    /// Decode an Image Trace source, checking the tracing pixel budget before allocation.
++    pub fn decode_for_trace(bytes: &[u8]) -> Result<Self, TraceError> {
++        let reader = image::ImageReader::new(std::io::Cursor::new(bytes)).with_guessed_format().map_err(|e| TraceError::Decode(e.to_string()))?;
++        let decoder = reader.into_decoder().map_err(|e| TraceError::Decode(e.to_string()))?;
++        let (w, h) = decoder.dimensions();
++        // Check before allocating the decoded pixels (and converting them to RGBA).
++        pixel_count(w as usize, h as usize)?;
++        if w == 0 || h == 0 {
++            return Err(TraceError::Empty);
++        }
++        let img = image::DynamicImage::from_decoder(decoder).map_err(|e| TraceError::Decode(e.to_string()))?.to_rgba8();
++        Ok(Self { width: w, height: h, rgba: img.into_raw() })
++    }
+     /// Encode as PNG.
+     pub fn encode_png(&self) -> Vec<u8> {
+         let mut out = Vec::new();
+@@ -260,11 +293,19 @@ fn is_white(c: [u8; 3]) -> bool {
+     c.iter().all(|&v| v >= 245)
+ }
+ 
+-/// Trace `img` with `params`.
+-pub fn trace(img: &Raster, params: &TraceParams) -> TraceResult {
++/// Trace `img` with `params`, returning an error if raster, contour or output resource limits
++/// are exceeded. A failed trace never returns partial geometry.
++pub fn trace(img: &Raster, params: &TraceParams) -> Result<TraceResult, TraceError> {
+     let (w, h) = (img.width as usize, img.height as usize);
++    let pixels = pixel_count(w, h)?;
++    if pixels.checked_mul(4) != Some(img.rgba.len()) {
++        return Err(TraceError::InvalidRaster);
++    }
++    if !params.paths.is_finite() || !params.corners.is_finite() {
++        return Err(TraceError::InvalidParams);
++    }
+     if w == 0 || h == 0 {
+-        return TraceResult::default();
++        return Ok(TraceResult::default());
+     }
+     let mut q = quantize(img, params);
+     denoise(&mut q.labels, w, h, params.noise as usize);
+@@ -290,7 +331,9 @@ pub fn trace(img: &Raster, params: &TraceParams) -> TraceResult {
+     };
+     let min_hole = params.noise.max(1) as i64;
+     let mut out = TraceResult::default();
+-    let mut mask = vec![false; w * h];
++    let mut mask = vec![false; pixels];
++    let mut boundary_points = 0;
++    let mut anchors = 0;
+     for (r, &ci) in order.iter().enumerate() {
+         let color = q.palette[ci];
+         if params.ignore_white && is_white(color) {
+@@ -300,7 +343,9 @@ pub fn trace(img: &Raster, params: &TraceParams) -> TraceResult {
+         for (m, &l) in mask.iter_mut().zip(&q.labels) {
+             *m = l != TRANSPARENT && if overlapping { rank[l as usize] >= r } else { l as usize == ci };
+         }
+-        for comp in trace_mask(&mask, w, h) {
++        let components = contour::trace_mask_bounded(&mask, w, h, MAX_COMPONENTS, MAX_BOUNDARY_POINTS - boundary_points)?;
++        for comp in components {
++            boundary_points += comp.outer.pts.len() + comp.holes.iter().map(|l| l.pts.len()).sum::<usize>();
+             let mut subs = Vec::with_capacity(1 + comp.holes.len());
+             if let Some(sp) = fit::fit_loop(&comp.outer, &opts) {
+                 subs.push(sp);
+@@ -315,13 +360,21 @@ pub fn trace(img: &Raster, params: &TraceParams) -> TraceResult {
+                     subs.push(sp);
+                 }
+             }
+-            out.paths.push(TracedPath { path: PathData::new(subs), color, pixels: comp.pixels });
++            let path = PathData::new(subs);
++            anchors += path.anchor_count();
++            if anchors > MAX_ANCHORS {
++                return Err(TraceError::ResourceLimit { resource: "anchor", limit: MAX_ANCHORS });
++            }
++            if out.paths.len() >= MAX_PATHS {
++                return Err(TraceError::ResourceLimit { resource: "path", limit: MAX_PATHS });
++            }
++            out.paths.push(TracedPath { path, color, pixels: comp.pixels });
+         }
+         if !out.palette.contains(&color) {
+             out.palette.push(color);
+         }
+     }
+-    out
++    Ok(out)
+ }
+ 
+ #[cfg(test)]
+diff --git a/crates/trace/src/quantize.rs b/crates/trace/src/quantize.rs
+index 6b596cc..68c2c3a 100644
+--- a/crates/trace/src/quantize.rs
++++ b/crates/trace/src/quantize.rs
+@@ -310,7 +310,9 @@ pub fn denoise(labels: &mut [u16], w: usize, h: usize, min_area: usize) {
+                         seen[j] = true;
+                         stack.push(j);
+                     }
+-                } else if lj != TRANSPARENT {
++                } else if small && lj != TRANSPARENT {
++                    // Once the component reaches min_area it will never be relabelled;
++                    // counting its remaining boundary neighbours cannot affect the result.
+                     match neigh.iter_mut().find(|(n, _)| *n == lj) {
+                         Some(e) => e.1 += 1,
+                         None => neigh.push((lj, 1)),
+diff --git a/crates/trace/src/tests.rs b/crates/trace/src/tests.rs
+index 5ce4a91..9081684 100644
+--- a/crates/trace/src/tests.rs
++++ b/crates/trace/src/tests.rs
+@@ -22,7 +22,7 @@ fn net_area(p: &vectorcraft_geom::PathData) -> f64 {
+ #[test]
+ fn black_disc_is_one_closed_path_with_disc_area() {
+     let r = 80.0;
+-    let res = trace(&disc(200, 100.0, 100.0, r), &bw());
++    let res = trace(&disc(200, 100.0, 100.0, r), &bw()).unwrap();
+     assert_eq!(res.paths.len(), 1);
+     let p = &res.paths[0];
+     assert_eq!(p.path.subpaths.len(), 1);
+@@ -38,7 +38,7 @@ fn black_disc_is_one_closed_path_with_disc_area() {
+ #[test]
+ fn small_disc_area_within_tolerance() {
+     let r = 20.0;
+-    let res = trace(&disc(64, 32.0, 32.0, r), &bw());
++    let res = trace(&disc(64, 32.0, 32.0, r), &bw()).unwrap();
+     assert_eq!(res.paths.len(), 1);
+     let want = std::f64::consts::PI * r * r;
+     let got = net_area(&res.paths[0].path);
+@@ -51,7 +51,7 @@ fn ring_has_outer_and_hole() {
+         let d2 = (x as f64 + 0.5 - 100.0).powi(2) + (y as f64 + 0.5 - 100.0).powi(2);
+         if (40.0 * 40.0..=80.0 * 80.0).contains(&d2) { BLACK } else { WHITE }
+     });
+-    let res = trace(&img, &bw());
++    let res = trace(&img, &bw()).unwrap();
+     assert_eq!(res.paths.len(), 1);
+     assert_eq!(res.paths[0].path.subpaths.len(), 2);
+     let want = std::f64::consts::PI * (80.0f64.powi(2) - 40.0f64.powi(2));
+@@ -66,7 +66,7 @@ fn ring_has_outer_and_hole() {
+ fn stripes_give_one_path_per_stripe() {
+     // 5 black stripes, 10 px wide, separated by 10 px of white.
+     let img = Raster::from_fn(100, 60, |x, _| if (x / 10) % 2 == 0 { BLACK } else { WHITE });
+-    let res = trace(&img, &bw());
++    let res = trace(&img, &bw()).unwrap();
+     assert_eq!(res.paths.len(), 5);
+     for p in &res.paths {
+         let a = net_area(&p.path);
+@@ -78,7 +78,7 @@ fn stripes_give_one_path_per_stripe() {
+ #[test]
+ fn two_colour_stripes_without_ignore_white_trace_both_colours() {
+     let img = Raster::from_fn(100, 60, |x, _| if (x / 10) % 2 == 0 { BLACK } else { WHITE });
+-    let res = trace(&img, &TraceParams::default());
++    let res = trace(&img, &TraceParams::default()).unwrap();
+     assert_eq!(res.paths.len(), 10);
+     assert_eq!(res.palette.len(), 2);
+     let total: f64 = res.paths.iter().map(|p| net_area(&p.path)).sum();
+@@ -92,9 +92,9 @@ fn noise_removal_drops_speckles() {
+         let speck = (x % 13 == 3 && y % 11 == 5) && !(15..65).contains(&x);
+         if square || speck { BLACK } else { WHITE }
+     });
+-    let noisy = trace(&img, &TraceParams { noise: 0, ..bw() });
++    let noisy = trace(&img, &TraceParams { noise: 0, ..bw() }).unwrap();
+     assert!(noisy.paths.len() > 10, "{} paths", noisy.paths.len());
+-    let clean = trace(&img, &TraceParams { noise: 10, ..bw() });
++    let clean = trace(&img, &TraceParams { noise: 10, ..bw() }).unwrap();
+     assert_eq!(clean.paths.len(), 1);
+     assert!((net_area(&clean.paths[0].path) - 1600.0).abs() < 1.0);
+ }
+@@ -106,7 +106,7 @@ fn noise_removal_fills_pinholes() {
+         let hole = x == 30 && y == 30;
+         if square && !hole { BLACK } else { WHITE }
+     });
+-    let res = trace(&img, &TraceParams { noise: 4, ..bw() });
++    let res = trace(&img, &TraceParams { noise: 4, ..bw() }).unwrap();
+     assert_eq!(res.paths.len(), 1);
+     assert_eq!(res.paths[0].path.subpaths.len(), 1);
+ }
+@@ -114,14 +114,14 @@ fn noise_removal_fills_pinholes() {
+ #[test]
+ fn diagonal_pixels_stay_separate() {
+     let img = Raster::from_fn(4, 4, |x, y| if (x, y) == (1, 1) || (x, y) == (2, 2) { BLACK } else { WHITE });
+-    let res = trace(&img, &TraceParams { noise: 0, ..bw() });
++    let res = trace(&img, &TraceParams { noise: 0, ..bw() }).unwrap();
+     assert_eq!(res.paths.len(), 2);
+ }
+ 
+ #[test]
+ fn contour_loops_are_consistent() {
+     let mask = vec![true, true, true, true, false, true, true, true, true];
+-    let comps = trace_mask(&mask, 3, 3);
++    let comps = trace_mask(&mask, 3, 3).unwrap();
+     assert_eq!(comps.len(), 1);
+     assert_eq!(comps[0].pixels, 8);
+     assert_eq!(comps[0].outer.area2, 18);
+@@ -138,10 +138,10 @@ fn color_mode_palette_size_matches_request() {
+         (false, false) => [240, 220, 20, 255],
+     };
+     let img = Raster::from_fn(100, 100, quad);
+-    let p4 = trace(&img, &TraceParams { mode: Mode::Color, colors: 4, ..TraceParams::default() });
++    let p4 = trace(&img, &TraceParams { mode: Mode::Color, colors: 4, ..TraceParams::default() }).unwrap();
+     assert_eq!(p4.palette.len(), 4);
+     assert_eq!(p4.paths.len(), 4);
+-    let p2 = trace(&img, &TraceParams { mode: Mode::Color, colors: 2, ..TraceParams::default() });
++    let p2 = trace(&img, &TraceParams { mode: Mode::Color, colors: 2, ..TraceParams::default() }).unwrap();
+     assert_eq!(p2.palette.len(), 2);
+     // Palette colours are close to the originals.
+     assert!(p4.palette.iter().any(|c| c[0] > 200 && c[1] < 60 && c[2] < 60));
+@@ -162,7 +162,7 @@ fn grayscale_levels() {
+     let q = quantize(&img, &TraceParams { mode: Mode::Grayscale, colors: 4, ..TraceParams::default() });
+     assert_eq!(q.palette.len(), 4);
+     assert!(q.palette.iter().all(|c| c[0] == c[1] && c[1] == c[2]));
+-    let res = trace(&img, &TraceParams { mode: Mode::Grayscale, colors: 4, noise: 0, ..TraceParams::default() });
++    let res = trace(&img, &TraceParams { mode: Mode::Grayscale, colors: 4, noise: 0, ..TraceParams::default() }).unwrap();
+     assert_eq!(res.paths.len(), 4);
+ }
+ 
+@@ -170,8 +170,8 @@ fn grayscale_levels() {
+ fn overlapping_layers_stack() {
+     // White background with a black square: overlapping → bottom layer covers everything.
+     let img = Raster::from_fn(50, 50, |x, y| if (10..30).contains(&x) && (10..30).contains(&y) { BLACK } else { WHITE });
+-    let ab = trace(&img, &TraceParams::default());
+-    let ov = trace(&img, &TraceParams { method: Method::Overlapping, ..TraceParams::default() });
++    let ab = trace(&img, &TraceParams::default()).unwrap();
++    let ov = trace(&img, &TraceParams { method: Method::Overlapping, ..TraceParams::default() }).unwrap();
+     assert_eq!(ab.paths.len(), 2);
+     assert_eq!(ov.paths.len(), 2);
+     // Abutting: white has a hole; overlapping: white is a full rectangle underneath.
+@@ -184,7 +184,7 @@ fn overlapping_layers_stack() {
+ #[test]
+ fn transparent_pixels_are_not_traced() {
+     let img = Raster::from_fn(40, 40, |x, _| if x < 20 { [0, 0, 0, 0] } else { BLACK });
+-    let res = trace(&img, &TraceParams::default());
++    let res = trace(&img, &TraceParams::default()).unwrap();
+     assert_eq!(res.paths.len(), 1);
+     assert!((net_area(&res.paths[0].path) - 800.0).abs() < 1.0);
+ }
+@@ -192,8 +192,8 @@ fn transparent_pixels_are_not_traced() {
+ #[test]
+ fn threshold_controls_black_and_white() {
+     let img = Raster::from_fn(40, 40, |x, _| if x < 20 { [100, 100, 100, 255] } else { WHITE });
+-    assert_eq!(trace(&img, &TraceParams { threshold: 128, ..bw() }).paths.len(), 1);
+-    assert_eq!(trace(&img, &TraceParams { threshold: 90, ..bw() }).paths.len(), 0);
++    assert_eq!(trace(&img, &TraceParams { threshold: 128, ..bw() }).unwrap().paths.len(), 1);
++    assert_eq!(trace(&img, &TraceParams { threshold: 90, ..bw() }).unwrap().paths.len(), 0);
+ }
+ 
+ #[test]
+@@ -202,8 +202,8 @@ fn fidelity_changes_anchor_count() {
+         let t = (y as f64 / 12.0).sin() * 20.0 + 100.0;
+         if (x as f64) < t { BLACK } else { WHITE }
+     });
+-    let lo = trace(&img, &TraceParams { paths: 0.0, ..bw() }).anchor_count();
+-    let hi = trace(&img, &TraceParams { paths: 100.0, ..bw() }).anchor_count();
++    let lo = trace(&img, &TraceParams { paths: 0.0, ..bw() }).unwrap().anchor_count();
++    let hi = trace(&img, &TraceParams { paths: 100.0, ..bw() }).unwrap().anchor_count();
+     assert!(hi >= lo, "hi {hi} lo {lo}");
+ }
+ 
+@@ -211,7 +211,7 @@ fn fidelity_changes_anchor_count() {
+ fn snap_curves_to_lines_straightens_near_lines() {
+     // A slightly jagged, almost straight edge.
+     let img = Raster::from_fn(200, 100, |x, y| if y as f64 > 30.0 + (x as f64 * 0.05) + if x % 37 < 2 { 1.0 } else { 0.0 } { BLACK } else { WHITE });
+-    let res = trace(&img, &TraceParams { snap_curves_to_lines: true, ..bw() });
++    let res = trace(&img, &TraceParams { snap_curves_to_lines: true, ..bw() }).unwrap();
+     let sp = &res.paths[0].path.subpaths[0];
+     let curves = (0..sp.segment_count()).filter(|&i| !sp.segment_is_line(i)).count();
+     assert_eq!(curves, 0, "{sp:?}");
+@@ -248,6 +248,7 @@ fn decode_png() {
+     let bytes = img.encode_png();
+     let r = Raster::decode(&bytes).unwrap();
+     assert_eq!(r, img);
++    assert_eq!(Raster::decode_for_trace(&bytes).unwrap(), img);
+     assert!(Raster::decode(b"not an image").is_err());
+ }
+ 
+@@ -255,7 +256,7 @@ fn decode_png() {
+ fn all_presets_trace_a_colour_image() {
+     let img = Raster::from_fn(64, 64, |x, y| [(x * 4) as u8, (y * 4) as u8, ((x + y) * 2) as u8, 255]);
+     for (name, p) in presets() {
+-        let r = trace(&img, &p);
++        let r = trace(&img, &p).unwrap();
+         assert!(!r.paths.is_empty() || p.ignore_white, "{name}");
+         for tp in &r.paths {
+             assert!(tp.path.subpaths.iter().all(|s| s.closed && s.anchors.iter().all(|a| a.p.x.is_finite())));
+@@ -272,9 +273,129 @@ fn timing_1000x1000_bw_under_300ms() {
+         if v > 0.2 { BLACK } else { WHITE }
+     });
+     let t = std::time::Instant::now();
+-    let res = trace(&img, &TraceParams { ignore_white: true, ..TraceParams::default() });
++    let res = trace(&img, &TraceParams { ignore_white: true, ..TraceParams::default() }).unwrap();
+     let ms = t.elapsed().as_secs_f64() * 1000.0;
+     eprintln!("1000x1000 B&W: {} paths, {} anchors in {ms:.1} ms", res.paths.len(), res.anchor_count());
+     assert!(!res.paths.is_empty());
+     assert!(ms < 300.0, "{ms} ms");
+ }
++
++#[test]
++fn malformed_and_oversized_rasters_return_errors() {
++    let malformed = Raster { width: 2, height: 2, rgba: vec![0; 4] };
++    assert!(matches!(trace(&malformed, &bw()), Err(TraceError::InvalidRaster)));
++    let huge = Raster { width: u32::MAX, height: u32::MAX, rgba: vec![] };
++    assert!(matches!(trace(&huge, &bw()), Err(TraceError::ResourceLimit { resource: "pixel", .. })));
++    assert!(matches!(trace_mask(&[true], 2, 2), Err(TraceError::InvalidRaster)));
++    assert!(trace_mask(&[], 0, 0).unwrap().is_empty());
++    assert!(matches!(trace(&disc(8, 4.0, 4.0, 2.0), &TraceParams { paths: f64::NAN, ..bw() }), Err(TraceError::InvalidParams)));
++}
++
++#[test]
++fn decoding_checks_dimensions_before_allocating_pixels() {
++    let mut bytes = std::io::Cursor::new(Vec::new());
++    image::RgbaImage::new(1, 1).write_to(&mut bytes, image::ImageFormat::Bmp).unwrap();
++    let mut bytes = bytes.into_inner();
++    // A BMP generated here, with an oversized declared width. No large pixel buffer needed.
++    bytes[18..22].copy_from_slice(&8192i32.to_le_bytes());
++    bytes[22..26].copy_from_slice(&4096i32.to_le_bytes());
++    let result = Raster::decode_for_trace(&bytes);
++    assert!(matches!(result, Err(TraceError::ResourceLimit { resource: "pixel", .. })), "{result:?}");
++}
++
++#[test]
++fn fragmented_image_stops_before_collecting_unbounded_contours() {
++    let img = Raster::from_fn(450, 450, |x, y| if (x + y) % 2 == 0 { BLACK } else { WHITE });
++    let err = trace(&img, &TraceParams { noise: 0, ..bw() }).unwrap_err();
++    assert!(matches!(err, TraceError::ResourceLimit { resource: "component working set", .. }));
++    assert!(err.to_string().contains("increase Noise"));
++}
++
++#[test]
++fn long_jagged_contour_stops_before_curve_fitting() {
++    let w = 20_000;
++    let mask: Vec<bool> = (0..w * 2).map(|i| i >= w || i % 2 == 0).collect();
++    assert!(matches!(trace_mask(&mask, w, 2), Err(TraceError::ResourceLimit { resource: "points per contour", .. })));
++}
++
++#[test]
++fn boundary_point_budget_stops_contour_collection() {
++    let mask = [true, false, true, false];
++    assert!(matches!(contour::trace_mask_bounded(&mask, 4, 1, MAX_COMPONENTS, 7), Err(TraceError::ResourceLimit { resource: "boundary point", .. })));
++}
++
++#[test]
++fn denoise_keeps_large_regions_and_small_region_ties() {
++    let mut labels = vec![0, 0, 1, 2, 2];
++    denoise(&mut labels, 5, 1, 2);
++    assert_eq!(labels, vec![0, 0, 0, 2, 2], "ties merge into the lower label");
++    let mut labels = vec![0, 0, TRANSPARENT, 1, TRANSPARENT];
++    denoise(&mut labels, 5, 1, 2);
++    assert_eq!(labels, vec![0, 0, TRANSPARENT, 1, TRANSPARENT]);
++}
++
++#[test]
++fn high_fidelity_noisy_image_returns_a_bounded_error() {
++    // Independent synthetic 2x2 colour cells survive this preset's four-pixel noise threshold.
++    let img = Raster::from_fn(512, 512, |x, y| {
++        let cell = (x / 2).wrapping_mul(73856093) ^ (y / 2).wrapping_mul(19349663);
++        [cell as u8, (cell >> 8) as u8, (cell >> 16) as u8, 255]
++    });
++    assert!(matches!(trace(&img, &preset("High Fidelity Photo").unwrap()), Err(TraceError::ResourceLimit { .. })));
++}
++
++#[test]
++#[ignore = "synthetic performance probe; run explicitly with --ignored --nocapture"]
++fn timing_2048x2048_high_fidelity() {
++    let img = Raster::from_fn(2048, 2048, |x, y| [(x / 8) as u8, (y / 8) as u8, ((x + y) / 16) as u8, 255]);
++    let start = std::time::Instant::now();
++    let result = trace(&img, &preset("High Fidelity Photo").unwrap()).unwrap();
++    eprintln!(
++        "2048x2048 High Fidelity Photo: {} paths, {} anchors, {} colors in {:.3}s",
++        result.paths.len(),
++        result.anchor_count(),
++        result.palette.len(),
++        start.elapsed().as_secs_f64()
++    );
++    assert!(!result.paths.is_empty());
++    assert_eq!(result.palette.len(), 64);
++}
++
++#[test]
++fn uniform_masks_use_the_rectangle_contour_with_the_same_budgets() {
++    let components = trace_mask(&[true; 6], 3, 2).unwrap();
++    assert_eq!(components, vec![Component { outer: Loop { pts: vec![(0, 0), (3, 0), (3, 2), (0, 2)], area2: 12 }, holes: vec![], pixels: 6 }]);
++    assert!(trace_mask(&[false; 6], 3, 2).unwrap().is_empty());
++    assert!(matches!(contour::trace_mask_bounded(&[true; 6], 3, 2, 0, 4), Err(TraceError::ResourceLimit { resource: "component working set", .. })));
++    assert!(matches!(contour::trace_mask_bounded(&[true; 6], 3, 2, 1, 3), Err(TraceError::ResourceLimit { resource: "boundary point", .. })));
++}
++
++#[test]
++fn speckles_below_noise_are_removed_before_working_set_admission() {
++    let square = |x, y| (20..60).contains(&x) && (20..60).contains(&y);
++    let speckle = |x, y| (x > 70 || y > 70) && x % 3 == 1 && y % 3 == 1;
++    let mut speckles = 0;
++    let noisy = Raster::from_fn(700, 700, |x, y| if square(x, y) || speckle(x, y) { BLACK } else { WHITE });
++    for y in 0..700 {
++        for x in 0..700 {
++            speckles += usize::from(speckle(x, y));
++        }
++    }
++    assert!(speckles > MAX_COMPONENTS);
++    let clean = Raster::from_fn(700, 700, |x, y| if square(x, y) { BLACK } else { WHITE });
++    let params = TraceParams { noise: 4, ..bw() };
++    let result = trace(&noisy, &params).unwrap();
++    assert_eq!(result.paths.len(), 1);
++    assert_eq!(result, trace(&clean, &params).unwrap(), "useful art is kept exactly");
++    let err = trace(&noisy, &TraceParams { noise: 0, ..params }).unwrap_err();
++    assert!(matches!(err, TraceError::ResourceLimit { resource: "component working set", .. }));
++    assert!(err.to_string().contains("component working set limit"));
++}
++
++#[test]
++fn emitted_path_budget_is_distinct_from_component_working_set() {
++    // Each B&W layer has 49,928 components, admitted independently. Their combined
++    // 99,856 paths exceed the document output limit, not the per-layer working set.
++    let img = Raster::from_fn(316, 316, |x, y| if (x + y) % 2 == 0 { BLACK } else { WHITE });
++    assert!(matches!(trace(&img, &TraceParams { noise: 0, ..TraceParams::default() }), Err(TraceError::ResourceLimit { resource: "path", .. })));
++}
+diff --git a/crates/ui-egui/src/dialogs/command.rs b/crates/ui-egui/src/dialogs/command.rs
+index 585092c..e213739 100644
+--- a/crates/ui-egui/src/dialogs/command.rs
++++ b/crates/ui-egui/src/dialogs/command.rs
+@@ -12,7 +12,21 @@ pub(super) const SPEC: DialogSpec = DialogSpec {
+     body: |app, ui, d| {
+         let command = d.str("__command");
+         let lengths = lengths(&command);
+-        form::param_fields(ui, d, &|k| lengths.contains(&k), &|k| choices(&command, k), app.session.general_unit());
++        // Share the engine catalogue used by the Image Trace panel and Control bar. The
++        // command still receives the canonical name when the label is translated.
++        let presets = if matches!(command.as_str(), "imageTrace.make" | "imageTrace.makeAndExpand") {
++            crate::panels::image_trace::presets(app)
++        } else {
++            Vec::new()
++        };
++        let preset_choices: Vec<(&str, &str)> = presets.iter().map(|(name, _)| (name.as_str(), name.as_str())).collect();
++        form::param_fields(
++            ui,
++            d,
++            &|k| lengths.contains(&k),
++            &|k| if k == "preset" && !preset_choices.is_empty() { Some(preset_choices.as_slice()) } else { choices(&command, k) },
++            app.session.general_unit(),
++        );
+         false
+     },
+     confirm,
+diff --git a/crates/ui-egui/src/dialogs/form.rs b/crates/ui-egui/src/dialogs/form.rs
+index d18b27f..d7e8c87 100644
+--- a/crates/ui-egui/src/dialogs/form.rs
++++ b/crates/ui-egui/src/dialogs/form.rs
+@@ -193,16 +193,18 @@ pub(super) fn params(d: &Dialog) -> Value {
+ }
+ 
+ /// The (label, value) choices of a parameter that picks one of some values.
+-pub(super) type Choices = &'static [(&'static str, &'static str)];
++pub(super) type Choices = FieldChoices<'static>;
++
++type FieldChoices<'a> = &'a [(&'a str, &'a str)];
+ 
+ /// Generic editor for command/effect parameters: numbers, booleans, strings and colours; the
+ /// parameters `is_length` names are distances shown and typed in `unit`, those `choices` gives
+ /// choices for are dropdowns. Returns true when a value changed.
+-pub(super) fn param_fields(
++pub(super) fn param_fields<'a>(
+     ui: &mut egui::Ui,
+     d: &mut Dialog,
+     is_length: &dyn Fn(&str) -> bool,
+-    choices: &dyn Fn(&str) -> Option<Choices>,
++    choices: &dyn Fn(&str) -> Option<FieldChoices<'a>>,
+     unit: Unit,
+ ) -> bool {
+     let t = Tokens::get(ui.ctx());
+diff --git a/crates/ui-egui/src/dialogs/tests_modal.rs b/crates/ui-egui/src/dialogs/tests_modal.rs
+index 63d5d2f..f9d88af 100644
+--- a/crates/ui-egui/src/dialogs/tests_modal.rs
++++ b/crates/ui-egui/src/dialogs/tests_modal.rs
+@@ -201,3 +201,65 @@ fn offset_path_previews() {
+     cancel(&mut app);
+     assert_eq!(count(&app), 1, "rolled back");
+ }
++
++/// #543: both Object > Image Trace dialogs list the engine's registered presets, and OK
++/// traces with the selected canonical name (or expands it), in one undoable edit.
++#[test]
++fn image_trace_make_dialogs_list_registered_presets_and_apply_the_choice() {
++    use vectorcraft_doc::NodeKind;
++    for (command, initial, expanded) in [("imageTrace.make", "Black and White Logo", false), ("imageTrace.makeAndExpand", "6 Colors", true)] {
++        let (ctx, mut app) = (ctx(), app_with_selection());
++        let raster = image::RgbaImage::from_fn(32, 32, |x, y| image::Rgba([(x * 8) as u8, (y * 8) as u8, 128, 255]));
++        let mut png = std::io::Cursor::new(Vec::new());
++        raster.write_to(&mut png, image::ImageFormat::Png).unwrap();
++        let data = vectorcraft_format::base64_encode(png.get_ref());
++        app.run("file.place", json!({"name": "synthetic.png", "dataBase64": data, "link": false})).unwrap();
++        let image_id = app.session.doc().unwrap().selection.objects[0];
++        let registry = app.run("imageTrace.presets", json!({})).unwrap();
++        let names: Vec<&str> = registry["presets"].as_array().unwrap().iter().map(|p| p["name"].as_str().unwrap()).collect();
++        let menu = crate::menus::menu_entries(&app).into_iter().find(|e| e.command.as_deref() == Some(command)).unwrap();
++        assert_eq!(menu.params["preset"], initial);
++        let (id, params) = crate::menus::click_target(&menu.label, command, &menu.params);
++        crate::menus::invoke(&mut app, &id, params);
++        settle(&ctx, &mut app);
++        let texts = frame(&ctx, &mut app, vec![]);
++        let at = |texts: &[(String, Rect)], label: &str| texts.iter().find(|(t, _)| t == label).unwrap().1.center();
++        let open = click(&ctx, &mut app, at(&texts, initial));
++        // The established combo scrolls a long list. Verify all entries by scrolling it,
++        // then return to the top to choose the larger palette.
++        let pointer = at(&open, "Default");
++        let mut listed = open;
++        let scroll = |delta| {
++            vec![
++                Event::PointerMoved(pointer),
++                Event::MouseWheel { unit: egui::MouseWheelUnit::Point, delta: vec2(0.0, delta), modifiers: Default::default() },
++            ]
++        };
++        frame(&ctx, &mut app, scroll(-400.0));
++        settle(&ctx, &mut app);
++        listed.extend(frame(&ctx, &mut app, vec![]));
++        for name in &names {
++            assert!(listed.iter().any(|(t, _)| t == name), "{command}: {name} missing from {listed:?}");
++        }
++        frame(&ctx, &mut app, scroll(400.0));
++        settle(&ctx, &mut app);
++        let open = frame(&ctx, &mut app, vec![]);
++        click(&ctx, &mut app, at(&open, "16 Colors"));
++        assert_eq!(app.ui.dialog.as_ref().unwrap().str("preset"), "16 Colors");
++        let result = confirm(&mut app).unwrap();
++        assert!(result["colors"].as_u64().unwrap() > 6, "selected the larger palette");
++        let st = app.session.doc().unwrap();
++        let group = st.doc.node(st.selection.objects[0]).unwrap();
++        if expanded {
++            assert!(group.trace.is_none());
++            assert!(group.children().unwrap().iter().all(|n| !matches!(n.kind, NodeKind::Image(_))));
++        } else {
++            assert_eq!(group.trace.as_ref().unwrap()["preset"], "16 Colors");
++            assert_eq!(group.trace.as_ref().unwrap()["params"]["colors"], 16);
++        }
++        app.run("edit.undo", json!({})).unwrap();
++        let st = app.session.doc().unwrap();
++        assert_eq!(st.selection.objects, vec![image_id]);
++        assert!(matches!(st.doc.node(image_id).unwrap().kind, NodeKind::Image(_)));
++    }
++}
+diff --git a/crates/ui-egui/src/panels/image_trace.rs b/crates/ui-egui/src/panels/image_trace.rs
+index bda45ab..88b39b0 100644
+--- a/crates/ui-egui/src/panels/image_trace.rs
++++ b/crates/ui-egui/src/panels/image_trace.rs
+@@ -23,7 +23,7 @@ struct TraceUi {
+     synced: Value,
+ }
+ 
+-fn presets(app: &mut VectorcraftApp) -> Vec<(String, Value)> {
++pub(crate) fn presets(app: &mut VectorcraftApp) -> Vec<(String, Value)> {
+     let v = app.session.execute("imageTrace.presets", &json!({})).unwrap_or_default();
+     v["presets"]
+         .as_array()

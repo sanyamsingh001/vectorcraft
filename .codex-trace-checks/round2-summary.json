@@ -1,0 +1,38 @@
+{
+  "base": "c26c4a20609e8c1019eb98def978f6844082965a",
+  "patch": "round2-c26c4a2.patch",
+  "patch_sha256": "40d85537d3241e4da14ce21015ec3f7d26aa60a5954927f0e0cfe1e17f822c3d",
+  "changed_paths": [
+    "ROADMAP.md",
+    "crates/trace/src/contour.rs",
+    "crates/trace/src/quantize.rs"
+  ],
+  "canonical_apply_check_exit": 0,
+  "staged_apply_check_exit": 0,
+  "staged_roadmap_unrelated_bytes_preserved": true,
+  "new_output_comparisons": 432,
+  "new_paired_budget_checks": 96,
+  "recovered_fixture_comparisons": 84,
+  "composed_tests_passed": 31,
+  "timing_tests_ignored": 1,
+  "recovered_cargo_checks": [
+    "test -p vectorcraft-trace --all-targets",
+    "clippy -p vectorcraft-trace --all-targets -- -D warnings",
+    "build -p vectorcraft-trace",
+    "fmt --all -- --check"
+  ],
+  "guard": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "benchmarks_repeated": false,
+  "new_shipped_source_edits": false,
+  "current_dependency_source_files": 17,
+  "current_dependency_sources_match_c26": true,
+  "current_build_steps_passed": 8,
+  "current_suite_tests_passed": 29,
+  "current_adversarial_tests_passed": 2,
+  "current_adversarial_complete_output_comparisons": 432,
+  "current_adversarial_paired_budget_checks": 96,
+  "current_build_evidence": "round2-current2-finished.json",
+  "external_dependency_rebuilds": false,
+  "full_workspace_ci_run": false
+}

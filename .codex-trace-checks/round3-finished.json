@@ -1,0 +1,71 @@
+{
+  "guard_before": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+  "input_hashes": {
+    ".codex-trace-checks/round3-frozen/crates/trace/src/contour.rs": "d9f08a65a5146e37e11f1775e8105eea6a43a7f845530ce014e42c9e38808d1e",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/lib.rs": "955bdd7ebe023fb098941ae17751744b53e6076b2122b6e09545c720656d97b7",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/tests.rs": "3399786bc3bea9caa97516a81aea7060cafe39eb10e8e55767baa0c2dd12c4cd",
+    ".codex-trace-checks/round3-frozen/ROADMAP.md": "756d099f2b07e72820e54169f9b6e42ecce4722f9351581b1c3d618a20672fd7",
+    ".codex-trace-checks/round3-cumulative-c26.patch": "6c96b7931f2a8fcb6cc745772b358e77f499b5a365104af55d7f04264d6f78db",
+    ".codex-trace-checks/round3-resource-only.patch": "1be9383234cca2f3bdc602c4cea59bf0faee90fdcee99ee88c79394b52e9c7b6",
+    ".codex-trace-checks/round3-verify-controller.py": "50327267de4157c02a9f00ccb0b6a7024499bce3ac911439bdeaeefa56828a09",
+    ".codex-trace-checks/round2-adversarial.rs": "9a57ee736f9507464a07444d9ddd946549b40799c3803539f4a00982a8ca1625"
+  },
+  "steps": [
+    {
+      "step": "library",
+      "exit_code": 0,
+      "elapsed_seconds": 10.302184820175171,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "suite-build",
+      "exit_code": 0,
+      "elapsed_seconds": 10.534037113189697,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "suite",
+      "exit_code": 0,
+      "elapsed_seconds": 0.4203813076019287,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "adversarial-build",
+      "exit_code": 0,
+      "elapsed_seconds": 1.9198222160339355,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "adversarial",
+      "exit_code": 0,
+      "elapsed_seconds": 1.977518081665039,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "clippy",
+      "exit_code": 0,
+      "elapsed_seconds": 8.509428262710571,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "fmt",
+      "exit_code": 0,
+      "elapsed_seconds": 1.219212293624878,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    }
+  ],
+  "exit_code": 0,
+  "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+  "sources_unchanged": true,
+  "inputs_unchanged": true
+}

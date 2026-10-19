@@ -1,0 +1,113 @@
+{
+  "guard_before": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+  "input_hashes": {
+    ".codex-trace-checks/round3-frozen/crates/trace/src/contour.rs": "d9f08a65a5146e37e11f1775e8105eea6a43a7f845530ce014e42c9e38808d1e",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/lib.rs": "955bdd7ebe023fb098941ae17751744b53e6076b2122b6e09545c720656d97b7",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round3-frozen/crates/trace/src/tests.rs": "3399786bc3bea9caa97516a81aea7060cafe39eb10e8e55767baa0c2dd12c4cd",
+    ".codex-trace-checks/round3-frozen/ROADMAP.md": "756d099f2b07e72820e54169f9b6e42ecce4722f9351581b1c3d618a20672fd7",
+    ".codex-trace-checks/round3-cumulative-c26.patch": "6c96b7931f2a8fcb6cc745772b358e77f499b5a365104af55d7f04264d6f78db",
+    ".codex-trace-checks/round4-controller.py": "af58903ee7f2ab386ce6d12b203cebf14c81b66a1469fb59cea10e40464163f6",
+    ".codex-trace-checks/round4-dimensions.rs": "f55e104a4ba3f01bc30ba06f7126396cdd2a48b5c504bdf3736130fdee87e7a1",
+    ".codex-trace-checks/round4-lifetime.rs": "d61170f5d74fc2f69b36996211ad16ab2908129260f061e27797ce2136822b6b",
+    ".codex-trace-checks/round4-native-source/codex_review_probe.rs": "d31bf7cc17562a1e10c015d1f8cddf883011b512828aeb23476d8f11f22f0839",
+    ".codex-trace-checks/round4-native-source/contour.rs": "4157799de7512ccf6b795f5e0f7bc8ca4556dd69871bdad0b052c098534110b2",
+    ".codex-trace-checks/round4-native-source/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round4-native-source/lib.rs": "8f0ea6163b66b454d3d3bc2b91acc4f50b0531b376269e5f1f49b49359c0d3a4",
+    ".codex-trace-checks/round4-native-source/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round4-native-source/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round4-native-source/tests.rs": "3399786bc3bea9caa97516a81aea7060cafe39eb10e8e55767baa0c2dd12c4cd",
+    ".codex-trace-checks/round4-scaled-source/codex_review_probe.rs": "d31bf7cc17562a1e10c015d1f8cddf883011b512828aeb23476d8f11f22f0839",
+    ".codex-trace-checks/round4-scaled-source/contour.rs": "4157799de7512ccf6b795f5e0f7bc8ca4556dd69871bdad0b052c098534110b2",
+    ".codex-trace-checks/round4-scaled-source/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    ".codex-trace-checks/round4-scaled-source/lib.rs": "f94350077e9ce94813f6935a13ace90b3655cb1c060b03d22404aa47f02005e6",
+    ".codex-trace-checks/round4-scaled-source/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a",
+    ".codex-trace-checks/round4-scaled-source/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    ".codex-trace-checks/round4-scaled-source/tests.rs": "3399786bc3bea9caa97516a81aea7060cafe39eb10e8e55767baa0c2dd12c4cd"
+  },
+  "steps": [
+    {
+      "step": "dimensions-build",
+      "exit_code": 0,
+      "elapsed_seconds": 4.063519477844238,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "dimensions",
+      "exit_code": 0,
+      "elapsed_seconds": 0.030395030975341797,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "scaled-library",
+      "exit_code": 0,
+      "elapsed_seconds": 8.969671249389648,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "scaled-build",
+      "exit_code": 0,
+      "elapsed_seconds": 3.893950939178467,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "scaled-single",
+      "exit_code": 0,
+      "elapsed_seconds": 0.014285087585449219,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "scaled-cancel-recovery",
+      "exit_code": 0,
+      "elapsed_seconds": 0.04825472831726074,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "scaled-global",
+      "exit_code": 0,
+      "elapsed_seconds": 0.016533374786376953,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "scaled-mixed",
+      "exit_code": 0,
+      "elapsed_seconds": 0.013815641403198242,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "native-library",
+      "exit_code": 0,
+      "elapsed_seconds": 8.463510274887085,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "native-build",
+      "exit_code": 0,
+      "elapsed_seconds": 2.8793387413024902,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    },
+    {
+      "step": "native-panic-recovery",
+      "exit_code": 0,
+      "elapsed_seconds": 0.04170846939086914,
+      "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+      "inputs_unchanged": true
+    }
+  ],
+  "exit_code": 0,
+  "guard_after": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+  "sources_unchanged": true,
+  "inputs_unchanged": true
+}

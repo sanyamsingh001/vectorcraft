@@ -1,0 +1,43 @@
+{
+  "source_target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/review-current",
+  "head": "8d0cede84aa60f5a0ae515e0dd302dbaf281ccd4",
+  "patch": ".codex-selection-checks/issue593-8d0cede.patch",
+  "patch_sha256": "84b18bcf4605e9e914a80812aa87e2dd73c300d9fad78bd07c23ef2af55bbc31",
+  "ui_changed_paths": [
+    "crates/tools/src/direct.rs"
+  ],
+  "artifacts_directory": ".codex-selection-checks/",
+  "findings": {
+    "before_fix_wrong_anchor_cases": 18,
+    "before_fix_hover_press_mismatches": 9
+  },
+  "verification": {
+    "focused_tests_passed": 31,
+    "tolerances": [
+      1,
+      3,
+      8
+    ],
+    "zooms": [
+      0.5,
+      1,
+      2
+    ],
+    "all_controller_steps_passed": true,
+    "controller_evidence": ".codex-selection-checks/verified3-finished.json",
+    "current_inputs_unchanged": true,
+    "source_guard": "06dced3bd2ec410bafbe54f9531333206f351eaf014b38b00345711063b94039"
+  },
+  "trace_source_unchanged": true,
+  "trace_source_guard": "39ade3ec7f45c83afe1708b14226079aea345f69487ddab91f9342d312678ed2",
+  "preserved_trace_artifacts_sha256": {
+    "round3-cumulative-c26.patch": "6c96b7931f2a8fcb6cc745772b358e77f499b5a365104af55d7f04264d6f78db",
+    "round3-resource-only.patch": "1be9383234cca2f3bdc602c4cea59bf0faee90fdcee99ee88c79394b52e9c7b6",
+    "round3-freeze.json": "ae9ec07b4aeb75a8a123b8ea3bfcbac67b7ca5bfb6384b18a6ff05acd7cc5d80",
+    "round3-review.md": "c9ab410500fe94f17aa8160fa78e7a1b34c83202871984026bbe868d88cae387"
+  },
+  "limitations": [
+    "Pointer state-machine unit verification on Linux; full composition CI remains pending with parent.",
+    "Hover now shares document-wide anchor press search; no UI performance claim."
+  ]
+}

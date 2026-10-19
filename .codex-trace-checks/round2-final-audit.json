@@ -1,0 +1,54 @@
+{
+  "source_guard": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "base": "c26c4a20609e8c1019eb98def978f6844082965a",
+  "canonical_staged_roadmap_still_matches_snapshot": true,
+  "changed_paths": [
+    "ROADMAP.md",
+    "crates/trace/src/contour.rs",
+    "crates/trace/src/quantize.rs"
+  ],
+  "current_dependency_sources_match_c26": true,
+  "current_build_and_tests_passed": true,
+  "controllers_finished": [
+    {
+      "artifact": "round2-running.json",
+      "role": "controller_pid",
+      "pid": 1923728,
+      "present": false
+    },
+    {
+      "artifact": "round2-running.json",
+      "role": "child_pid",
+      "pid": 1925810,
+      "present": false
+    },
+    {
+      "artifact": "round2-current-running.json",
+      "role": "controller_pid",
+      "pid": 1939596,
+      "present": false
+    },
+    {
+      "artifact": "round2-current-running.json",
+      "role": "child_pid",
+      "pid": 1939836,
+      "present": false
+    },
+    {
+      "artifact": "round2-current2-running.json",
+      "role": "controller_pid",
+      "pid": 1944297,
+      "present": false
+    },
+    {
+      "artifact": "round2-current2-running.json",
+      "role": "child_pid",
+      "pid": 1946833,
+      "present": false
+    }
+  ],
+  "patch_sha256": "40d85537d3241e4da14ce21015ec3f7d26aa60a5954927f0e0cfe1e17f822c3d",
+  "report_sha256": "9a98f1b0eed60254ab5123bfc6aa9305c9c6bc567bc3a801a14e49f41a73fe56",
+  "summary_sha256": "d2c160735aca2f36982a854bd8c7f2351931703b49979f3b3f891e511ff248e5"
+}

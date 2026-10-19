@@ -1,0 +1,13 @@
+{
+  "controller_pid": 1634556,
+  "child_pid": 1638451,
+  "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "guard": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "started": 1791484968.4409661
+}

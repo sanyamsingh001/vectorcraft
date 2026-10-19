@@ -1,0 +1,554 @@
+diff --git a/ROADMAP.md b/ROADMAP.md
+index ddd8e201..a1bfb922 100644
+--- a/ROADMAP.md
++++ b/ROADMAP.md
+@@ -4,7 +4,7 @@ VectorCraft is a clean-room, open-source, pure-Rust reimplementation of the Adob
+ 
+ This file tracks **how far we are and what's left**. Time estimates are wall-clock hours of continuous Claude Opus 5.5 agent work (including builds and the CI gate), given both for **one agent** and for **4–6 parallel agents** on disjoint crates. They are counted from the remaining work (see [Parity estimate](#parity-estimate)), calibrated against measured throughput, and updated as work lands.
+ 
+-_Last updated: 2026-10-08 (after M4.14–M4.98, M8.1–M8.20, M14.4–M14.7, the MCP prompts, resource templates, completions and logging, the 2026-10-07 issue fixes, the Layers panel rework and the 2026-10-08 community contributions: Pen and shape-tool modifiers, path editing, Layers, Artboards, Swatches/Brushes and dialogs, Japanese composition and PDF text, Hebrew/Arabic type, interface languages (Spanish among them), the font menu, saved selections, MCP and EPS, the missing-font export warning (#319), open paths in the Shape Builder (#374), PDF/`.ai` import keeping strokes live and hidden and nested layers (#372), per-corner Live Corners (#381), SVG type opening at the size it draws at (#396), the Wayland clipboard with copied-file paste (#398), ruler guides that can be selected, moved and deleted (#414), two batches of Preferences options that were stored but unused (#394), skeleton reads with `document.find` for large documents over MCP (#416) and anchors dragged with Direct Selection snapping to points, segments and smart guides, clipped SVG layers opening as clipping layers (#420), PDF/`.ai` layers read on pages of tens of millions of operators (#419), Document Color Mode putting RGB greys on the black plate on request and converting pattern tiles (#421) and movable dialogs with Offset Path's Joins dropdown (#423) and numeric fields scrubbed by dragging their label (#400), stroke weight presets in the stroke unit (#426), the Appearance panel's Opacity popup (#430), type on a path brackets, flip and Type on a Path Options that keep the type in place (#429), Layers rows dragged with a ghost and dropped on the trash or New Layer (#435), tool flyouts opening on a right or corner press (#436), tool flyouts torn off into floating toolbars (#437), the Shape Builder's erase mode deleting edges too (#439), installed fonts registered outside the font folders and fonts installed while the app runs listed in the font menus (#443), alike circular corners on rectangles that aren't square (#442), tool cursors as OS cursors so the pointer no longer trails over the canvas (#444), artboards copied and pasted with their art (#446), guides dragged out of the rulers snapping to the art's side midpoints and the artboards, artboard guides (#451), the toolbar's double arrow and Window › Toolbars › Double Column switching between one and two columns in any window height (#455), the Smart Guides display options and Snapping Tolerance (#394), Font Size and Leading combo boxes with preset lists in the Character and Properties panels and the Control bar (#458), screenshots pasted from the clipboard on macOS, Windows and the web (#457), the Properties panel's Fill and Stroke matching the Control bar's, Illustrator's Window menu panel keys (Shift+F7 for Align…) and Alt-wheel zoom whatever the wheel preference (Discord feedback), the point/area type widget (Discord feedback), groups in legacy Illustrator .ai files (Discord feedback), a rotating desktop log file (#465), image controls in the Control bar and Properties panel: Image Trace with its presets, Mask, Crop Image, Embed/Unembed, and an Image Trace object's preset, Expand and Release (Discord feedback), the Pen working as the Anchor Point tool with Alt held over a selected path's handles and anchors, and anchor buttons that convert, connect and cut paths at the selected anchors (Discord feedback), Japanese hanging punctuation (burasagari, #463), Escape leaving Presentation Mode with no screen mode saved across restarts, documents dropped on the desktop app opening as tabs of their own and a note that an `.ai` file's art off its artboards isn't in the part read (#472), Add/Delete Anchor Point tool icons drawn from the Pen tool's (#479), EPS import running more of PostScript Level 3 (patterns, Type 3 fonts, mesh shadings, masked images, VM and resource probes), and a preview that stands in saying why (Discord feedback, #466, #469, #474), chords with modifiers recorded in Edit › Keyboard Shortcuts (#487), Type Object Selection by Path Only (#394), Anti-aliased Artwork (#394), Show Pixel Grid (#394), pen and touch taps pressed and lifted within one frame clicking where they tapped and the Linux/Wayland pen-tablet workaround (#491), bounding-box resizes landing on the other objects' anchors and centres with labels, and the Rotate, Scale, Shear and Reflect tools snapping their drags (#482), Shift-drag marquees that toggle the objects or anchors they reach and a Lasso whose Alt subtraction keeps the rest of the selection (#483), the mouse wheel stepping the focused numeric field, the dialogs' and preferences' drag values made such fields (#485), Show The Home Screen When No Documents Are Open (#394), Numbers Without Units Are Points (#394), Auto-Collapse Iconic Panels (#394), the Contextual Task Bar moved by its handle and its More Options menu pinning and resetting its position, a designed macOS DMG window (#493), panels, panel groups and the Tools panel undocking into floating panels that move, stack and dock again (#495), the 0.5.0 startup crash on dual-GPU Linux desktops under Wayland fixed: the desktop's own GPU by default and a restart on the next GPU when one can't show the window (#502), path editing while drawing: Cmd/Ctrl with the Pen borrowing Direct Selection and drawing on afterwards, Pen+Alt reshaping segments, handles of a whole selected path dragging, and handle drags no longer re-gathering snap targets every move (#494), the Control bar's and Properties panel's Convert buttons for a path selected as a whole with Direct Selection, the Pen and the anchor tools (#504), the Pen closing a path dragged out of its first anchor every time, without flicker (#501), the Paste menu checking the system clipboard on a background thread on Linux so an X11 clipboard owner that never answers no longer freezes the window (#510), PDF/`.ai` import keeping a type object's outline stroke on the type, wrapped lines as area type, barcode digits in place and layers in the file's stacking order (#508), the Italian interface (#514), EPS images with several data sources read in turn (#498), `restore` undoing dictionary changes in EPS import (part of #505), the macOS menu bar laid out as a Mac app's (the VectorCraft menu with Settings, Language and Appearance, the system's Hide, Services and Window items; owner's request), the rulers' unit menu (#528), Live Corners on stars, polygons and pen paths (#511), the drawing tools snapping to Smart Guides as the Selection tool does, with Construction Guides (#506); see [Honest assessment](#honest-assessment-2026-10-05))._
++_Last updated: 2026-10-09 (after M4.14–M4.98, M8.1–M8.20, M14.4–M14.7, the MCP prompts, resource templates, completions and logging, the 2026-10-07 issue fixes, the Layers panel rework and the 2026-10-08 community contributions: Pen and shape-tool modifiers, path editing, Layers, Artboards, Swatches/Brushes and dialogs, Japanese composition and PDF text, Hebrew/Arabic type, interface languages (Spanish among them), the font menu, saved selections, MCP and EPS, the missing-font export warning (#319), open paths in the Shape Builder (#374), PDF/`.ai` import keeping strokes live and hidden and nested layers (#372), per-corner Live Corners (#381), SVG type opening at the size it draws at (#396), the Wayland clipboard with copied-file paste (#398), ruler guides that can be selected, moved and deleted (#414), two batches of Preferences options that were stored but unused (#394), skeleton reads with `document.find` for large documents over MCP (#416) and anchors dragged with Direct Selection snapping to points, segments and smart guides, clipped SVG layers opening as clipping layers (#420), PDF/`.ai` layers read on pages of tens of millions of operators (#419), Document Color Mode putting RGB greys on the black plate on request and converting pattern tiles (#421) and movable dialogs with Offset Path's Joins dropdown (#423) and numeric fields scrubbed by dragging their label (#400), stroke weight presets in the stroke unit (#426), the Appearance panel's Opacity popup (#430), type on a path brackets, flip and Type on a Path Options that keep the type in place (#429), Layers rows dragged with a ghost and dropped on the trash or New Layer (#435), tool flyouts opening on a right or corner press (#436), tool flyouts torn off into floating toolbars (#437), the Shape Builder's erase mode deleting edges too (#439), installed fonts registered outside the font folders and fonts installed while the app runs listed in the font menus (#443), alike circular corners on rectangles that aren't square (#442), tool cursors as OS cursors so the pointer no longer trails over the canvas (#444), artboards copied and pasted with their art (#446), guides dragged out of the rulers snapping to the art's side midpoints and the artboards, artboard guides (#451), the toolbar's double arrow and Window › Toolbars › Double Column switching between one and two columns in any window height (#455), the Smart Guides display options and Snapping Tolerance (#394), Font Size and Leading combo boxes with preset lists in the Character and Properties panels and the Control bar (#458), screenshots pasted from the clipboard on macOS, Windows and the web (#457), the Properties panel's Fill and Stroke matching the Control bar's, Illustrator's Window menu panel keys (Shift+F7 for Align…) and Alt-wheel zoom whatever the wheel preference (Discord feedback), the point/area type widget (Discord feedback), groups in legacy Illustrator .ai files (Discord feedback), a rotating desktop log file (#465), image controls in the Control bar and Properties panel: Image Trace with its presets, Mask, Crop Image, Embed/Unembed, and an Image Trace object's preset, Expand and Release (Discord feedback), the Pen working as the Anchor Point tool with Alt held over a selected path's handles and anchors, and anchor buttons that convert, connect and cut paths at the selected anchors (Discord feedback), Japanese hanging punctuation (burasagari, #463), Escape leaving Presentation Mode with no screen mode saved across restarts, documents dropped on the desktop app opening as tabs of their own and a note that an `.ai` file's art off its artboards isn't in the part read (#472), Add/Delete Anchor Point tool icons drawn from the Pen tool's (#479), EPS import running more of PostScript Level 3 (patterns, Type 3 fonts, mesh shadings, masked images, VM and resource probes), and a preview that stands in saying why (Discord feedback, #466, #469, #474), chords with modifiers recorded in Edit › Keyboard Shortcuts (#487), Type Object Selection by Path Only (#394), Anti-aliased Artwork (#394), Show Pixel Grid (#394), pen and touch taps pressed and lifted within one frame clicking where they tapped and the Linux/Wayland pen-tablet workaround (#491), bounding-box resizes landing on the other objects' anchors and centres with labels, and the Rotate, Scale, Shear and Reflect tools snapping their drags (#482), Shift-drag marquees that toggle the objects or anchors they reach and a Lasso whose Alt subtraction keeps the rest of the selection (#483), the mouse wheel stepping the focused numeric field, the dialogs' and preferences' drag values made such fields (#485), Show The Home Screen When No Documents Are Open (#394), Numbers Without Units Are Points (#394), Auto-Collapse Iconic Panels (#394), the Contextual Task Bar moved by its handle and its More Options menu pinning and resetting its position, a designed macOS DMG window (#493), panels, panel groups and the Tools panel undocking into floating panels that move, stack and dock again (#495), the 0.5.0 startup crash on dual-GPU Linux desktops under Wayland fixed: the desktop's own GPU by default and a restart on the next GPU when one can't show the window (#502), path editing while drawing: Cmd/Ctrl with the Pen borrowing Direct Selection and drawing on afterwards, Pen+Alt reshaping segments, handles of a whole selected path dragging, and handle drags no longer re-gathering snap targets every move (#494), the Control bar's and Properties panel's Convert buttons for a path selected as a whole with Direct Selection, the Pen and the anchor tools (#504), the Pen closing a path dragged out of its first anchor every time, without flicker (#501), the Paste menu checking the system clipboard on a background thread on Linux so an X11 clipboard owner that never answers no longer freezes the window (#510), PDF/`.ai` import keeping a type object's outline stroke on the type, wrapped lines as area type, barcode digits in place and layers in the file's stacking order (#508), the Italian interface (#514), EPS images with several data sources read in turn (#498), `restore` undoing dictionary changes in EPS import (part of #505), the macOS menu bar laid out as a Mac app's (the VectorCraft menu with Settings, Language and Appearance, the system's Hide, Services and Window items; owner's request), the rulers' unit menu (#528), Live Corners on stars, polygons and pen paths (#511), the drawing tools snapping to Smart Guides as the Selection tool does, with Construction Guides (#506), Image Trace tracing colour layers in parallel and refusing traces too large for memory, with the canvas outlining huge selections by their bounds (#525); see [Honest assessment](#honest-assessment-2026-10-05))._
+ 
+ ## Where we are
+ 
+@@ -140,7 +140,7 @@ grade by behaviour against `plan/illustrator/`, not by whether a menu item exist
+ - **Type:** Text Wrap, Type on a Path effects (Rainbow/Skew/3D Ribbon/Stair Step/Gravity) and Options (Flip, Align to Path, Spacing; OK keeps the type where it is), type on a path's start, centre and end brackets (Selection and Direct Selection drag them to set where the type runs, slide it along its path and, across the path, flip it: #429), Character and Paragraph Styles (override-preserving redefine), Area Type Options (rows/columns/inset/first baseline), threaded text across any closed shapes, Fit Headline. Area type resizes like Illustrator's type areas: a bounding-box handle drag (Selection tool) or Area Type Options Width/Height size the frame and the text reflows at its size (threads too); Direct Selection drags a frame corner or edge (`text.reshapeArea`). Point type still scales. The Selection tool shows the type widget beside selected type's bounding box (hollow on point type, filled on area type); double-clicking it converts between them (Type › Convert To Area Type / Convert To Point Type), keeping the text and its styles in place. Variable fonts list every named instance as a style of their family (Figtree Light to Black and their italics, Bahnschrift, Segoe UI Variable), and the instance chosen is shaped, drawn, outlined and measured at its axis settings; PDF and SVG embed it as that instance. Variation axis sliders are not done. Hebrew and Arabic are laid out right to left with the Unicode bidirectional algorithm (embedded Latin and numbers keep their direction, lines put in visual order after wrapping) in point, area and path type, with caret, selection and arrow keys in visual order; each paragraph's direction comes from its first strong character unless Paragraph Direction sets it (Paragraph panel with Show Indic Options, `text.setFormat {direction}`), and new type aligns to the start of its direction. SVG export outlines right-to-left text. Font Size and Leading are combo boxes in the Character and Properties panels (Font Size in the Control bar too, beside the Character link, font family and style): type, step with ↑/↓ or the spinner, scrub the label, or pick a preset (6–72 pt, shown in the type unit; Leading also Auto), each pick one undo step; Kerning and Tracking list -100…200; a size, leading, kerning or tracking the selected text doesn't share shows blank (#458).
+ - **Interface languages, vertical type:** VectorCraft ▸ Language (or Preferences ▸ User Interface) picks Automatic (the system locale) or a registered language, persisted as `interfaceLanguage`. Translations come from per-language catalogs (`i18n/*.tsv`): Traditional and Simplified Chinese, Japanese, Spanish (neutral international Spanish, for every `es-*` locale) and Italian (every `it-*` locale) cover the whole interface, Czech and Brazilian Portuguese every menu label, Brazilian Portuguese the shell's `tl!` literals too (tested); Spanish and Italian also translate status-bar and error messages as they are shown (`@msg` templates, every message literal tested; the messages themselves stay English for agents); untranslated text stays English. Japanese and Chinese glyphs come from the craft-fonts build input (release builds) or the installed fonts, Czech, Spanish and Italian ones from the bundled UI fonts. The web app follows the browser's languages (or `?lang=`). The Basic toolbar's Type button holds Vertical Type in its flyout. Vertical Type, Vertical Area Type and Vertical Type on a Path create vertical text (columns right to left, upright CJK glyphs and marks with `vert` alternates, Latin and longer numbers on their side, two- and three-digit numbers set as tate-chu-yoko in one em of the column (kept whole when justified), upright glyphs centred on the column (tracked or justified too), point type's anchor on the first column's centre line); kinsoku (the strict set) applies to horizontal and vertical Japanese, and justified Japanese lines spread their room between characters (not inside Latin words); Paragraph panel › Mojikumi Set (shown with Preferences › Type › Show East Asian Options, `text.setFormat {mojikumi}`): None or Line-end Punctuation Half Width (new type's default, as in Illustrator; older documents and imported text keep None) shares one half-em space between consecutive punctuation, sets a closing mark ending a line half width and an opening bracket starting a wrapped line flush with its start, and puts a quarter em between Japanese and Latin letters or digits; Paragraph panel menu › Top-to-Top / Bottom-to-Bottom Leading measures leading from em box top to top (area type's first line touches the frame) or from baseline to baseline (new type in a Japanese interface starts top to top, with em box centre character alignment, #432); Paragraph panel menu › Burasagari None / Regular / Force (`text.setFormat {burasagari: "none"|"standard"|"forced"}`) hangs an East Asian comma or full stop (、。，．､｡) ending an area type line outside it, Regular (new type's default) when it doesn't fit and Force always (the rest of the line then fills the measure; closing brackets and Latin punctuation don't hang); Character panel menu › Character Alignment (with the East Asian options; `text.setFormat` or `text.setRangeStyle {charAlign}`) lines characters smaller than the largest on their line up on the Roman baseline or the em box top/right, centre or bottom/left (ICF top and bottom not yet); Type ▸ Type Orientation switches existing text; caret, selection, hit testing and arrow keys follow the writing direction. Vertical text exports to PDF as real text and to SVG as outlines.
+ - **Transparency:** opacity masks (clip/invert/disable/link), exported as SVG `<mask>` and PDF soft masks.
+-- **Advanced art:** live Blends (steps/distance/smooth colour, editable spine, anchor-targeted Blend tool, faithful interpolation, knockout), Envelope Distort (warp/mesh/top object, Reset, full Envelope Options, mesh handles, Edit Contents; type, images, symbols, gradients, patterns and appearance distorted everywhere), Liquify tools with options and pen pressure, Puppet Warp with rotating pins, Perspective Grid with presets, movable planes and projected type (choosing a perspective tool shows the grid; Hide Grid hides it with the tool still chosen), Gradient Mesh, Shape Builder (stroke-only open paths and lines cut the regions they cross and enclose regions of their own; filled open paths count as closed; erase mode while Alt/Option is held: a minus pointer, red highlights of what will go, a click or drag deletes the regions touched, the pieces of open lines and the edges (outline pieces between the points where paths meet, opening their paths there) it passes over, one undo step, `shapeBuilder.merge {erase}` and `shapeBuilder.regions` edges over MCP), Live Paint (every path an edge, open lines included), Image Trace (12 presets; with an image selected the Control bar and the Properties panel show Image Trace, whose arrow traces with any preset, Mask (`object.maskImage`: a clipping path on the image's outline, selected so its handles crop), Crop Image and Embed or Unembed in place of Fill and Stroke; with an Image Trace object selected, its Preset (choosing another traces again), the Image Trace panel and Expand, plus Release in Properties; the View modes are not done), pattern swatches with pattern editing mode, live Repeat (radial/grid/mirror).
++- **Advanced art:** live Blends (steps/distance/smooth colour, editable spine, anchor-targeted Blend tool, faithful interpolation, knockout), Envelope Distort (warp/mesh/top object, Reset, full Envelope Options, mesh handles, Edit Contents; type, images, symbols, gradients, patterns and appearance distorted everywhere), Liquify tools with options and pen pressure, Puppet Warp with rotating pins, Perspective Grid with presets, movable planes and projected type (choosing a perspective tool shows the grid; Hide Grid hides it with the tool still chosen), Gradient Mesh, Shape Builder (stroke-only open paths and lines cut the regions they cross and enclose regions of their own; filled open paths count as closed; erase mode while Alt/Option is held: a minus pointer, red highlights of what will go, a click or drag deletes the regions touched, the pieces of open lines and the edges (outline pieces between the points where paths meet, opening their paths there) it passes over, one undo step, `shapeBuilder.merge {erase}` and `shapeBuilder.regions` edges over MCP), Live Paint (every path an edge, open lines included), Image Trace (12 presets, colour layers traced in parallel; a trace past two million anchor points or an image over 64 megapixels is refused with advice rather than running out of memory, and a selection too large to outline shows its bounds (#525); with an image selected the Control bar and the Properties panel show Image Trace, whose arrow traces with any preset, Mask (`object.maskImage`: a clipping path on the image's outline, selected so its handles crop), Crop Image and Embed or Unembed in place of Fill and Stroke; with an Image Trace object selected, its Preset (choosing another traces again), the Image Trace panel and Expand, plus Release in Properties; the View modes are not done), pattern swatches with pattern editing mode, live Repeat (radial/grid/mirror).
+ - **Paint and appearance (M3):**
+   - **Swatches:** names follow the colour model and are unique; Swatch Options (process/spot, Global, Gray/RGB/HSB/CMYK/Web, live preview); editing a global or spot swatch recolours every linked fill, stroke and text run in one undo step; multi-select and delete with confirmation; New Swatch and New Color Group dialogs (a group from the selected artwork's colours); swatches in colour groups convert, separate and count like any other. The Swatches panel selects ranges and whole groups, has a find field, and drags swatches to reorder, regroup or paint art; Add Used Colors, Select All Unused, Merge, Ungroup and Sort by Kind; a CMYK document keeps applied colours in CMYK. Swatch libraries: nine generated colour libraries and five gradient libraries in a library panel, saved and loaded as `.vcswatches`, `.gpl` or CSS. Tints of global and spot colours ("Name 40%") stay linked and separate as a percentage of their plate. Spot colours can be defined in Lab (Spot Colors options). A built-in [Registration] swatch prints on every plate.
+   - **Colour:** a Color Picker (colour field, H/S/B/R/G/B channel slider, HSB/RGB/Lab/CMYK fields, hex, web-only snapping, out-of-gamut correction); the Color panel follows each colour's own model and Alt-click paints the other proxy; proxies look through groups and show "?" for mixed paint; Invert, Complement, Apply Last Color (`,`) and Apply Last Gradient (`.`) keep the colour model; every paint command feeds the recent colours. The Color Guide has 21 harmony rules, Steps and Variation options and Limit to Library. Adjust Color Balance (its Global mode shifts tints) and Saturate preview live; Edit Colors and Recolor also reach meshes, images and patterns. Recolor Artwork has colour reduction, five recolour methods, presets, Limit to Library, a colour-wheel Edit tab and Edit Color Group; a local Color Themes panel saves five-colour themes. Fill/Stroke chips open swatch and mixer popovers (the Properties panel has the Control bar's Fill and Stroke chips, Stroke link and weight spinner, with nothing selected too), panels have Illustrator's Window menu keys (Align Shift+F7, Transform Shift+F8, Pathfinder Cmd+Shift+F9, Layers F7, Character Cmd+T…; every panel can be given one in Edit › Keyboard Shortcuts), and Eyedropper Options pick up and apply chosen attributes (Alt and Shift+Alt, image pixels). Fills and strokes can overprint (Attributes panel, Overprint Black options), and CMYK documents blend in inks on screen, in PDF and when flattening. Document Color Mode converts the art, symbols, pattern tiles and swatches through the colour settings: Gray stays Gray, RGB greys separate into four-colour greys and a rich black as Illustrator does, or go on the black plate only with `grays: "black"` (also for `document.open {colorMode}`).
+diff --git a/crates/engine/src/cmd/buildcmds.rs b/crates/engine/src/cmd/buildcmds.rs
+index 668da3d0..30745fa2 100644
+--- a/crates/engine/src/cmd/buildcmds.rs
++++ b/crates/engine/src/cmd/buildcmds.rs
+@@ -640,6 +640,11 @@ fn trace_params(p: &Value) -> Result<tr::TraceParams> {
+     serde_json::from_value(v).map_err(|e| bad("imageTrace.make", e.to_string()))
+ }
+ 
++/// The most anchor points an Image Trace may make: a photo traced at high fidelity can make
++/// millions, more than the canvas draws smoothly or a laptop has memory for, so the trace is
++/// refused with advice instead (#525).
++pub const MAX_TRACE_ANCHORS: usize = 2_000_000;
++
+ fn trace_make(s: &mut Session, p: &Value, expand: bool) -> Result<Value> {
+     const C: &str = "imageTrace.make";
+     let params = trace_params(p)?;
+@@ -671,7 +676,7 @@ fn trace_make(s: &mut Session, p: &Value, expand: bool) -> Result<Value> {
+     };
+     let blob = s.doc()?.doc.images.get(&img.key).ok_or_else(|| EngineError::Other(format!("image data `{}` is missing", img.key)))?;
+     let raster = tr::Raster::decode(&blob.bytes).map_err(|e| EngineError::Other(e.to_string()))?;
+-    let res = tr::trace(&raster, &params);
++    let res = tr::trace_within(&raster, &params, MAX_TRACE_ANCHORS).map_err(|e| EngineError::Other(e.to_string()))?;
+     // Pixel space of the decoded raster → the image object's pixel space → document.
+     let sx = img.width.max(1) as f64 / raster.width.max(1) as f64;
+     let sy = img.height.max(1) as f64 / raster.height.max(1) as f64;
+diff --git a/crates/trace/src/lib.rs b/crates/trace/src/lib.rs
+index 8776d80f..03495b25 100644
+--- a/crates/trace/src/lib.rs
++++ b/crates/trace/src/lib.rs
+@@ -27,6 +27,8 @@ mod fit;
+ mod mosaic;
+ mod quantize;
+ 
++use std::sync::atomic::{AtomicUsize, Ordering};
++
+ use serde::{Deserialize, Serialize};
+ use vectorcraft_geom::PathData;
+ 
+@@ -41,8 +43,18 @@ pub enum TraceError {
+     Decode(String),
+     #[error("image is empty")]
+     Empty,
++    #[error("the image is {width} × {height} pixels, more than Image Trace takes ({max} megapixels)")]
++    TooLarge { width: u32, height: u32, max: u64 },
++    #[error(
++        "this trace would make more than {max} anchor points, more than the document can show smoothly: raise Noise, lower Paths or Colors, or pick a lower-fidelity preset"
++    )]
++    TooComplex { max: usize },
+ }
+ 
++/// The most pixels an image to trace may have (64 megapixels: 256 MB decoded); larger images are
++/// refused instead of running out of memory.
++pub const MAX_PIXELS: u64 = 64 << 20;
++
+ /// An RGBA8 raster (row-major, top row first).
+ #[derive(Clone, Debug, PartialEq)]
+ pub struct Raster {
+@@ -67,13 +79,19 @@ impl Raster {
+         }
+         Self { width, height, rgba }
+     }
+-    /// Decode PNG / JPEG / WebP / GIF bytes.
++    /// Decode PNG / JPEG / WebP / GIF bytes (at most [`MAX_PIXELS`], checked before decoding).
+     pub fn decode(bytes: &[u8]) -> Result<Self, TraceError> {
+-        let img = image::load_from_memory(bytes).map_err(|e| TraceError::Decode(e.to_string()))?.to_rgba8();
+-        let (w, h) = img.dimensions();
++        let decode_err = |e: image::ImageError| TraceError::Decode(e.to_string());
++        let reader = image::ImageReader::new(std::io::Cursor::new(bytes)).with_guessed_format().map_err(|e| TraceError::Decode(e.to_string()))?;
++        let (w, h) = reader.into_dimensions().map_err(decode_err)?;
+         if w == 0 || h == 0 {
+             return Err(TraceError::Empty);
+         }
++        if u64::from(w) * u64::from(h) > MAX_PIXELS {
++            return Err(TraceError::TooLarge { width: w, height: h, max: MAX_PIXELS >> 20 });
++        }
++        let img = image::load_from_memory(bytes).map_err(decode_err)?.to_rgba8();
++        let (w, h) = img.dimensions();
+         Ok(Self { width: w, height: h, rgba: img.into_raw() })
+     }
+     /// Encode as PNG.
+@@ -262,17 +280,25 @@ fn is_white(c: [u8; 3]) -> bool {
+ 
+ /// Trace `img` with `params`.
+ pub fn trace(img: &Raster, params: &TraceParams) -> TraceResult {
++    // No trace has more than `usize::MAX` anchors.
++    trace_within(img, params, usize::MAX).unwrap_or_default()
++}
++
++/// Trace `img` with `params`, giving up with [`TraceError::TooComplex`] once the paths have more
++/// than `max_anchors` anchor points (a photo traced at high fidelity can make millions). The
++/// colour layers are traced in parallel where threads are available.
++pub fn trace_within(img: &Raster, params: &TraceParams, max_anchors: usize) -> Result<TraceResult, TraceError> {
+     let (w, h) = (img.width as usize, img.height as usize);
+-    if w == 0 || h == 0 {
+-        return TraceResult::default();
++    if w == 0 || h == 0 || img.rgba.len() != w * h * 4 {
++        return Ok(TraceResult::default());
+     }
+     let mut q = quantize(img, params);
+     denoise(&mut q.labels, w, h, params.noise as usize);
+     // Pixel count per palette entry.
+     let mut counts = vec![0usize; q.palette.len()];
+     for &l in &q.labels {
+-        if l != TRANSPARENT {
+-            counts[l as usize] += 1;
++        if let Some(c) = counts.get_mut(l as usize) {
++            *c += 1;
+         }
+     }
+     // Layers bottom → top: largest area first.
+@@ -282,46 +308,117 @@ pub fn trace(img: &Raster, params: &TraceParams) -> TraceResult {
+     for (r, &i) in order.iter().enumerate() {
+         rank[i] = r;
+     }
+-    let opts = fit::FitOptions {
+-        polygon_tol: params.polygon_tolerance(),
+-        fit_tol: params.fit_tolerance(),
+-        corner_angle: params.corner_angle(),
+-        snap_lines: params.snap_curves_to_lines,
++    let layers: Vec<(usize, usize)> =
++        order.iter().copied().enumerate().filter(|&(_, ci)| !(params.ignore_white && is_white(q.palette[ci]))).collect();
++    let job = Layers {
++        q: &q,
++        rank: &rank,
++        params,
++        opts: fit::FitOptions {
++            polygon_tol: params.polygon_tolerance(),
++            fit_tol: params.fit_tolerance(),
++            corner_angle: params.corner_angle(),
++            snap_lines: params.snap_curves_to_lines,
++        },
++        w,
++        h,
++        anchors: AtomicUsize::new(0),
++        max_anchors,
+     };
+-    let min_hole = params.noise.max(1) as i64;
+     let mut out = TraceResult::default();
+-    let mut mask = vec![false; w * h];
+-    for (r, &ci) in order.iter().enumerate() {
++    for (paths, &(_, ci)) in parallel_map(&layers, |&(r, ci)| job.layer(r, ci)).into_iter().zip(&layers) {
++        out.paths.extend(paths.ok_or(TraceError::TooComplex { max: max_anchors })?);
+         let color = q.palette[ci];
+-        if params.ignore_white && is_white(color) {
+-            continue;
++        if !out.palette.contains(&color) {
++            out.palette.push(color);
+         }
++    }
++    Ok(out)
++}
++
++/// What tracing one colour layer needs.
++struct Layers<'a> {
++    q: &'a Quantized,
++    /// Each palette entry's layer, bottom (0) up.
++    rank: &'a [usize],
++    params: &'a TraceParams,
++    opts: fit::FitOptions,
++    w: usize,
++    h: usize,
++    /// Anchor points made so far, by every layer.
++    anchors: AtomicUsize,
++    max_anchors: usize,
++}
++
++impl Layers<'_> {
++    /// The paths of layer `r` (palette entry `ci`), or `None` once the anchors made pass the
++    /// maximum.
++    fn layer(&self, r: usize, ci: usize) -> Option<Vec<TracedPath>> {
++        let (params, opts) = (self.params, &self.opts);
++        let color = *self.q.palette.get(ci)?;
+         let overlapping = params.method == Method::Overlapping;
+-        for (m, &l) in mask.iter_mut().zip(&q.labels) {
+-            *m = l != TRANSPARENT && if overlapping { rank[l as usize] >= r } else { l as usize == ci };
+-        }
+-        for comp in trace_mask(&mask, w, h) {
+-            let mut subs = Vec::with_capacity(1 + comp.holes.len());
+-            if let Some(sp) = fit::fit_loop(&comp.outer, &opts) {
+-                subs.push(sp);
+-            } else {
+-                continue;
+-            }
++        let mask: Vec<bool> = self
++            .q
++            .labels
++            .iter()
++            .map(|&l| l != TRANSPARENT && if overlapping { self.rank.get(l as usize).is_some_and(|&lr| lr >= r) } else { l as usize == ci })
++            .collect();
++        let min_hole = params.noise.max(1) as i64;
++        let mut paths = vec![];
++        for comp in trace_mask(&mask, self.w, self.h) {
++            let Some(outer) = fit::fit_loop(&comp.outer, opts) else { continue };
++            let mut subs = vec![outer];
+             for hole in &comp.holes {
+                 if hole.area2.abs() / 2 < min_hole && params.noise > 0 {
+                     continue;
+                 }
+-                if let Some(sp) = fit::fit_loop(hole, &opts) {
+-                    subs.push(sp);
+-                }
++                subs.extend(fit::fit_loop(hole, opts));
+             }
+-            out.paths.push(TracedPath { path: PathData::new(subs), color, pixels: comp.pixels });
+-        }
+-        if !out.palette.contains(&color) {
+-            out.palette.push(color);
++            let path = PathData::new(subs);
++            let n = path.anchor_count();
++            if self.anchors.fetch_add(n, Ordering::Relaxed).saturating_add(n) > self.max_anchors {
++                return None;
++            }
++            paths.push(TracedPath { path, color, pixels: comp.pixels });
+         }
++        Some(paths)
++    }
++}
++
++/// `f` of each of `items`, in order, spread over the available cores.
++#[cfg(not(target_arch = "wasm32"))]
++fn parallel_map<T: Sync, R: Send>(items: &[T], f: impl Fn(&T) -> R + Sync) -> Vec<R> {
++    let threads = std::thread::available_parallelism().map_or(1, |n| n.get()).min(items.len());
++    if threads <= 1 {
++        return items.iter().map(f).collect();
+     }
+-    out
++    let next = AtomicUsize::new(0);
++    let mut done: Vec<(usize, R)> = std::thread::scope(|s| {
++        let workers: Vec<_> = (0..threads)
++            .map(|_| {
++                s.spawn(|| {
++                    let mut mine = vec![];
++                    loop {
++                        let i = next.fetch_add(1, Ordering::Relaxed);
++                        let Some(item) = items.get(i) else { break };
++                        mine.push((i, f(item)));
++                    }
++                    mine
++                })
++            })
++            .collect();
++        // A worker's panic goes on in this thread, as if it had run here (the engine's guard
++        // reports it).
++        workers.into_iter().flat_map(|w| w.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
++    });
++    done.sort_by_key(|(i, _)| *i);
++    done.into_iter().map(|(_, r)| r).collect()
++}
++
++/// `f` of each of `items`, in order (no threads on the web).
++#[cfg(target_arch = "wasm32")]
++fn parallel_map<T: Sync, R: Send>(items: &[T], f: impl Fn(&T) -> R + Sync) -> Vec<R> {
++    items.iter().map(f).collect()
+ }
+ 
+ #[cfg(test)]
+diff --git a/crates/trace/src/tests.rs b/crates/trace/src/tests.rs
+index 5ce4a91a..7d51ad68 100644
+--- a/crates/trace/src/tests.rs
++++ b/crates/trace/src/tests.rs
+@@ -278,3 +278,73 @@ fn timing_1000x1000_bw_under_300ms() {
+     assert!(!res.paths.is_empty());
+     assert!(ms < 300.0, "{ms} ms");
+ }
++
++/// Stripes of `n` colours, each with a few dots of the next one: many layers, many small shapes.
++fn stripes(size: u32, n: u32) -> Raster {
++    let colour = |i: u32| [(i * 37 % 256) as u8, (i * 91 % 256) as u8, (i * 53 % 256) as u8, 255];
++    Raster::from_fn(size, size, |x, y| {
++        let band = x * n / size;
++        if (x % 9 < 3) && (y % 9 < 3) { colour(band + 1) } else { colour(band) }
++    })
++}
++
++/// #525: past the anchor budget the trace gives up with advice instead of making millions of
++/// anchors; under it, it is the plain trace.
++#[test]
++fn a_trace_past_its_anchor_budget_is_refused() {
++    let img = stripes(120, 8);
++    let p = TraceParams { mode: Mode::Color, colors: 16, noise: 1, ..TraceParams::default() };
++    let full = trace(&img, &p);
++    let anchors = full.anchor_count();
++    assert!(anchors > 100, "{anchors} anchors");
++    assert!(matches!(trace_within(&img, &p, anchors / 2), Err(TraceError::TooComplex { max }) if max == anchors / 2));
++    assert_eq!(trace_within(&img, &p, anchors).unwrap(), full);
++}
++
++/// Layers traced in parallel come out in the same order every time: bottom (largest) first.
++#[test]
++fn parallel_layers_keep_their_order() {
++    let img = stripes(90, 12);
++    let p = TraceParams { mode: Mode::Color, colors: 24, noise: 1, method: Method::Overlapping, ..TraceParams::default() };
++    let a = trace(&img, &p);
++    assert!(a.palette.len() > 8, "{} colours", a.palette.len());
++    for _ in 0..4 {
++        assert_eq!(trace(&img, &p), a);
++    }
++    // Overlapping: each layer's shapes cover the layers above, so the pixel counts fall upwards.
++    let firsts: Vec<usize> = a.palette.iter().filter_map(|c| a.paths.iter().find(|t| t.color == *c).map(|t| t.pixels)).collect();
++    assert!(firsts.windows(2).all(|w| w[0] >= w[1]), "{firsts:?}");
++}
++
++/// A PNG whose header says `w` × `h` pixels, with no image data.
++fn png_header(w: u32, h: u32) -> Vec<u8> {
++    fn crc(bytes: &[u8]) -> u32 {
++        let mut c = !0u32;
++        for &b in bytes {
++            c ^= u32::from(b);
++            for _ in 0..8 {
++                c = if c & 1 != 0 { 0xEDB8_8320 ^ (c >> 1) } else { c >> 1 };
++            }
++        }
++        !c
++    }
++    let mut ihdr = b"IHDR".to_vec();
++    ihdr.extend(w.to_be_bytes());
++    ihdr.extend(h.to_be_bytes());
++    ihdr.extend([8, 6, 0, 0, 0]);
++    let mut png = b"\x89PNG\r\n\x1a\n".to_vec();
++    for chunk in [ihdr, b"IDAT".to_vec(), b"IEND".to_vec()] {
++        png.extend((chunk.len() as u32 - 4).to_be_bytes());
++        png.extend(&chunk);
++        png.extend(crc(&chunk).to_be_bytes());
++    }
++    png
++}
++
++/// An image too large to trace is refused from its header, before it is decoded.
++#[test]
++fn an_image_too_large_to_trace_is_refused_before_decoding() {
++    let err = Raster::decode(&png_header(30_000, 30_000)).unwrap_err();
++    assert!(matches!(err, TraceError::TooLarge { width: 30_000, height: 30_000, .. }), "{err}");
++    assert!(matches!(Raster::decode(&png_header(64, 64)), Err(TraceError::Decode(_))), "a small header goes on to decoding");
++}
+diff --git a/crates/ui-egui/src/canvas.rs b/crates/ui-egui/src/canvas.rs
+index 3d06b944..e5d6047a 100644
+--- a/crates/ui-egui/src/canvas.rs
++++ b/crates/ui-egui/src/canvas.rs
+@@ -1041,6 +1041,27 @@ fn node_outline(n: &Node) -> BezPath {
+     bp
+ }
+ 
++/// The most anchor points the selection's outlines and anchors, and the hover highlight, are drawn
++/// for: an Image Trace of a photo selects hundreds of thousands of paths at once, whose outlines
++/// would make a mesh larger than the GPU takes in one buffer (#525).
++const OVERLAY_MAX_ANCHORS: usize = 100_000;
++
++/// Whether `nodes` have more than [`OVERLAY_MAX_ANCHORS`] anchor points to outline (counting
++/// stops there).
++fn too_many_anchors<'a>(nodes: impl IntoIterator<Item = &'a Node>) -> bool {
++    fn over(n: &Node, left: &mut usize) -> bool {
++        if let NodeKind::Path { path, .. } = &n.kind {
++            match left.checked_sub(path.anchor_count()) {
++                Some(l) => *left = l,
++                None => return true,
++            }
++        }
++        !matches!(n.kind, NodeKind::Envelope { .. }) && n.children().into_iter().flatten().any(|c| over(c, left))
++    }
++    let mut left = OVERLAY_MAX_ANCHORS;
++    nodes.into_iter().any(|n| over(n, &mut left))
++}
++
+ /// [`Node::walk`] over what a selection highlight shows: an envelope's content is left out (the
+ /// envelope shows its mesh instead).
+ fn walk_drawn<'a>(n: &'a Node, f: &mut impl FnMut(&'a Node)) {
+@@ -1160,7 +1181,7 @@ fn hover_highlight(app: &VectorcraftApp, p: &egui::Painter, xf: &Xf) {
+     if st.selection.contains(id) {
+         return;
+     }
+-    if let Some(n) = st.doc.node(id) {
++    if let Some(n) = st.doc.node(id).filter(|n| !too_many_anchors([*n])) {
+         let color = c32(st.doc.layer_color(id));
+         stroke_path(p, &node_outline(n), xf, Stroke::new(1.5, color));
+     }
+@@ -1351,6 +1372,9 @@ fn selection_overlay(app: &mut VectorcraftApp, p: &egui::Painter, xf: &Xf) {
+         && app.ui.view.bounding_box
+         && app.session.active().is_some_and(|st| !st.selection.is_empty() && st.selection.anchors.is_empty());
+     let bbox = if show_box { app.selection_box() } else { None };
++    let st = app.session.active();
++    let big = st.is_some_and(|st| too_many_anchors(st.selection.objects.iter().filter_map(|id| st.doc.node(*id))));
++    let big_bounds = if big { app.selection_bounds() } else { None };
+     let app = &*app;
+     let Some(st) = app.session.active() else { return };
+     let tool = app.session.tool_id();
+@@ -1363,7 +1387,11 @@ fn selection_overlay(app: &mut VectorcraftApp, p: &egui::Painter, xf: &Xf) {
+     // The selected anchors' handles (drawn once they are counted: Show handles when multiple
+     // anchors are selected off shows them for a single one only).
+     let (mut handles, mut with_handles) = (vec![], 0);
+-    for id in &st.selection.objects {
++    // Too many paths to outline: the selection's bounds stand for them.
++    if let Some((b, id)) = big_bounds.zip(st.selection.objects.first()) {
++        stroke_path(p, &vectorcraft_geom::shapes::rectangle(b).to_bezpath(), xf, Stroke::new(1.0, c32(st.doc.layer_color(*id))));
++    }
++    for id in st.selection.objects.iter().filter(|_| !big) {
+         let Some(n) = st.doc.node(*id) else { continue };
+         let color = c32(st.doc.layer_color(*id));
+         let partial = st.selection.partial(*id);
+@@ -1633,11 +1661,13 @@ pub(crate) fn task_bar_rect(ctx: &egui::Context) -> Option<egui::Rect> {
+ /// selection, pinned it stays put ([`crate::state::TaskBarPlace`]).
+ fn task_bar(app: &mut VectorcraftApp, ui: &mut Ui, xf: &Xf) {
+     let t = Tokens::get(ui.ctx());
+-    let Some(st) = app.session.active() else { return };
+-    if st.selection.is_empty() || !matches!(app.session.tool_id(), "selection" | "directSelection" | "groupSelection") {
++    if app.session.active().is_none_or(|st| st.selection.is_empty())
++        || !matches!(app.session.tool_id(), "selection" | "directSelection" | "groupSelection")
++    {
+         return;
+     }
+-    let Some(b) = st.doc.bounds_of(&st.selection.objects, true) else { return };
++    let Some(b) = app.selection_bounds() else { return };
++    let Some(st) = app.session.active() else { return };
+     let n = st.selection.len();
+     let first = st.selection.objects.first().and_then(|id| st.doc.node(*id)).cloned();
+     let is_group = first.as_ref().is_some_and(|f| matches!(f.kind, NodeKind::Group { .. }));
+@@ -2024,6 +2054,29 @@ mod tests {
+         assert_eq!(cmd_drag(&mut app, inside, inside), "selection");
+     }
+ 
++    /// #525: a selection with more anchors than the overlay draws (a traced photo) shows its bounds,
++    /// not every outline and anchor, which made a mesh larger than the GPU takes; an ordinary one
++    /// still shows its outline and anchors.
++    #[test]
++    fn a_huge_selection_shows_its_bounds_instead_of_every_outline() {
++        let mut app = VectorcraftApp::new(Session::new(), Default::default());
++        app.session.execute("file.new", &json!({"width": 400, "height": 300})).unwrap();
++        let points = |n: usize| (0..n).map(|i| format!("L{} {}", 20.0 + 360.0 * i as f64 / n as f64, 100 + (i % 2) * 50)).collect::<String>();
++        let ctx = egui::Context::default();
++        let mut drawn = |n: usize| {
++            app.session.execute("path.create", &json!({"d": format!("M20 20 {} Z", points(n))})).unwrap();
++            frame(&mut app, &ctx, vec![]);
++            let shapes = shapes(&mut app, &ctx);
++            let points: usize = shapes.iter().map(|s| if let Shape::Path(ps) = s { ps.points.len() } else { 0 }).sum();
++            let squares = shapes.iter().filter(|s| matches!(s, Shape::Rect(_))).count();
++            (points, squares)
++        };
++        let (points, squares) = drawn(OVERLAY_MAX_ANCHORS + 10);
++        assert!(points < 100 && squares < 100, "{points} outline points, {squares} squares");
++        let (points, squares) = drawn(200);
++        assert!(points > 200 && squares > 200, "{points} outline points, {squares} squares");
++    }
++
+     /// One headless canvas frame → the shapes drawn, `Shape::Vec`s flattened.
+     fn shapes(app: &mut VectorcraftApp, ctx: &egui::Context) -> Vec<Shape> {
+         let (shapes, mut delta) = frame_output(app, ctx);
+diff --git a/crates/ui-egui/src/i18n/es.tsv b/crates/ui-egui/src/i18n/es.tsv
+index 11affb70..4a0dd633 100644
+--- a/crates/ui-egui/src/i18n/es.tsv
++++ b/crates/ui-egui/src/i18n/es.tsv
+@@ -3416,6 +3416,10 @@ axis	Both	Ambos
+ @msg	select a stroke with a variable width	selecciona un trazo con anchura variable
+ @msg	select a symbol instance	selecciona una instancia de símbolo
+ @msg	select an Image Trace object	selecciona un objeto de calco de imagen
++@msg	could not decode image: {0}	no se pudo decodificar la imagen: {0}
++@msg	image is empty	la imagen está vacía
++@msg	the image is {width} × {height} pixels, more than Image Trace takes ({max} megapixels)	la imagen mide {width} × {height} píxeles, más de lo que admite Calco de imagen ({max} megapíxeles)
++@msg	this trace would make more than {max} anchor points, more than the document can show smoothly: raise Noise, lower Paths or Colors, or pick a lower-fidelity preset	este calco crearía más de {max} puntos de ancla, más de los que el documento puede mostrar con fluidez: sube Ruido, baja Trazados o Colores, o elige un preajuste de menor fidelidad
+ @msg	select an envelope	selecciona una envolvente
+ @msg	select an image	selecciona una imagen
+ @msg	select an object in perspective	selecciona un objeto en perspectiva
+diff --git a/crates/ui-egui/src/i18n/it.tsv b/crates/ui-egui/src/i18n/it.tsv
+index 83d19caf..4bb5c32c 100644
+--- a/crates/ui-egui/src/i18n/it.tsv
++++ b/crates/ui-egui/src/i18n/it.tsv
+@@ -3416,6 +3416,10 @@ axis	Both	Entrambi
+ @msg	select a stroke with a variable width	seleziona una traccia con larghezza variabile
+ @msg	select a symbol instance	seleziona un'istanza di simbolo
+ @msg	select an Image Trace object	seleziona un oggetto di ricalco immagine
++@msg	could not decode image: {0}	impossibile decodificare l'immagine: {0}
++@msg	image is empty	l'immagine è vuota
++@msg	the image is {width} × {height} pixels, more than Image Trace takes ({max} megapixels)	l'immagine misura {width} × {height} pixel, più di quanto accetti Ricalco immagine ({max} megapixel)
++@msg	this trace would make more than {max} anchor points, more than the document can show smoothly: raise Noise, lower Paths or Colors, or pick a lower-fidelity preset	questo ricalco creerebbe più di {max} punti di ancoraggio, più di quanti il documento possa mostrare in modo fluido: aumenta Disturbo, riduci Tracciati o Colori, oppure scegli un preset a fedeltà inferiore
+ @msg	select an envelope	seleziona un involucro
+ @msg	select an image	seleziona un'immagine
+ @msg	select an object in perspective	seleziona un oggetto in prospettiva
+diff --git a/crates/ui-egui/src/i18n/tests.rs b/crates/ui-egui/src/i18n/tests.rs
+index 06c976b3..5253a0ea 100644
+--- a/crates/ui-egui/src/i18n/tests.rs
++++ b/crates/ui-egui/src/i18n/tests.rs
+@@ -711,7 +711,7 @@ fn complete_languages_translate_every_message() {
+ const COMPLETE_MESSAGES: &[&str] = &["es", "it"];
+ 
+ /// Crates whose error and status messages reach the status bar.
+-const MESSAGE_CRATES: &[&str] = &["ui-egui", "engine", "doc", "format", "svg", "pdf", "eps", "text", "plugins", "metafile", "cad"];
++const MESSAGE_CRATES: &[&str] = &["ui-egui", "engine", "doc", "format", "svg", "pdf", "eps", "text", "plugins", "metafile", "cad", "trace"];
+ 
+ /// Where a message literal starts: a status, an error value, a `thiserror` message.
+ const MESSAGE_MARKERS: &[&str] = &[".status(", "ui.status = ", "status = ", "Other(", "Err(", "ok_or(", "ok_or_else(|| ", "#[error("];
+diff --git a/crates/ui-egui/src/lib.rs b/crates/ui-egui/src/lib.rs
+index b01bc125..eea9cbec 100644
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -249,6 +249,8 @@ pub struct CanvasCache {
+     pub print_tiling: Option<PrintTilingCache>,
+     /// [`VectorcraftApp::selection_box`] for (document uid, revision, Use Preview Bounds).
+     pub selection_box: Option<((u64, u64, bool), Option<vectorcraft_doc::OrientedBox>)>,
++    /// [`VectorcraftApp::selection_bounds`] for (document uid, revision).
++    pub selection_bounds: Option<((u64, u64), Option<vectorcraft_geom::Rect>)>,
+     /// The tools' cursors as OS cursor bitmaps.
+     pub cursors: cursors::Images,
+ }
+@@ -389,6 +391,7 @@ impl VectorcraftApp {
+                 slices: None,
+                 print_tiling: None,
+                 selection_box: None,
++                selection_bounds: None,
+                 cursors: Default::default(),
+             },
+             perf: Perf::default(),
+@@ -704,6 +707,22 @@ impl VectorcraftApp {
+         self.canvas.selection_box = Some((key, b));
+         b
+     }
++
++    /// The selection's visual bounds (stroke and effects included), square to the page: measured
++    /// once per revision, as the canvas reads it every frame (a traced photo selects a group of
++    /// hundreds of thousands of paths).
++    pub fn selection_bounds(&mut self) -> Option<vectorcraft_geom::Rect> {
++        let st = self.session.active()?;
++        let key = (st.uid, st.revision);
++        if let Some((k, b)) = self.canvas.selection_bounds
++            && k == key
++        {
++            return b;
++        }
++        let b = st.doc.bounds_of(&st.selection.objects, true);
++        self.canvas.selection_bounds = Some((key, b));
++        b
++    }
+ }
+ 
+ /// eframe isn't a dependency of this crate (the host owns the event loop); these entry points are

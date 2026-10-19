@@ -1,0 +1,134 @@
+{
+  "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "measurements": [
+    {
+      "flavor": "upstream557",
+      "args": [
+        "1024",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1981053352355957,
+      "max_rss_kb": 32880,
+      "output": "1024x1024, Noise=4, 1 paths, 4 anchors, trace_seconds=0.169266"
+    },
+    {
+      "flavor": "upstream557",
+      "args": [
+        "4096",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.192623853683472,
+      "max_rss_kb": 264772,
+      "output": "4096x4096, Noise=4, 1 paths, 4 anchors, trace_seconds=4.978378"
+    },
+    {
+      "flavor": "upstream557",
+      "args": [
+        "4096",
+        "4294967295"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 4.995528697967529,
+      "max_rss_kb": 313960,
+      "output": "4096x4096, Noise=4294967295, 1 paths, 4 anchors, trace_seconds=4.768668"
+    },
+    {
+      "flavor": "upstream557",
+      "args": [
+        "photo",
+        "2048"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.688479423522949,
+      "max_rss_kb": 459416,
+      "output": "2048x2048, Noise=2048, 176 paths, 1844 anchors, trace_seconds=2.531668"
+    },
+    {
+      "flavor": "upstream557_optimized",
+      "args": [
+        "1024",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08208322525024414,
+      "max_rss_kb": 32880,
+      "output": "1024x1024, Noise=4, 1 paths, 4 anchors, trace_seconds=0.041821"
+    },
+    {
+      "flavor": "upstream557_optimized",
+      "args": [
+        "4096",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.5243029594421387,
+      "max_rss_kb": 117716,
+      "output": "4096x4096, Noise=4, 1 paths, 4 anchors, trace_seconds=0.296883"
+    },
+    {
+      "flavor": "upstream557_optimized",
+      "args": [
+        "4096",
+        "4294967295"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.8525683879852295,
+      "max_rss_kb": 117304,
+      "output": "4096x4096, Noise=4294967295, 1 paths, 4 anchors, trace_seconds=0.526575"
+    },
+    {
+      "flavor": "upstream557_optimized",
+      "args": [
+        "photo",
+        "2048"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.49685001373291,
+      "max_rss_kb": 437992,
+      "output": "2048x2048, Noise=2048, 176 paths, 1844 anchors, trace_seconds=2.372673"
+    }
+  ],
+  "builds": [
+    {
+      "flavor": "original",
+      "exit_code": 0,
+      "elapsed_seconds": 1.1405110359191895
+    },
+    {
+      "flavor": "upstream557",
+      "exit_code": 0,
+      "elapsed_seconds": 7.811087608337402
+    },
+    {
+      "flavor": "upstream557",
+      "exit_code": 0,
+      "elapsed_seconds": 0.5826206207275391
+    },
+    {
+      "flavor": "upstream557_optimized",
+      "exit_code": 0,
+      "elapsed_seconds": 7.934822082519531
+    },
+    {
+      "flavor": "upstream557_optimized",
+      "exit_code": 0,
+      "elapsed_seconds": 1.245314598083496
+    },
+    {
+      "flavor": "candidate",
+      "exit_code": 0,
+      "elapsed_seconds": 0.9722287654876709
+    }
+  ],
+  "parity": {
+    "fixture_preset_combinations": 84,
+    "original_equals_candidate": true,
+    "upstream_equals_optimized": true,
+    "original_equals_upstream": true,
+    "sha256": "c9a44bf43a62b1d772bcc6e739c99f1a1040b59b6a282118815cdeb4f5b2a08e"
+  },
+  "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true
+}

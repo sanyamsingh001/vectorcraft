@@ -1,0 +1,69 @@
+{
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "vectorcraft-trace",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.70210599899292,
+      "max_rss_kb": 236488,
+      "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "sources_unchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "vectorcraft-trace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 44.79932117462158,
+      "max_rss_kb": 410840,
+      "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "sources_unchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "build",
+        "-p",
+        "vectorcraft-trace"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.356959819793701,
+      "max_rss_kb": 212356,
+      "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "sources_unchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.839876890182495,
+      "max_rss_kb": 129800,
+      "guard_before": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "guard_after": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+      "sources_unchanged": true
+    }
+  ],
+  "guard": "bb590f999b3dad14dae7438e866a93931bdfee9055ff3d084edb8f866dbd7d65",
+  "sources_unchanged": true,
+  "finished": 1791484977.331267
+}

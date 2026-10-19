@@ -1,0 +1,53 @@
+{
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/trace-current",
+  "head": "e037064b2d763f77b6927de3ffb70ef5b6c53e3a",
+  "staged_and_working_diff_sha256": "5fad2692422a738c0f79a88538a8cce570ea5b030903a41fb4575135cdcb9751",
+  "source_sha256": {
+    "crates/trace/src/lib.rs": "955bdd7ebe023fb098941ae17751744b53e6076b2122b6e09545c720656d97b7",
+    "crates/trace/src/contour.rs": "d9f08a65a5146e37e11f1775e8105eea6a43a7f845530ce014e42c9e38808d1e",
+    "crates/trace/src/quantize.rs": "a34d4f24ee55acb943e06228103d18504aa4792f4c2a99f550fee9fcd2d875c5",
+    "crates/trace/src/tests.rs": "3399786bc3bea9caa97516a81aea7060cafe39eb10e8e55767baa0c2dd12c4cd",
+    "crates/trace/src/fit.rs": "720ef06fdc01b3d58d50d78da67790070735aa3560ff630ae6a5a17bc744bc18",
+    "crates/trace/src/mosaic.rs": "c1aff0ccedbb15715e6a230b1e7b359d19ba018834acbdc8c954144bdb464d1a"
+  },
+  "worktree_matches_index": true,
+  "trace_sources_match_guarded_evidence": true,
+  "trace_base_matches_c26": true,
+  "binary_hashes_match_prior_runtime": true,
+  "recovered_evidence": {
+    "finished": "round3-finished.json",
+    "freeze": "round3-freeze.json",
+    "suite_passed": 32,
+    "suite_ignored": 1,
+    "fmt_exit_code": 0,
+    "clippy_exit_code": 0,
+    "clippy_environment": "original owned workspace; not an e037064 validation"
+  },
+  "fresh_runtime_before_standalone_review": {
+    "record": "ordinary-review-runtime.json",
+    "tests_passed": 31,
+    "ordered_complete_output_comparisons": 432,
+    "paired_budget_comparisons": 96,
+    "dependency_base": "c26c4a2 geom/pathops with cached external rlibs"
+  },
+  "performed_in_this_standalone_review": [
+    "staged production/test diff review",
+    "guarded evidence and runtime log inspection",
+    "candidate/frozen/prior-run SHA256 comparison",
+    "candidate index/worktree comparison",
+    "git diff --cached --check",
+    "current-base dependency diff inspection",
+    "files-current exact candidate production diff and gate metadata read"
+  ],
+  "tests_run_this_standalone_review": false,
+  "build_started": false,
+  "new_functional_findings": [],
+  "current_base_full_ci": "pending parent sequential gate",
+  "global_rounds": "pending composition freeze; do not count this bounded review",
+  "root_gate": {
+    "path": ".git/codex/gate-files-e037",
+    "controller": 2320022,
+    "old_c26_cancellation_reason": "upstream core merged; not a failure"
+  },
+  "pr_validation_summary": "trace-current-pr-validation.md"
+}

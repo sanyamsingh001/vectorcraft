@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "vectorcraft-engine",
+    "-p",
+    "vectorcraft-ui-egui",
+    "--lib",
+    "image_trace"
+  ],
+  "exit_code": 101,
+  "elapsed_seconds": 2312.1744287014008,
+  "max_rss_kb": 784140,
+  "guard_before": "a48b6857711a45898d5ef425e5290dc194d12961a3dc01a5b9a52ed52acf31da",
+  "guard_after": "f7cea1137faba076683c49f0bf75a41b91dd8639361529a68304069d884d6f6a",
+  "sources_unchanged": false
+}

@@ -1,0 +1,33 @@
+{
+  "result": "No new reproducible functional defect in bounded current-trace review",
+  "scope": "ordinary trace optimization only",
+  "review": "ordinary-review.md",
+  "runtime": "ordinary-review-runtime.json",
+  "cumulative_patch": "round3-cumulative-c26.patch",
+  "patch_sha256": "6c96b7931f2a8fcb6cc745772b358e77f499b5a365104af55d7f04264d6f78db",
+  "integration_files": [
+    "ROADMAP.md",
+    "crates/trace/src/contour.rs",
+    "crates/trace/src/quantize.rs",
+    "crates/trace/src/lib.rs",
+    "crates/trace/src/tests.rs"
+  ],
+  "new_source_patch": null,
+  "new_tests": null,
+  "fresh_checks": {
+    "complete_output_comparisons": 432,
+    "paired_budget_comparisons": 96,
+    "ordinary_trace_tests_passed": 31
+  },
+  "build_started": false,
+  "superseded_do_not_integrate": [
+    ".codex-selection-checks/issue593-8d0cede.patch"
+  ],
+  "upstream_coverage": {
+    "593": 613,
+    "598": 619
+  },
+  "full_ci_claim": false,
+  "global_clean_claim": false,
+  "sources_unchanged": true
+}
