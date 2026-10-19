@@ -1,0 +1,54 @@
+{
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/review-e037",
+  "base": "e037064b2d763f77b6927de3ffb70ef5b6c53e3a",
+  "diff_sha256": "fd071263a6e44ff6e5faabf9537afeed66b69802b7b5225f04a6fa7338886a70",
+  "manifest_diff_sha256": "27c988d9935f6d80597829a81aa3ad74b5cf1f74012b0223718dc609e25a539d",
+  "manifest_matches": false,
+  "final_review_round": false,
+  "read_only_candidate": true,
+  "cargo_run": false,
+  "runtime_reproduction": false,
+  "finding": {
+    "id": "BACKGROUND-SAVE-LINK-PEN-SNAPSHOT",
+    "priority": "P2",
+    "status": "source-confirmed; precise regression ready, execution pending",
+    "title": "A completed background source save loses its automatic placed-link refresh on the next Pen preview",
+    "workflow": [
+      "Place a native document in another open document.",
+      "Edit the source and start Background Save.",
+      "Switch to its placing document and drag a second Pen anchor.",
+      "Let save completion refresh the placed link.",
+      "Continue the drag; Session::preview restores the pre-refresh interaction snapshot."
+    ],
+    "cause": "refresh_placed calls links::update through Session::edit while the target has an interaction. This mutates only the live document. The next preview replaces it with Interaction.doc, which still holds the old placed key and link metadata.",
+    "proof": "SaveJob::complete -> refresh_placed -> update -> Session::edit/install_document updates the live placed key. Pen Drag -> Action::Preview -> Session::preview restores Interaction.doc. No refresh-path operation rebases or finishes the interaction.",
+    "negative_expectation": "The test first requires the refreshed key to differ from the old key. On current source its final PlacedDocument equality should fail after the next Drag/Up restores the old snapshot. Expected result only; no executed negative claimed.",
+    "test_target": "crates/engine/src/tests_placed_document.rs",
+    "test_name": "background_save_link_refresh_survives_next_pen_preview",
+    "test_patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/ai-archived-c26/.codex-ai-current-review/review-e037-background-link-pen-test.patch",
+    "production_patch": null,
+    "baseline": "Residual behavior in the composed candidate; not attributed to the native IncludeLinked fix."
+  },
+  "source_sha256": {
+    "crates/engine/src/cmd/fileio/save.rs": "2c2bf44f91665c8b98c4537d220f2dfb956212cc55b61233ae0b081c2913e915",
+    "crates/engine/src/cmd/links.rs": "3c4ca0cde06f892979d3c63f0f0b5817e5b854424ed702e4af90b6800dae6f6b",
+    "crates/engine/src/lib.rs": "c5274b2cea76e135306b25ff258023c275c81cc37f4327606172a570d1095018",
+    "crates/tools/src/pen.rs": "ea2727886f09c4b3a01bf7bcb8f0c3b8fdfc92581d3860e0f84fcc394c9907b6",
+    "crates/ui-egui/src/io.rs": "ad27494a40b8e060605263ba192504e9b1305ddcb273f7c01cf4689ac0fd4fd9",
+    "crates/engine/src/cmd/fileio/native.rs": "a2bed7a64b3f152319994cf23df7398335f29e8a05e9c617182ad231c1fb058e"
+  },
+  "validation": {
+    "candidate_unstaged_diff_empty": true,
+    "test_execution": "Not run: no Cargo/build authorization; no matched current-candidate CLI proof claimed.",
+    "rustfmt_parse_and_format": "passed; artifact only",
+    "test_patch_sha256": "0f06cb8c9fde245be4dca401cbcbe8de2a4a3204360a3cdf10cd55cfc01aedf1",
+    "test_patch_apply_check": "passed on review-e037; --check --whitespace=error only",
+    "candidate_staged_diff_check": "passed",
+    "parent_test_command": "cargo test -p vectorcraft-engine --lib tests_placed_document::background_save_link_refresh_survives_next_pen_preview -- --exact"
+  },
+  "scope_notes": [
+    "Relevant file hashes unchanged between guards 27c988d9 and fd071263; cumulative manifest can lag the preliminary parent composition.",
+    "Native IncludeLinked fix SHA matches prior source recheck.",
+    "Preliminary review; does not count toward the two fully staffed final frozen clean rounds."
+  ]
+}

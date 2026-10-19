@@ -1,0 +1,64 @@
+--- a/crates/engine/src/tests_placed_document.rs
++++ b/crates/engine/src/tests_placed_document.rs
+@@ -610,6 +610,61 @@
+     assert_eq!(s.active_index(), Some(child), "the saved document stays active");
+ }
+ 
++/// A background save can finish while the placing document has a live Pen gesture.
++/// Its automatic link refresh must survive the next replacement preview.
++#[test]
++fn background_save_link_refresh_survives_next_pen_preview() {
++    use vectorcraft_tools::{PointerEvent, PointerKind};
++
++    fn pointer(s: &mut Session, kind: PointerKind, x: f64, y: f64) {
++        s.pointer(&PointerEvent::new(kind, x, y), ViewInfo::default()).unwrap();
++    }
++
++    let dir = Folder::new("placed-refresh-pen-preview");
++    let src = dir.file("logo.vectorcraft");
++    source(&src, 100.0, 50.0, RED, 0);
++    let mut s = session();
++    let id = place(&mut s, &src);
++    let parent = s.active_index().unwrap();
++    let original = placed(&s, id);
++
++    s.execute("document.open", &json!({"path": src})).unwrap();
++    s.execute("select.all", &json!({})).unwrap();
++    s.execute("paint.setFill", &json!({"color": "#1414e6"})).unwrap();
++    let child_uid = s.active().unwrap().uid;
++    let plan = cmd::fileio::save_plan(
++        &s,
++        cmd::fileio::SaveMode::Save,
++        &json!({"path": src, "modified": 2_000_000_000_i64, "compress": false, "preview": false}),
++    )
++    .unwrap();
++    let job = cmd::fileio::save_job(&mut s, plan).unwrap();
++
++    // Match the UI background-save ordering without thread timing or sleeps:
++    // take the job, switch tabs, start a gesture, then write and complete the job.
++    assert!(s.set_active(parent));
++    s.select_tool("pen", ViewInfo::default()).unwrap();
++    pointer(&mut s, PointerKind::Down, 20.0, 260.0);
++    pointer(&mut s, PointerKind::Up, 20.0, 260.0);
++    pointer(&mut s, PointerKind::Down, 80.0, 260.0);
++    pointer(&mut s, PointerKind::Drag, 100.0, 280.0);
++    assert!(s.in_interaction() && s.tool_busy());
++
++    job.write(|path, bytes| {
++        write(path, bytes);
++        Ok(())
++    })
++    .unwrap();
++    job.complete(&mut s, child_uid);
++    assert_eq!(s.active_index(), Some(parent));
++    let refreshed = placed(&s, id);
++    assert_ne!(refreshed.key, original.key, "positive control: save completion read the changed source");
++
++    pointer(&mut s, PointerKind::Drag, 120.0, 280.0);
++    pointer(&mut s, PointerKind::Up, 120.0, 280.0);
++    assert_eq!(placed(&s, id), refreshed, "the next Pen preview must retain the completed link refresh");
++}
++
+ #[test]
+ fn link_info_gives_the_artboards_size_not_pixels() {
+     let dir = Folder::new("placed-info");

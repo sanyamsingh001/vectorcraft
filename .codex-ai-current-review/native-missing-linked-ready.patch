@@ -1,0 +1,101 @@
+diff --git a/crates/engine/src/cmd/fileio/native.rs b/crates/engine/src/cmd/fileio/native.rs
+--- a/crates/engine/src/cmd/fileio/native.rs
++++ b/crates/engine/src/cmd/fileio/native.rs
+@@ -142,15 +142,23 @@
+     } else {
+         std::borrow::Cow::Borrowed(doc)
+     };
+-    let doc = &*full;
+     if extras.preview {
+-        so.preview = preview_png(doc)?;
++        so.preview = preview_png(&full)?;
+     }
+     if extras.pdf {
+         // Every artboard as PDF pages (no editing data: the file is the native document).
+-        so.pdf = Some(super::pdf::encode(cmd, doc, &json!({ "range": "all", "preserveEditing": false }))?.0);
+-    }
+-    vectorcraft_format::save_with(doc, &so).map_err(|e| bad(cmd, e.to_string()))
++        so.pdf = Some(super::pdf::encode(cmd, &full, &json!({ "range": "all", "preserveEditing": false }))?.0);
++    }
++    let native = match full {
++        Cow::Owned(full) if so.include_linked && so.version >= vectorcraft_format::VERSION => {
++            // Include available bytes without replacing missing, relinkable placed objects.
++            let mut original = doc.clone();
++            original.images = full.images;
++            Cow::Owned(original)
++        }
++        other => other,
++    };
++    vectorcraft_format::save_with(&native, &so).map_err(|e| bad(cmd, e.to_string()))
+ }
+ 
+ /// The ICC files of the profiles `doc` is tagged with that were loaded from files (the built-in
+diff --git a/crates/engine/src/tests_placed_document.rs b/crates/engine/src/tests_placed_document.rs
+--- a/crates/engine/src/tests_placed_document.rs
++++ b/crates/engine/src/tests_placed_document.rs
+@@ -272,6 +272,65 @@
+     }
+ }
+ 
++/// Include Linked Files must retain relinkable objects when only their previews are available.
++#[test]
++fn native_included_links_keep_missing_placed_documents_editable() {
++    for missing in [true, false] {
++        let dir = Folder::new(&format!("native-included-links-{missing}"));
++        let src = dir.file("logo.vectorcraft");
++        star_source(&src, &format!("native-included-links-{missing}"));
++        let source_bytes = std::fs::read(&src).unwrap();
++        let mut s = session();
++        let id = place(&mut s, &src);
++        let parent = decode(&s.execute("document.serialize", &json!({"format": "vectorcraft"})).unwrap());
++        if missing {
++            std::fs::remove_file(&src).unwrap();
++        }
++        s.execute("document.open", &json!({"name": "parent.vectorcraft", "dataBase64": vectorcraft_format::base64_encode(&parent)})).unwrap();
++        let original = placed(&s, id);
++        assert!(s.doc().unwrap().doc.images[&original.key].is_proxy());
++        let before = s.execute("document.json", &json!({})).unwrap();
++        for format in ["vectorcraft", "template"] {
++            for command in ["document.serialize", "document.export", "document.save"] {
++                for include_linked in [true, false] {
++                    let out = s.execute(command, &json!({"format": format, "includeLinked": include_linked, "compress": false})).unwrap();
++                    let bytes = decode(&out);
++                    let native = vectorcraft_format::load(&bytes).unwrap();
++                    assert_eq!(file_json(&bytes)["version"], vectorcraft_format::VERSION);
++                    assert!(
++                        matches!(&native.node(id).unwrap().kind, NodeKind::PlacedDocument(p) if **p == original),
++                        "{command}/{format}/{missing}/{include_linked}: discarded the editable link"
++                    );
++                    let blob = &native.images[&original.key];
++                    assert_eq!(blob.is_proxy(), missing || !include_linked);
++                    if !missing && include_linked {
++                        assert_eq!(blob.bytes.as_slice(), source_bytes.as_slice());
++                    }
++                    assert_eq!(s.execute("document.json", &json!({})).unwrap(), before);
++                    if missing && include_linked {
++                        let mut restored = Session::new();
++                        restored
++                            .execute(
++                                "document.open",
++                                &json!({"name": "included.vectorcraft", "dataBase64": vectorcraft_format::base64_encode(&bytes)}),
++                            )
++                            .unwrap();
++                        assert_eq!(placed(&restored, id), original);
++                        assert_eq!(restored.execute("links.check", &json!({})).unwrap()["missing"], 1);
++                        let replacement = dir.file("replacement.vectorcraft");
++                        source(&replacement, 100.0, 50.0, BLUE, 1);
++                        assert_eq!(
++                            restored.execute("links.relink", &json!({"ids": [id.0], "path": replacement})).unwrap()["relinked"],
++                            json!([id.0])
++                        );
++                        assert_eq!(placed(&restored, id).link.path, replacement);
++                    }
++                }
++            }
++        }
++    }
++}
++
+ #[test]
+ fn a_document_saved_with_previews_outputs_its_files_art() {
+     let dir = Folder::new("placed-preview-output");

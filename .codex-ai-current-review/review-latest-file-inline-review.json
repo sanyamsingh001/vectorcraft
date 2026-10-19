@@ -1,0 +1,59 @@
+{
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/review-latest",
+  "head": "5f92f5eb7fd194826aab2ad0844e474f13990938",
+  "untracked_file_sha256": {},
+  "staged_diff_empty": false,
+  "finding": {
+    "id": "LATEST-PLACED-INLINE-RESOURCE-SCOPE",
+    "priority": "P2",
+    "evidence_level": "Source-confirmed compatibility risk; precise regressions ready; latest runtime unexecuted",
+    "workflow": "Create a native source containing a symbol inline in text, place that file linked in another document, then export SVG or AI/PDF artwork.",
+    "effects": [
+      "The prepared source symbol is namespaced but TextRun.inline.symbol is not; artwork is missing if the parent lacks Dot, or resolves to the parent Dot if it exists.",
+      "Prepared resources omit child symbolSizes; even after reference scoping is fixed, natural inline aspect ratio is lost for normalized non-square symbols."
+    ],
+    "cause": "Existing placed_document::rename covers text paints but not new inline symbol references; add_resources copies symbol art but omits the new source natural-size metadata.",
+    "baseline": "Producer file unchanged since e037; inline reference and natural-size consumers arrived on upstream 5f92. This is not introduced by the local SVG metadata/editing-payload patch.",
+    "editing_payload": "Local SVG attachment is serialized from the original document before preparation; native/AI restore the original tree and retained source bytes. Source inspection found no extra editing-payload loss; visible output preparation has the new compatibility gap.",
+    "exact_candidate_fix_scope": [
+      "crates/doc/src/placed_document.rs"
+    ],
+    "regression_tests": [
+      "placed_inline_art_references_the_source_symbol_with_or_without_a_parent_collision",
+      "placed_inline_art_keeps_its_sources_natural_symbol_size"
+    ],
+    "test_target": "crates/doc/src/placed_document.rs existing tests module",
+    "test_patch": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/ai-archived-c26/.codex-ai-current-review/review-latest-inline-placed-test.patch",
+    "negative_expectation": "Reference test: no-collision lookup fails, or collision lookup returns the red parent art instead of blue source art. Size test: expected bounds 40x10, actual imported normalized bounds 20x20. Expected failures are not executed negatives.",
+    "production_patch": null
+  },
+  "merge_checks": {
+    "upstream_svg_text_node_byte_identical": true,
+    "candidate_extra_save_delta": "review-latest includes the live-preview save-date stamping block absent from files-current; file encoding/body restoration unchanged by that block.",
+    "fileio_native_svg_encode_mod_match_e037_candidate": false
+  },
+  "source_sha256": {
+    "crates/doc/src/placed_document.rs": "de83b59464bc41a7cc2f1bb990bf9fef0f7396622cc017bd7c07cc8d4135299c",
+    "crates/doc/src/inline.rs": "82bd3ad5c2316bd19334b6b1535fb5a8f7800850294d630c954c0a15df9154cf",
+    "crates/doc/src/text.rs": "4e8ff1ec4de43a3147402dd0ba6a1e038581d8e5cb69d9b5cd4bf8effb565963",
+    "crates/engine/src/cmd/fileio/svg.rs": "7254faa67069731481c1ad5bb33c2e848858808b08a28959a78782b7e8ca8d44",
+    "crates/engine/src/cmd/fileio/native.rs": "a2bed7a64b3f152319994cf23df7398335f29e8a05e9c617182ad231c1fb058e",
+    "crates/engine/src/cmd/fileio/save.rs": "2c2bf44f91665c8b98c4537d220f2dfb956212cc55b61233ae0b081c2913e915",
+    "crates/svg/src/export.rs": "4842f5ab5caeab6b424e6918894de0eee2c8aa3332f534daaa2271df690360f3",
+    "crates/pdf/src/export.rs": "2adbe7fd49d5a807efb0372c644ac4c963aa1473149dfa22b553f2b4bac3c24b",
+    "crates/format/src/lib.rs": "82af75279085807d3494267fb66a5e2a0abbb8f72d2c39d75a3d7db2aac47588"
+  },
+  "regression_artifact_rustfmt": "passed",
+  "cargo_runs": 0,
+  "latest_runtime_reproduction": false,
+  "candidate_or_root_source_edits": 0,
+  "remote_actions": 0,
+  "token_reads": 0,
+  "final_clean_round_claim": false,
+  "previous_observed_unstaged_diff_sha256": "88a63f19eeaabd69ce4581bb63cc8e567dd5595ea0eeb99ffdef1a0e7311f6a6",
+  "tracked_HEAD_diff_sha256": "b1a8c4db72af9b9a589349a51cde9477d160f094aab0b6ef382be619a48e1419",
+  "composition_note": "Parent expanded review-latest to staged UI/trace/updates composition during the review. All nine recorded file/native/inline source hashes remained unchanged; this report is scoped to those paths.",
+  "test_patch_readonly_apply_whitespace_check": "passed",
+  "HEAD_diff_whitespace_check": "passed",
+  "regression_patch_sha256": "243e15710000d1451ce01a7b11f9aa12adc5db12da62346d04d1ebb72381ebe4"
+}

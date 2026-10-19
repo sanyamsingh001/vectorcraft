@@ -1,0 +1,76 @@
+{
+  "candidate_guard": "22785ca7bb8e2d5bbd729957d576f815dfc038a8525670496f21c66690ce618d",
+  "active_test_gap": true,
+  "test_file": "crates/engine/src/tests_placed_document.rs",
+  "test_line": 716,
+  "test_name": "svg_editing_keeps_placed_links_separate_from_drawn_previews",
+  "title": "SVG regression includes unsupported MIME format string and unwraps its error",
+  "severity": "Test-only gate failure; not a production format regression",
+  "negative_proof": {
+    "commands": [
+      [
+        "file.new",
+        {
+          "width": 40,
+          "height": 30
+        }
+      ],
+      [
+        "document.serialize",
+        {
+          "format": "image/svg+xml",
+          "preserveEditing": true
+        }
+      ]
+    ],
+    "exit_code": 1,
+    "stderr": "vectorcraft-cli: document.serialize: invalid parameters for `document.serialize`: unknown format `image/svg+xml` (see document.formats)",
+    "warnings": null
+  },
+  "cause": "encode_all calls writable; format accepts ids/extensions (case and leading dots), not MIME. SVG extensions is [svg]; image/svg+xml is only its declared mime field.",
+  "recommended_test_correction": "Replace image/svg+xml with a supported dot/case alias such as .SVG. Do not broaden format API solely to satisfy this test.",
+  "warning_assertion": {
+    "previous_gap": "Save adds a fidelity warning even for available sources; asserting an empty warning list was wrong.",
+    "current_disposition": "Addressed by parent r5: assertion now checks only the placed-document preview warning.",
+    "proof": {
+      "commands": [
+        [
+          "file.new",
+          {
+            "width": 40,
+            "height": 30
+          }
+        ],
+        [
+          "shape.rectangle",
+          {
+            "x": 2,
+            "y": 3,
+            "width": 10,
+            "height": 8
+          }
+        ],
+        [
+          "document.save",
+          {
+            "format": "svg",
+            "svg": {
+              "preserveEditing": true,
+              "range": "1"
+            }
+          }
+        ]
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "warnings": [
+        "SVG keeps the artwork but not everything a VectorCraft document holds (editable effects, symbols, swatches, styles): save as VectorCraft to keep it all editable"
+      ]
+    }
+  },
+  "new_svg_production_runtime": "Pending parent current-source gate; cached CLI predates SVG preparation-boundary change.",
+  "source_edits": 0,
+  "cargo_runs": 0,
+  "remote_actions": 0,
+  "final_clean_round_claim": false
+}

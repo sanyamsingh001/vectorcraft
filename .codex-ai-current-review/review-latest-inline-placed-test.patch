@@ -1,0 +1,91 @@
+--- a/crates/doc/src/placed_document.rs
++++ b/crates/doc/src/placed_document.rs
+@@ -681,4 +681,87 @@
+         let art = p.art(n);
+         assert_eq!(art.first().and_then(Node::geometric_bounds), Some(Rect::new(10.0, 10.0, 90.0, 50.0)));
+     }
+-}
++
++    // Ready for insertion inside crates/doc/src/placed_document.rs's existing tests module.
++    // Exercises public prepared-art behavior without fonts, file IO, an exporter, or large buffers.
++    fn placed_inline_fixture(label: &str, collision: bool) -> (Document, Document, PlacedDocument) {
++        use crate::{CharStyle, InlineArt, TextObject, TextRun};
++        use vectorcraft_color::{Color, Paint};
++        use vectorcraft_geom::{Point, shapes};
++
++        let look = |r, g, b| crate::Appearance::basic(Paint::solid(Color::rgb8(r, g, b)), Paint::None, 0.0);
++        let mut child = Document::new(80.0, 60.0);
++        child.layers.clear();
++        child.symbols.push(Symbol {
++            name: "Dot".into(),
++            art: Arc::new(Node::path(NodeId(900), shapes::rectangle(Rect::new(-10.0, -10.0, 10.0, 10.0)), look(20, 20, 230))),
++        });
++        // App-created symbols keep normalised art; this one was originally a wide 40x10 mark.
++        child.unknown.insert(crate::SYMBOL_SIZES.into(), serde_json::json!({"Dot": [40.0, 10.0]}));
++        let mut text = TextObject::point(Point::new(10.0, 30.0), "", CharStyle::default());
++        text.runs = vec![TextRun::inline(InlineArt::new("Dot"), CharStyle::default())];
++        assert!(child.resolve_text_inline(&mut text));
++        let art = Node::new(NodeId(0), NodeKind::Group { children: vec![Arc::new(Node::new(NodeId(901), NodeKind::Text(Box::new(text))))], clip: false });
++        let p = PlacedDocument { width: 80.0, height: 60.0, ..placed(label) };
++        let blob = ImageBlob::new("application/json", b"original-small-inline-fixture".to_vec());
++        prime(&p, blob.bytes.clone(), (child.clone(), art, Rect::new(0.0, 0.0, 80.0, 60.0)));
++        let mut parent = Document::new(100.0, 80.0);
++        if collision {
++            parent.symbols.push(Symbol {
++                name: "Dot".into(),
++                art: Arc::new(Node::path(NodeId(902), shapes::rectangle(Rect::new(-10.0, -10.0, 10.0, 10.0)), look(230, 20, 20))),
++            });
++            parent.unknown.insert(crate::SYMBOL_SIZES.into(), serde_json::json!({"Dot": [20.0, 20.0]}));
++        }
++        parent.images.insert(p.key.clone(), blob);
++        parent.insert(Some(parent.layers[0].id), 0, Node::new(NodeId(7), NodeKind::PlacedDocument(Box::new(p.clone())))).unwrap();
++        (parent, child, p)
++    }
++
++    #[test]
++    fn placed_inline_art_references_the_source_symbol_with_or_without_a_parent_collision() {
++        for collision in [false, true] {
++            let (parent, child, p) = placed_inline_fixture(&format!("inline-reference-{collision}"), collision);
++            let original = serde_json::to_value(&parent).unwrap();
++            let prepared = parent.with_placed_art();
++            let art = p.art(parent.node(NodeId(7)).unwrap());
++            let mut references = vec![];
++            for root in art {
++                root.walk(&mut |n| {
++                    if let NodeKind::Text(t) = &n.kind {
++                        references.extend(t.runs.iter().filter_map(|r| r.inline.as_ref().map(|a| a.symbol.clone())));
++                    }
++                });
++            }
++            assert_eq!(references.len(), 1, "positive control: the placed art still contains the inline run");
++            let target = prepared.symbols.iter().find(|s| s.name == references[0]).expect("an inline reference must resolve in the prepared document");
++            assert_eq!(
++                serde_json::to_value(&target.art).unwrap(),
++                serde_json::to_value(&child.symbols[0].art).unwrap(),
++                "an inline must show its source's art, including when the parent owns Dot"
++            );
++            assert_eq!(serde_json::to_value(&parent).unwrap(), original, "preparing output leaves the source document intact");
++        }
++    }
++
++    #[test]
++    fn placed_inline_art_keeps_its_sources_natural_symbol_size() {
++        let (parent, child, _) = placed_inline_fixture("inline-natural-size", true);
++        let prepared = parent.with_placed_art();
++        // Identify the imported definition independently of the first test's inline-reference bug.
++        let source_art = serde_json::to_value(&child.symbols[0].art).unwrap();
++        let imported = prepared
++            .symbols
++            .iter()
++            .find(|s| serde_json::to_value(&s.art).unwrap() == source_art)
++            .expect("positive control: the source definition was imported");
++        let expected = child.symbol_art_bounds("Dot").unwrap();
++        assert!((expected.width() - 40.0).abs() < 1e-9 && (expected.height() - 10.0).abs() < 1e-9);
++        assert_eq!(
++            prepared.symbol_art_bounds(&imported.name),
++            Some(expected),
++            "inline layout must keep the source's natural aspect ratio after resource scoping"
++        );
++    }
++
++}

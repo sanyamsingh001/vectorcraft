@@ -1,0 +1,107 @@
+{
+  "candidate": ".git/codex/worktrees/files-current",
+  "base": "e037064b2d763f77b6927de3ffb70ef5b6c53e3a",
+  "candidate_staged_sha256": "5a7d3496534311f42d68270b78235eded4090f6ebbbf96abc1f58e65b2a8b792",
+  "candidate_unstaged_empty": true,
+  "gate_source": {
+    "head": "e037064b2d763f77b6927de3ffb70ef5b6c53e3a",
+    "diff": "5a7d3496534311f42d68270b78235eded4090f6ebbbf96abc1f58e65b2a8b792"
+  },
+  "reviewed_source_sha256": {
+    "crates/engine/src/cmd/fileio/native.rs": "381b631d9d7a3e49e8cc3c0c7e9546308bcd8bf1c0d6d49758b26cc50463c642",
+    "crates/engine/src/cmd/fileio/encode.rs": "f86a3e5eee22418ca9a218f341baa5e84da4cbf4654111c315f73cdc20c661f9",
+    "crates/engine/src/cmd/fileio/save.rs": "8b47fbfc420f857841e56105fd87decd5dab4ad90200ad8e140aa33f10e21c05",
+    "crates/engine/src/cmd/fileio/pdf.rs": "b835ebc13d983ddd29565825e6f38824d02a58d5bc981c79601c8ecae08794dd",
+    "crates/engine/src/cmd/place/document.rs": "5b934731a1d4bfe19c113498d4f831ce6b4b52988af6e5b373c3adf64cb4536b",
+    "crates/engine/src/cmd/links.rs": "3c4ca0cde06f892979d3c63f0f0b5817e5b854424ed702e4af90b6800dae6f6b",
+    "crates/format/src/lib.rs": "82af75279085807d3494267fb66a5e2a0abbb8f72d2c39d75a3d7db2aac47588",
+    "crates/doc/src/placed_document.rs": "de83b59464bc41a7cc2f1bb990bf9fef0f7396622cc017bd7c07cc8d4135299c",
+    "crates/engine/src/tests_placed_document.rs": "a226901bc5962e51e423a748018eeb89b6c600a31574123d5ce447faed39e5ea",
+    "crates/engine/src/cmd/fileio/tests_pdfedit.rs": "9f536cec1c0ba318b367a8945af5adb764242cfbc884edbc1f054827d3a9659e",
+    "crates/engine/src/cmd/fileio/tests_pdflayers.rs": "2d8946d7a2e546d6bf0e66a372424eca66c76b93b5c819a10f14c5301a502f0a"
+  },
+  "reviewed_source_equal_to_frozen_root": true,
+  "findings": [
+    {
+      "id": "NATIVE-INCLUDE-MISSING-PLACED-LINK",
+      "priority": "P2",
+      "path": "crates/engine/src/cmd/fileio/native.rs",
+      "line": 136,
+      "preexisting_residual": true,
+      "trigger": "Reopen a preview-only parent after its source goes missing, then save/serialize/export native or template with includeLinked:true and current version4.",
+      "expected": "PlacedDocument with original link/placement metadata and proxy retained.",
+      "actual": "Unlinked Image; link metadata lost; warnings empty; source state remains intact.",
+      "negative_exit": 1,
+      "negative_log": ".git/codex/worktrees/ai-archived-c26/.codex-ai-current-review/native-negative.log",
+      "current_disposition": "Addressed in integrated source; current runtime pending parent gate."
+    }
+  ],
+  "patch": ".git/codex/worktrees/ai-archived-c26/.codex-ai-current-review/native-missing-linked-ready.patch",
+  "patch_sha256": "0638f8effa2b649e6d965d4e06511ae4d638812c25914a46e736db480578c2ef",
+  "patch_changed_paths": [
+    "crates/engine/src/cmd/fileio/native.rs",
+    "crates/engine/src/tests_placed_document.rs"
+  ],
+  "apply_check_files_current_exit": 0,
+  "apply_check_review_current_exit": 0,
+  "rustfmt_exit": 0,
+  "diff_check_exit": 0,
+  "regression_test": "tests_placed_document::native_included_links_keep_missing_placed_documents_editable",
+  "rust_regression_run": false,
+  "cli": {
+    "path": "target/debug/vectorcraft-cli",
+    "sha256": "96ddec3800447387d468a518e1993f67eeeeac313ec154a1c81a48fda89570fe",
+    "provenance": "Existing frozen c26/3eaf CLI with passing fileio gate; unchanged native serializer, placed preparation, model and native format source match files-current exactly. This is not a files-current AI/PDF-layer runtime claim."
+  },
+  "source_confirmations": {
+    "public_aliases": "encode_all canonicalizes before destructive preparation; current direct public test covers 12 aliases.",
+    "source_bytes": "AI retains original nodes and imports only hydrated images; prior source-matched raw-payload matrix confirms exact source bytes when available and Include Linked enabled.",
+    "eager_booleans": "includeLinked/embedProfiles/compress/pdfCompatible typed parsing precedes lazy native callback and PDF page subset gating.",
+    "visible_bounds": "useArtboards:false includes ai and discards stale page/range selection before synthetic artboard recursion.",
+    "native_default": "catalog/spec/header default all version4; explicit older versions retained.",
+    "upstream_layers": "shared encode_ai retains exact upstream standard absent/null condition and createLayers entry default; explicit false and existing null semantics unchanged. Existing upstream ai_files_write_their_layers_and_sublayers_as_pdf_layers remains unmodified."
+  },
+  "no_new_cargo": true,
+  "no_root_or_composition_edits": true,
+  "no_commits_or_remote_actions": true,
+  "no_token_reads": true,
+  "no_global_clean_claim": true,
+  "limits": "Current fullCI and focused Rust regression belong to parent and are pending; this scoped review reports one concrete native residual, so it is not a clean final round. Old c26 gate was canceled because upstream merged core, not because of failure.",
+  "native_include_integrated_source_recheck": {
+    "candidate": ".git/codex/worktrees/files-current",
+    "base": "e037064b2d763f77b6927de3ffb70ef5b6c53e3a",
+    "source_frozen": false,
+    "candidate_staged_sha256": "6f94d3ab5cea75a9d06d936ffc05dd299befbb97e26b95a396c64ca9e6558cc4",
+    "candidate_unstaged_empty": true,
+    "reviewed_file_sha256": {
+      "crates/engine/src/cmd/fileio/native.rs": "a2bed7a64b3f152319994cf23df7398335f29e8a05e9c617182ad231c1fb058e",
+      "crates/engine/src/tests_placed_document.rs": "44cd6eaa814807c8681f53f3ec795a4261157c4f3e3c43d17c0f179e9d7686bf",
+      "crates/engine/src/cmd/place/document.rs": "5b934731a1d4bfe19c113498d4f831ce6b4b52988af6e5b373c3adf64cb4536b",
+      "crates/doc/src/placed_document.rs": "de83b59464bc41a7cc2f1bb990bf9fef0f7396622cc017bd7c07cc8d4135299c",
+      "crates/engine/src/cmd/fileio/pdf.rs": "b835ebc13d983ddd29565825e6f38824d02a58d5bc981c79601c8ecae08794dd",
+      "crates/engine/src/cmd/fileio/save.rs": "8b47fbfc420f857841e56105fd87decd5dab4ad90200ad8e140aa33f10e21c05",
+      "crates/engine/src/cmd/links.rs": "3c4ca0cde06f892979d3c63f0f0b5817e5b854424ed702e4af90b6800dae6f6b",
+      "crates/format/src/lib.rs": "82af75279085807d3494267fb66a5e2a0abbb8f72d2c39d75a3d7db2aac47588"
+    },
+    "root_matches_reviewed_files": true,
+    "native_matches_reviewers_integrated_patch": true,
+    "original_finding_disposition": "NATIVE-INCLUDE-MISSING-PLACED-LINK addressed in current source; Rust/runtime confirmation pending parent gate.",
+    "additional_concrete_findings": [],
+    "preview_pdf": "Both optional outputs still use the same prepared full document before native serialization restores original placed nodes; SaveOptions preview/pdf payloads are retained.",
+    "versions_1_2_3": "Restoration guard requires version>=VERSION (4). Older explicit versions pass full through unchanged into existing legacy flattening. 1/2 remain uncompressed, use drawcraft envelope; 3 permits compression and inline data. Existing format/version checks unchanged.",
+    "original_source_fields": "Clones doc after normal Save job preparation; replaces images only. All node/link/placement/crop/bounding/transform/hash/relative fields retained, including Save job relative-path updates.",
+    "regression": "native_included_links_keep_missing_placed_documents_editable is integrated unchanged, checks 24 source/format/entry/inclusion combinations with raw native metadata/bytes and six missing-source reopen/relink checks.",
+    "regression_limits": [
+      "No explicit preview/pdfCompatible combinations in this focused regression.",
+      "No explicit v1/2/3 combinations in this focused regression.",
+      "Existing missing-source and linked-source tests exercise v2; format suite covers legacy syntax, compression and embedded payloads. Current tests have not been executed by this reviewer."
+    ],
+    "diff_check_exit": 0,
+    "new_builds_or_cargo_runs": 0,
+    "new_runtime_probes": 0,
+    "production_edits": 0,
+    "commits_or_remote_actions": 0,
+    "token_reads": 0,
+    "final_clean_round_claim": false
+  }
+}

@@ -1,0 +1,904 @@
+{
+  "candidate": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/files-current",
+  "candidate_guard": "22785ca7bb8e2d5bbd729957d576f815dfc038a8525670496f21c66690ce618d",
+  "end_candidate_guard": "22785ca7bb8e2d5bbd729957d576f815dfc038a8525670496f21c66690ce618d",
+  "root_gate": "gate-files-e037-r5",
+  "root_guard": "22785ca7bb8e2d5bbd729957d576f815dfc038a8525670496f21c66690ce618d",
+  "end_root_guard": "22785ca7bb8e2d5bbd729957d576f815dfc038a8525670496f21c66690ce618d",
+  "cli_sha256": "45f9a68caf6f40192365c32754af1b985b698b8c81c87fb8c4b5254a0492fb37",
+  "cli_scope_match": "Cached r3 executable; save/native/format/placed/export scope unchanged. Reversing only the SVG/SVGZ exemption and its comment reproduces the prior recorded encode.rs SHA; native/template/AI take the identical exempt branch. SVG correction not runtime-tested.",
+  "rows": [
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.export",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.export",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.export",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.export",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.export",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.export",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": ".vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "VECTORCRAFT",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "drawcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": ".DRAWCRAFT",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "vctemplate",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": ".VCTEMPLATE",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": ".ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": "AI",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "alias": ".AI",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": false,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": true
+    },
+    {
+      "missing": false,
+      "command": "document.serialize",
+      "category": "implicit-native-v4",
+      "version": 4
+    },
+    {
+      "missing": false,
+      "command": "document.save",
+      "category": "implicit-native-v4",
+      "version": 4
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.export",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.export",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.export",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.export",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.export",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.export",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": false,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "matrix",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": ".vectorcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "VECTORCRAFT",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "drawcraft",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": ".DRAWCRAFT",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "template",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "vctemplate",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": ".VCTEMPLATE",
+      "format": "template",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": ".ai",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": "AI",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "alias": ".AI",
+      "format": "ai",
+      "includeLinked": true,
+      "proxy": true,
+      "version": 4,
+      "category": "public-alias",
+      "transform_and_metadata_preserved": true,
+      "exact_source_bytes": false
+    },
+    {
+      "missing": true,
+      "command": "document.serialize",
+      "category": "implicit-native-v4",
+      "version": 4
+    },
+    {
+      "missing": true,
+      "command": "document.save",
+      "category": "implicit-native-v4",
+      "version": 4
+    }
+  ],
+  "expected_errors": [
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "includeLinked": "yes"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "includeLinked": "yes",
+        "range": "2"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.save",
+      "params": {
+        "format": "AI",
+        "options": {
+          "includeLinked": "yes"
+        }
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "embedProfiles": "yes"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "embedProfiles": "yes",
+        "range": "2"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.save",
+      "params": {
+        "format": "AI",
+        "options": {
+          "embedProfiles": "yes"
+        }
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "compress": "yes"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "compress": "yes",
+        "range": "2"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.save",
+      "params": {
+        "format": "AI",
+        "options": {
+          "compress": "yes"
+        }
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "pdfCompatible": "yes"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.export",
+      "params": {
+        "format": ".AI",
+        "pdfCompatible": "yes",
+        "range": "2"
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.save",
+      "params": {
+        "format": "AI",
+        "options": {
+          "pdfCompatible": "yes"
+        }
+      },
+      "error": "run_command: invalid parameters for `document.export`: PDF-compatible .ai options: invalid type: string \"yes\", expected a boolean",
+      "source_unchanged": true
+    },
+    {
+      "command": "document.save",
+      "params": {
+        "format": ".VECTORCRAFT",
+        "version": 5
+      },
+      "error": "run_command: invalid parameters for `document.save`: can't save version 5: VectorCraft writes versions 1 to 4",
+      "source_unchanged": true
+    }
+  ],
+  "success_cases": 64,
+  "negative_controls": 13,
+  "source_sha256": {
+    "crates/engine/src/cmd/fileio/save.rs": "8b47fbfc420f857841e56105fd87decd5dab4ad90200ad8e140aa33f10e21c05",
+    "crates/engine/src/cmd/fileio/native.rs": "a2bed7a64b3f152319994cf23df7398335f29e8a05e9c617182ad231c1fb058e",
+    "crates/engine/src/cmd/fileio/mod.rs": "ed691fc213a36d2791358a7338bd6ed45295ceb1b8dad42f9adfb087aed77aed",
+    "crates/engine/src/cmd/fileio/export.rs": "21db1f70de83b8f7ed3844734793a6e1b195d89e60c488147a33ca0a835303a4",
+    "crates/engine/src/cmd/place/document.rs": "5b934731a1d4bfe19c113498d4f831ce6b4b52988af6e5b373c3adf64cb4536b",
+    "crates/engine/src/cmd/links.rs": "3c4ca0cde06f892979d3c63f0f0b5817e5b854424ed702e4af90b6800dae6f6b",
+    "crates/doc/src/placed_document.rs": "de83b59464bc41a7cc2f1bb990bf9fef0f7396622cc017bd7c07cc8d4135299c",
+    "crates/format/src/lib.rs": "82af75279085807d3494267fb66a5e2a0abbb8f72d2c39d75a3d7db2aac47588"
+  },
+  "production_findings": [],
+  "cargo_runs": 0,
+  "root_or_candidate_source_edits": 0,
+  "new_svg_fix_runtime": "Not exercised: cached executable lacks the candidate SVG boundary correction.",
+  "final_clean_round_claim": false
+}

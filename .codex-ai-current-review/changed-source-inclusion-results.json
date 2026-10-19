@@ -1,0 +1,709 @@
+{
+  "gate": "gate-files-e037-r3",
+  "root_guard": "02d306cd6779d2e1f58e7f93d83b2c6b3cdef584f112d44d0cf9296064eb61d8",
+  "head": "e037064b2d763f77b6927de3ffb70ef5b6c53e3a",
+  "cli_sha256": "45f9a68caf6f40192365c32754af1b985b698b8c81c87fb8c4b5254a0492fb37",
+  "cli_mtime": 1791501754.9061246,
+  "cli_provenance": "Executable and Cargo fingerprint emitted during frozen gate-r3 root build; gate ci.log records CLI compilation. Hash and root guard verified before and after probe. Gate-wide success is not inferred.",
+  "source_sha256": {
+    "crates/engine/src/cmd/place/document.rs": "5b934731a1d4bfe19c113498d4f831ce6b4b52988af6e5b373c3adf64cb4536b",
+    "crates/doc/src/placed_document.rs": "de83b59464bc41a7cc2f1bb990bf9fef0f7396622cc017bd7c07cc8d4135299c",
+    "crates/engine/src/cmd/links.rs": "3c4ca0cde06f892979d3c63f0f0b5817e5b854424ed702e4af90b6800dae6f6b",
+    "crates/engine/src/cmd/fileio/native.rs": "a2bed7a64b3f152319994cf23df7398335f29e8a05e9c617182ad231c1fb058e",
+    "crates/engine/src/cmd/fileio/save.rs": "8b47fbfc420f857841e56105fd87decd5dab4ad90200ad8e140aa33f10e21c05",
+    "crates/engine/src/cmd/fileio/encode.rs": "f86a3e5eee22418ca9a218f341baa5e84da4cbf4654111c315f73cdc20c661f9",
+    "crates/format/src/lib.rs": "82af75279085807d3494267fb66a5e2a0abbb8f72d2c39d75a3d7db2aac47588"
+  },
+  "source_sizes": {
+    "old": 23881,
+    "new": 26135
+  },
+  "source_sha256_fixture": {
+    "old": "b21530e9045866d5578cb81c939bdaa9a787e6b9769147421939b3f9d7040f45",
+    "new": "041ac11dbf7dbd985f038866eca3030a2f0746beb66fb9ce7ab97284ba23a211"
+  },
+  "rows": [
+    {
+      "scenario": "unchanged",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": []
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": []
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": []
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "unchanged",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cold",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": []
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": true,
+      "embedded_bytes": 226,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_cached_old",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imgca55b1cfc3e44131-1",
+      "proxy": false,
+      "embedded_bytes": 23881,
+      "exact_source": "old",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": true,
+      "embedded_bytes": 236,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.serialize",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": false,
+      "embedded_bytes": 26135,
+      "exact_source": "new",
+      "warnings": []
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": true,
+      "embedded_bytes": 236,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.serialize",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": false,
+      "embedded_bytes": 26135,
+      "exact_source": "new",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": true,
+      "embedded_bytes": 236,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.export",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": false,
+      "embedded_bytes": 26135,
+      "exact_source": "new",
+      "warnings": []
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": true,
+      "embedded_bytes": 236,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.export",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": false,
+      "embedded_bytes": 26135,
+      "exact_source": "new",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": true,
+      "embedded_bytes": 236,
+      "exact_source": null,
+      "warnings": []
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.save",
+      "format": "vectorcraft",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": false,
+      "embedded_bytes": 26135,
+      "exact_source": "new",
+      "warnings": []
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": false,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": true,
+      "embedded_bytes": 236,
+      "exact_source": null,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "scenario": "changed_then_update",
+      "command": "document.save",
+      "format": "ai",
+      "includeLinked": true,
+      "placed_metadata_preserved": true,
+      "key": "imge79c2ee8f85bd4ab-1",
+      "proxy": false,
+      "embedded_bytes": 26135,
+      "exact_source": "new",
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    }
+  ],
+  "passed": 48,
+  "findings": [],
+  "cargo_runs": 0,
+  "root_source_edits": 0,
+  "network_actions": 0,
+  "final_clean_round_claim": false,
+  "limits": "Small original single-level source and proxy parent, default Ask When Modified then explicit Update Links; optional preview/PDF content and hashless legacy input are outside this probe.",
+  "cli_fingerprint": {
+    "path": "/mnt/downloads/dev/artcraft/vectorcraft/target/debug/.fingerprint/vectorcraft-cli-9a43c5f3aa4c3c53/bin-vectorcraft-cli.json",
+    "sha256": "796ab9f3b5c33d3dce6441b54c18df5ba465b6024bb1431f4b47f6725d2bd391",
+    "mtime": 1791501755.288126
+  },
+  "scenario_summary": [
+    {
+      "scenario": "unchanged",
+      "include_true_count": 6,
+      "proxy": [
+        false
+      ],
+      "exact_source": [
+        "old"
+      ],
+      "key": "imgca55b1cfc3e44131-1"
+    },
+    {
+      "scenario": "changed_cold",
+      "include_true_count": 6,
+      "proxy": [
+        true
+      ],
+      "exact_source": [
+        "None"
+      ],
+      "key": "imgca55b1cfc3e44131-1"
+    },
+    {
+      "scenario": "changed_cached_old",
+      "include_true_count": 6,
+      "proxy": [
+        false
+      ],
+      "exact_source": [
+        "old"
+      ],
+      "key": "imgca55b1cfc3e44131-1"
+    },
+    {
+      "scenario": "changed_then_update",
+      "include_true_count": 6,
+      "proxy": [
+        false
+      ],
+      "exact_source": [
+        "new"
+      ],
+      "key": "imge79c2ee8f85bd4ab-1"
+    }
+  ]
+}

@@ -1,0 +1,479 @@
+{
+  "source_sha256": "b45d529e4b645a5c22210d6233ba083918b58976b52cb13d9dfa4f310d059f81",
+  "source_size": 23859,
+  "parent_size": 22881,
+  "cli_sha256": "96ddec3800447387d468a518e1993f67eeeeac313ec154a1c81a48fda89570fe",
+  "rows": [
+    {
+      "missing": false,
+      "format": "vectorcraft",
+      "command": "document.export",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": false,
+      "format": "vectorcraft",
+      "command": "document.export",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "vectorcraft",
+      "command": "document.serialize",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": false,
+      "format": "vectorcraft",
+      "command": "document.serialize",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "vectorcraft",
+      "command": "document.save",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": false,
+      "format": "vectorcraft",
+      "command": "document.save",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "template",
+      "command": "document.export",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": false,
+      "format": "template",
+      "command": "document.export",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "template",
+      "command": "document.serialize",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": false,
+      "format": "template",
+      "command": "document.serialize",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "template",
+      "command": "document.save",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": false,
+      "format": "template",
+      "command": "document.save",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "ai",
+      "command": "document.export",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": false,
+      "format": "ai",
+      "command": "document.export",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "ai",
+      "command": "document.serialize",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": false,
+      "format": "ai",
+      "command": "document.serialize",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": false,
+      "format": "ai",
+      "command": "document.save",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": false,
+      "format": "ai",
+      "command": "document.save",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ],
+      "source_bytes_exact": true
+    },
+    {
+      "missing": true,
+      "format": "vectorcraft",
+      "command": "document.export",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": true,
+      "format": "vectorcraft",
+      "command": "document.export",
+      "includeLinked": true,
+      "version": 4,
+      "type": "image",
+      "exact_placed_metadata": false,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": false
+    },
+    {
+      "missing": true,
+      "format": "vectorcraft",
+      "command": "document.serialize",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": true,
+      "format": "vectorcraft",
+      "command": "document.serialize",
+      "includeLinked": true,
+      "version": 4,
+      "type": "image",
+      "exact_placed_metadata": false,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": false
+    },
+    {
+      "missing": true,
+      "format": "vectorcraft",
+      "command": "document.save",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": true,
+      "format": "vectorcraft",
+      "command": "document.save",
+      "includeLinked": true,
+      "version": 4,
+      "type": "image",
+      "exact_placed_metadata": false,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": false
+    },
+    {
+      "missing": true,
+      "format": "template",
+      "command": "document.export",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": true,
+      "format": "template",
+      "command": "document.export",
+      "includeLinked": true,
+      "version": 4,
+      "type": "image",
+      "exact_placed_metadata": false,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": false
+    },
+    {
+      "missing": true,
+      "format": "template",
+      "command": "document.serialize",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": true,
+      "format": "template",
+      "command": "document.serialize",
+      "includeLinked": true,
+      "version": 4,
+      "type": "image",
+      "exact_placed_metadata": false,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": false
+    },
+    {
+      "missing": true,
+      "format": "template",
+      "command": "document.save",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": []
+    },
+    {
+      "missing": true,
+      "format": "template",
+      "command": "document.save",
+      "includeLinked": true,
+      "version": 4,
+      "type": "image",
+      "exact_placed_metadata": false,
+      "proxy": false,
+      "source_preserved": true,
+      "warnings": [],
+      "source_bytes_exact": false
+    },
+    {
+      "missing": true,
+      "format": "ai",
+      "command": "document.export",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": true,
+      "format": "ai",
+      "command": "document.export",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": true,
+      "format": "ai",
+      "command": "document.serialize",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": true,
+      "format": "ai",
+      "command": "document.serialize",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": true,
+      "format": "ai",
+      "command": "document.save",
+      "includeLinked": false,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    },
+    {
+      "missing": true,
+      "format": "ai",
+      "command": "document.save",
+      "includeLinked": true,
+      "version": 4,
+      "type": "placeddocument",
+      "exact_placed_metadata": true,
+      "proxy": true,
+      "source_preserved": true,
+      "warnings": [
+        "saved without PDF content: VectorCraft opens it as before, other apps show empty pages"
+      ]
+    }
+  ]
+}
