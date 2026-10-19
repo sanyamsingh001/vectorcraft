@@ -1,0 +1,11 @@
+--- proposal01/lib.rs
++++ proposal02/lib.rs
+@@ -491,7 +491,7 @@
+ pub fn caret_horizontal_cluster(layout: &TextLayout, text: &str, byte: usize, right: bool) -> usize {
+     use unicode_segmentation::GraphemeCursor;
+     let valid = |b| text.is_char_boundary(b) && GraphemeCursor::new(b, text.len(), true).is_boundary(text, 0).unwrap_or(false);
+-    let to = caret_horizontal_filtered(layout, byte, right, &valid);
++    let to = caret_horizontal_filtered(layout, byte, right, valid);
+     if to == byte || valid(to) {
+         return to;
+     }

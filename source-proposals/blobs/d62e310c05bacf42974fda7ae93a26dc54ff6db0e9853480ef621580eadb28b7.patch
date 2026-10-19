@@ -1,0 +1,1866 @@
+--- a466/transition.UNBOUND.json
++++ 320b/transition.UNBOUND.json
+@@ -3,24 +3,30 @@
+     ".github/dependabot.yml": "100644",
+     "apps/vectorcraft-web/src/api.rs": "100644",
+     "apps/vectorcraft-web/src/saved_files.rs": "100644",
++    "assets/icons/dc-objects-on-path.svg": "100644",
++    "crates/doc/src/objects_on_path.rs": "100644",
+     "crates/engine/src/cmd/fileio/tgaread.rs": "100644",
++    "crates/engine/src/cmd/objects_on_path.rs": "100644",
++    "crates/engine/src/tests_objects_on_path.rs": "100644",
+     "crates/text/src/tests_joiners.rs": "100644",
+     "crates/tools/src/mirror.rs": "100644",
++    "crates/tools/src/objects_on_path.rs": "100644",
++    "crates/ui-egui/src/dialogs/live_paint_selection.rs": "100644",
+     "crates/ui-egui/src/i18n/ka.tsv": "100644"
+   },
+-  "after_head": "a466625c8987550635cda951ebf36e08e1e80a56",
++  "after_head": "320bffb8adede9eeff0efcd22145fe5a3128bf6e",
+   "after_manifest": {
+-    "bytes": 194308,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/completion-01/runtime-source-manifest.json",
+-    "sha256": "c61b68680ad3a7afcb5a6f583a8675163cb830b2f59d341a4c40b01a95beb48c"
+-  },
+-  "after_tree": "9f7a5d09419f9b451c38aaf2a2bf9e63a13e921e",
++    "bytes": 194999,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/runtime-source-manifest.json",
++    "sha256": "b13eda7a7d1358fe34b3dfe7a4479dad7944ab50239a7bc420b39125e0681623"
++  },
++  "after_tree": "e2ccdaf3c6a13a59c87b78498ef63d2a0c5c4e36",
+   "assertion_contract": {
+-    "bytes": 9009,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/ci-acceptance-contract.json",
+-    "sha256": "6a5943fb3580b960c83547210b4ddd656148b070ac1a930fb9a4b267bff51222"
+-  },
+-  "base_head_tree": "c48fefed8c022e684b7d2076aba442739df7a536",
++    "bytes": 10202,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/ci-acceptance-contract.json",
++    "sha256": "23768c16716dd03059e6a22560238e0a042bb3dac24235226643ed123399bcaa"
++  },
++  "base_head_tree": "15653caa6007b91c8cc8fbe08aed5135802b5f4c",
+   "before_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+   "before_index_sha256": "45395712f142352d0ccc53b101dfa656ebe1a403d5b12a20f0f958c9792dba8a",
+   "before_manifest": {
+@@ -30,16 +36,16 @@
+   },
+   "before_tree": "06dff1aef861a800cee2b07da30146c974b03d80",
+   "cache_input_binding": {
+-    "bytes": 2976,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/cache-input-presence.json",
+-    "sha256": "4438055cf2e84bb65eb0bec946c9f39d2056cdab5b6f0a47cb1c2b579a13a8d9"
++    "bytes": 2011,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/cache-input-presence.json",
++    "sha256": "882e5b0efe2a565c265286881a67cd3b18034311d1f47bee30f94ee8adb6b02a"
+   },
+   "change_counts": {
+-    "added": 7,
+-    "modified": 143,
++    "added": 13,
++    "modified": 167,
+     "removed": 0
+   },
+-  "changed_path_count": 150,
++  "changed_path_count": 180,
+   "changed_paths": [
+     {
+       "after_mode": "100644",
+@@ -47,7 +53,7 @@
+       "before_mode": null,
+       "before_sha256": null,
+       "path": ".github/dependabot.yml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/.github/dependabot.yml"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/.github/dependabot.yml"
+     },
+     {
+       "after_mode": "100644",
+@@ -55,7 +61,7 @@
+       "before_mode": "100644",
+       "before_sha256": "67915c87f1c2cdf7fc6bfe9a74acb4348cb5bb51738927e7f39aa931a8a0d238",
+       "path": ".github/workflows/freebsd.yml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/.github/workflows/freebsd.yml"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/.github/workflows/freebsd.yml"
+     },
+     {
+       "after_mode": "100644",
+@@ -63,7 +69,15 @@
+       "before_mode": "100644",
+       "before_sha256": "099a0006e7d75ff0f5dc951e3de61bfd68199b7f70460458177bcb14e5254e9f",
+       "path": ".github/workflows/release.yml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/.github/workflows/release.yml"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/.github/workflows/release.yml"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "b5984bf651ed6c7bbc054571500882b7c192d35a996aaa9cc88f9a2142e7f41e",
++      "before_mode": "100644",
++      "before_sha256": "aff82a234214efafae8f7f0037c4901dd23a56535326c589cd390dd4eb62ca40",
++      "path": "ASSETS.md",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/ASSETS.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -71,7 +85,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5d5f0acc103b5c5a53a54a288d460cda495d3b9704668993d4e6b2937ae7a718",
+       "path": "Cargo.lock",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/Cargo.lock"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/Cargo.lock"
+     },
+     {
+       "after_mode": "100644",
+@@ -79,7 +93,7 @@
+       "before_mode": "100644",
+       "before_sha256": "0275eb08a9940dd61462b3f3a5b8f1854770a3d14e4cc305b7e2b648fe30c2b8",
+       "path": "Cargo.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/Cargo.toml"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/Cargo.toml"
+     },
+     {
+       "after_mode": "100644",
+@@ -87,7 +101,7 @@
+       "before_mode": "100644",
+       "before_sha256": "edc3dd77d924e4c66b52636b047aed024a5583f788ad3a359849f14d20c93caa",
+       "path": "README.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/README.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/README.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -95,7 +109,7 @@
+       "before_mode": "100644",
+       "before_sha256": "d484ebcab559c9429fdeba6e68df7dbd50ceeeaa6d85faf0956288bff05a0726",
+       "path": "ROADMAP.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/ROADMAP.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/ROADMAP.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -103,7 +117,7 @@
+       "before_mode": "100644",
+       "before_sha256": "d2174cc08826774dfb56a8cf2f2a3e7b2a73995a3ce553fe8dac257906c06b56",
+       "path": "apps/vectorcraft-cli/src/main.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-cli/src/main.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-cli/src/main.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -111,7 +125,7 @@
+       "before_mode": "100644",
+       "before_sha256": "1d20fd31bc9bf3955bc9421cd56135cc109ae6516acf6d7b92b65c935837b6ba",
+       "path": "apps/vectorcraft-cli/tests/cli.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-cli/tests/cli.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-cli/tests/cli.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -119,7 +133,7 @@
+       "before_mode": "100644",
+       "before_sha256": "070d35e3268405ff9f8212dd4a68687d2e53bd2a4830e5ba0bf5a42e358437cd",
+       "path": "apps/vectorcraft-web/Cargo.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-web/Cargo.toml"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-web/Cargo.toml"
+     },
+     {
+       "after_mode": "100644",
+@@ -127,7 +141,7 @@
+       "before_mode": null,
+       "before_sha256": null,
+       "path": "apps/vectorcraft-web/src/api.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-web/src/api.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-web/src/api.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -135,7 +149,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a9b4c96848fec11d48c9ad490e1364a41c9e9baa1edc368e6e36850155ced2d8",
+       "path": "apps/vectorcraft-web/src/main.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-web/src/main.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-web/src/main.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -143,7 +157,7 @@
+       "before_mode": null,
+       "before_sha256": null,
+       "path": "apps/vectorcraft-web/src/saved_files.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-web/src/saved_files.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-web/src/saved_files.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -151,7 +165,15 @@
+       "before_mode": "100644",
+       "before_sha256": "deaee63f150d90249347098a8b6728dab0590c3fcfb40f88cfbb942faaf6cf2a",
+       "path": "apps/vectorcraft-web/src/web.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/apps/vectorcraft-web/src/web.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/apps/vectorcraft-web/src/web.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "70db50a4b337dc6304fb46de989dee020cb04eb68c5b3d5ae35932c0e20c34f6",
++      "before_mode": null,
++      "before_sha256": null,
++      "path": "assets/icons/dc-objects-on-path.svg",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/assets/icons/dc-objects-on-path.svg"
+     },
+     {
+       "after_mode": "100644",
+@@ -159,7 +181,7 @@
+       "before_mode": "100644",
+       "before_sha256": "f6c6cfc0dea33b9ad422ef24c1a5cba9b4fa5a36069d0b2692f3732482c3c570",
+       "path": "crates/color/src/cms/icc.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/color/src/cms/icc.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/color/src/cms/icc.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -167,15 +189,23 @@
+       "before_mode": "100644",
+       "before_sha256": "ca748a669d7c000c9e30bdfe423ed51429443ab8ccadfb37f55e8db86cfd6b48",
+       "path": "crates/color/src/cms/tests_icc.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/color/src/cms/tests_icc.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "8b5fa5a2f93ec2df0b16f3ee565a7b8287d1b1a7d4724cc760e1325faccbd142",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/color/src/cms/tests_icc.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "44b9525294e8e723deea7d80f9c793a4cffe240703567b601e973c0e2f58c5a7",
+       "before_mode": "100644",
+       "before_sha256": "cfafa55e4a4dda2a1e9c637673418dcdb9a5787d0310cc831e3fc509c9e5ce00",
+       "path": "crates/doc/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/doc/src/lib.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/doc/src/lib.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "0a5347f44e68d6f0276fb65ff6dafa016c729c2eef55d3dcd372377c3f7cfc7b",
++      "before_mode": "100644",
++      "before_sha256": "9e1fde6c8ef128a0d2e17b72270abb2d769530c847ef49905f70ae52b871294b",
++      "path": "crates/doc/src/mem.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/doc/src/mem.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -183,7 +213,23 @@
+       "before_mode": "100644",
+       "before_sha256": "517c7b2a03f24e53f09919d07503bdd12f1a8671d54cc3c6f7c48b377ab43a1a",
+       "path": "crates/doc/src/metadata.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/doc/src/metadata.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/doc/src/metadata.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "1a59828683c14bf7a2354aa3d22cc01619bec377eb8f93f482b156344b857d39",
++      "before_mode": "100644",
++      "before_sha256": "49ad5e9957147012cea6c2ba26a43186b0a13f73f6a32a31a499497a5b70940d",
++      "path": "crates/doc/src/node.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/doc/src/node.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "650247615498947e6fb173003c3e0d85c85c8fd884e01f242ab25f279dfeb72c",
++      "before_mode": null,
++      "before_sha256": null,
++      "path": "crates/doc/src/objects_on_path.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/doc/src/objects_on_path.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -191,7 +237,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a77677e6fb1a10795e88e95e1518563a9c6e6425b6d5b9214cf784447ccd1463",
+       "path": "crates/doc/src/tests_units.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/doc/src/tests_units.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/doc/src/tests_units.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -199,7 +245,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a7c42644de32cfc4801427435ee46ae2483ef7a8d93ffc669e85faeb15806e82",
+       "path": "crates/effects/src/pixel/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/effects/src/pixel/mod.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/effects/src/pixel/mod.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -207,7 +253,7 @@
+       "before_mode": "100644",
+       "before_sha256": "cb0a6440ac1957e2c9f7333c3e5a868ab26df82ac9380fdd65c04b324baaf7b2",
+       "path": "crates/effects/src/pixel/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/effects/src/pixel/tests.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/effects/src/pixel/tests.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -215,7 +261,23 @@
+       "before_mode": "100644",
+       "before_sha256": "4cd1a09864dec1d7c5fe4d9134540d29f4148c2e60fdc40e3319ff381beeab24",
+       "path": "crates/effects/src/raster.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/effects/src/raster.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/effects/src/raster.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "38402ab3f7231624c16ec9c523e2a1d41005b52ec282fc49428cc86ced62ecf6",
++      "before_mode": "100644",
++      "before_sha256": "d30b2adcb86f8c08b3bacaf693c980b3874b341e1260c028b28f5775a1377080",
++      "path": "crates/effects/src/solids.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/effects/src/solids.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "260533085b6ec678f3341b88c415619dd8b518b224a49e8ba27972b38a4f8006",
++      "before_mode": "100644",
++      "before_sha256": "22aadfcb77f69b69865591f57ec2186e0bbd88358491486ce175b6e7c2cd70d4",
++      "path": "crates/effects/src/tests_solids.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/effects/src/tests_solids.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -223,7 +285,7 @@
+       "before_mode": "100644",
+       "before_sha256": "9fc8ba3428e75c620903d79a4231cab1a5c30b3d835561cb3651d52dbef915b7",
+       "path": "crates/engine/src/cmd/draw2.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/draw2.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/draw2.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -231,7 +293,7 @@
+       "before_mode": "100644",
+       "before_sha256": "8de3f6130ec6a5d122e6ed01a699df81e98c9879144c2c372dfe9929e830f9b0",
+       "path": "crates/engine/src/cmd/fileio/eps.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/eps.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/eps.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -239,7 +301,7 @@
+       "before_mode": "100644",
+       "before_sha256": "b5380fe092ebd076679a748cc7d353fed9bf9eaf9c0a4c752615b033f2552328",
+       "path": "crates/engine/src/cmd/fileio/legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/legacy_ai.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/legacy_ai.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -247,7 +309,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a3bf21ab382b24440fac604bdc1c28a0008943d0caec3f3905e1a09164c791db",
+       "path": "crates/engine/src/cmd/fileio/load.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/load.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/load.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -255,7 +317,7 @@
+       "before_mode": "100644",
+       "before_sha256": "db74d3fb5b6dbb488ef0996dc9033dcb8930523b364caf241e2fb7b86418e54c",
+       "path": "crates/engine/src/cmd/fileio/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/mod.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/mod.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -263,7 +325,7 @@
+       "before_mode": "100644",
+       "before_sha256": "d3405c459530a30d11c5179caacb79a365a7621ae972360c049e9511eaf81902",
+       "path": "crates/engine/src/cmd/fileio/pdf.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/pdf.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/pdf.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -271,7 +333,7 @@
+       "before_mode": "100644",
+       "before_sha256": "592b026140df26910bc27ca0adbbebedbc68bf9542a17ad28165a436461deaba",
+       "path": "crates/engine/src/cmd/fileio/pdfimport.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/pdfimport.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/pdfimport.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -279,7 +341,7 @@
+       "before_mode": "100644",
+       "before_sha256": "2d4d5aebece3444d3b73d3a80871424bd855c02218eb270b5028f850d0838915",
+       "path": "crates/engine/src/cmd/fileio/screens.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/screens.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/screens.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -287,7 +349,7 @@
+       "before_mode": "100644",
+       "before_sha256": "abc02b7db8a14b329cc2647591e70eec5f7b2322b8204c6ba4f8bdb72a8dd67f",
+       "path": "crates/engine/src/cmd/fileio/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tests.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tests.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -295,7 +357,7 @@
+       "before_mode": "100644",
+       "before_sha256": "f1dfbcfadc45c4010daa6156e5ad261c91d9cfa0c75fe335198a0ce6faade041",
+       "path": "crates/engine/src/cmd/fileio/tests_aiimport.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tests_aiimport.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tests_aiimport.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -303,7 +365,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c566fadbf17b87c7c3877c877e3ae933a685903665c1729350b5ba1837d3fff9",
+       "path": "crates/engine/src/cmd/fileio/tests_epsimport.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tests_epsimport.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tests_epsimport.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -311,7 +373,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c121285d87680b19429b751d537eb94db811cc6a53fd91136e8e08c8a651818b",
+       "path": "crates/engine/src/cmd/fileio/tests_pdfedit.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tests_pdfedit.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tests_pdfedit.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -319,7 +381,7 @@
+       "before_mode": "100644",
+       "before_sha256": "e77d2ed8192601ea57d0c2d8086cf1be45e705768e317f33cc9517183695ff98",
+       "path": "crates/engine/src/cmd/fileio/tests_pdfimport.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tests_pdfimport.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tests_pdfimport.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -327,7 +389,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5351b2fa8581ce8ebbe8c169a65aa8a47239cb02d2c78b7c62611fcb04d0b02d",
+       "path": "crates/engine/src/cmd/fileio/tests_tiffbmp.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tests_tiffbmp.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tests_tiffbmp.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -335,7 +397,7 @@
+       "before_mode": null,
+       "before_sha256": null,
+       "path": "crates/engine/src/cmd/fileio/tgaread.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/fileio/tgaread.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/fileio/tgaread.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -343,15 +405,23 @@
+       "before_mode": "100644",
+       "before_sha256": "7459e7606033364b83f455c7bfdc84cbb7631345666c00cf436ecb990dfc9eeb",
+       "path": "crates/engine/src/cmd/menucmds.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/menucmds.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "79aed0d8eae1f1357bd4ef9efdc17e2f5aaecf170059e381f1efe1e981e7f073",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/menucmds.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "3afac818d08d859ad226b2f48f2a72bf45b3069840f1ee0ad32fd477edaef021",
+       "before_mode": "100644",
+       "before_sha256": "e0bdd2e16cc16fb1e2486bd9edfcc5456a86303bbf41c450e76d819d231c37a9",
+       "path": "crates/engine/src/cmd/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/mod.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/mod.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "16e33fc0444391538d1813a0c19ae59576287911f1280316989cada16a6da632",
++      "before_mode": null,
++      "before_sha256": null,
++      "path": "crates/engine/src/cmd/objects_on_path.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/objects_on_path.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -359,7 +429,7 @@
+       "before_mode": "100644",
+       "before_sha256": "6c7decc538a09c5e3cd48170e5bd835ef33b48608784f670873905d8d2cf04a2",
+       "path": "crates/engine/src/cmd/package.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/package.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/package.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -367,7 +437,7 @@
+       "before_mode": "100644",
+       "before_sha256": "fea6e2d3cd23feafcb9b668c9cf2a30bb1986285a82050681312f73c4bf7e12c",
+       "path": "crates/engine/src/cmd/path.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/path.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/path.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -375,7 +445,7 @@
+       "before_mode": "100644",
+       "before_sha256": "6284577aa2d79c092222d44f38905071a2784e1d2a33714451b6d68c0b9a33ed",
+       "path": "crates/engine/src/cmd/select.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/select.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/select.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -383,7 +453,15 @@
+       "before_mode": "100644",
+       "before_sha256": "661b8cbfd0b95dcff097c03ec71dfe2a42dc733094731aebbaff86ddbe080dab",
+       "path": "crates/engine/src/cmd/typemenu.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/typemenu.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/typemenu.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "6c26d59e46558abd0b9413b70546974f3a03d26fac7e8af60812e1f795467bac",
++      "before_mode": "100644",
++      "before_sha256": "81959d97183870cbdffee0825a692d1242cc7795257015a273daaa212076cbbc",
++      "path": "crates/engine/src/cmd/variablecmds.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/variablecmds.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -391,15 +469,15 @@
+       "before_mode": "100644",
+       "before_sha256": "82f41a3450161a8166a3b64aac3530557e505b9a24716a3cda63bc503a9f4086",
+       "path": "crates/engine/src/cmd/wand.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/cmd/wand.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "8fd62cdcef39f1096163fa7d0ea825af24ed1a935b262e24c4de100b78937f78",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/cmd/wand.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "de9e4d4a2bee04ced1f7fcd2947bd426410fb53e0bff571378db4a8daced45a8",
+       "before_mode": "100644",
+       "before_sha256": "c8cc81d64e9bf0c489928f7a2fa7fa217b828d91bffc144c1352e0a5b14faf87",
+       "path": "crates/engine/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/lib.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/lib.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -407,7 +485,7 @@
+       "before_mode": "100644",
+       "before_sha256": "31e115323310d786d0219be8236ddc0e9c2de46a542d2ecac4ebe4fa40f92c42",
+       "path": "crates/engine/src/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -415,7 +493,7 @@
+       "before_mode": "100644",
+       "before_sha256": "7fbac8f02b19d0130132ed188085f3d7754179d7f6d6c568edee72faabbffd17",
+       "path": "crates/engine/src/tests_draw2.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_draw2.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_draw2.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -423,7 +501,7 @@
+       "before_mode": "100644",
+       "before_sha256": "07cd7b55cf56c04edb929e256d0035abc6ee3c66afc01a2528ec4c9bf67a5fe9",
+       "path": "crates/engine/src/tests_emptytype.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_emptytype.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_emptytype.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -431,7 +509,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5e9403f4b2a1f77b4dc853e76d7fa16b4107348050b1fd6937650f1156b0cbb5",
+       "path": "crates/engine/src/tests_fileinfo.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_fileinfo.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_fileinfo.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -439,7 +517,7 @@
+       "before_mode": "100644",
+       "before_sha256": "4f2e01d226f3e06ba8f65df570b74ff17a99595147de7c4dd103d2292ab55872",
+       "path": "crates/engine/src/tests_legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_legacy_ai.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_legacy_ai.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -447,7 +525,7 @@
+       "before_mode": "100644",
+       "before_sha256": "9b0579cd251c4af71f56ecb6f0ee30342dec26e116a6456126159db69b2f78a4",
+       "path": "crates/engine/src/tests_link_paths.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_link_paths.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_link_paths.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -455,7 +533,7 @@
+       "before_mode": "100644",
+       "before_sha256": "102520d1ad1ef34841869874f9aa7a16fc47d81a67d87c3e7713c32841ca832d",
+       "path": "crates/engine/src/tests_links.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_links.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_links.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -463,7 +541,7 @@
+       "before_mode": "100644",
+       "before_sha256": "4f532547739e4cafd34575bba4f4cb5f26347a323c37a6b65464eb711cc14c8d",
+       "path": "crates/engine/src/tests_menucmds.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_menucmds.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_menucmds.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -471,7 +549,15 @@
+       "before_mode": "100644",
+       "before_sha256": "9d39785312b84a0d649e46fb1dd433538bde83e837aafa942bc06c08552236f9",
+       "path": "crates/engine/src/tests_nativefile.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_nativefile.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_nativefile.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "aad54c9c516caf472d97ba9dd497027c4e45946fcee227fc80bb7255fd42e2d3",
++      "before_mode": null,
++      "before_sha256": null,
++      "path": "crates/engine/src/tests_objects_on_path.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_objects_on_path.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -479,7 +565,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5b541a6b250a958db321c3260ddc0ca36fb691c7b53a8e7d8f30ae3ba5e890e3",
+       "path": "crates/engine/src/tests_opacitymask.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_opacitymask.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_opacitymask.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -487,7 +573,7 @@
+       "before_mode": "100644",
+       "before_sha256": "4f24ccbadacc8df82d021548551a80ea25d0b3e9f6d5c8f1fc57e96f12b61043",
+       "path": "crates/engine/src/tests_pattern.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_pattern.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_pattern.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -495,7 +581,15 @@
+       "before_mode": "100644",
+       "before_sha256": "a624c3c5947a307e49329061534d9181273b39754265bb992e1d85728a7615e0",
+       "path": "crates/engine/src/tests_prefs.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/src/tests_prefs.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_prefs.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "5edd5fe5ecad466aa8028af65568313c80cf34ebcdb9cb2da0af0c1efa5de4f0",
++      "before_mode": "100644",
++      "before_sha256": "8662c10f43f3e4d21e4ee69e970ea514f4a6b91cc50cd9cbaca079ab0a79a6f4",
++      "path": "crates/engine/src/tests_variables.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/src/tests_variables.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -503,7 +597,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5eabcf875112e7260351943130386b15a58e61c6f13c0f90b581a93777e88bf4",
+       "path": "crates/engine/tests/import_fuzz.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/engine/tests/import_fuzz.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/engine/tests/import_fuzz.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -511,7 +605,7 @@
+       "before_mode": "100644",
+       "before_sha256": "be79df0bb8c90970e1bfdc44e4bf4e5f3b590fdf59a03841b0999ee47693536f",
+       "path": "crates/eps/src/import/ai/read.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/import/ai/read.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/import/ai/read.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -519,7 +613,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c916759288c89e522397c450ad8337caf5baa61386ab4b10413697a89d8f8d42",
+       "path": "crates/eps/src/import/ai/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/import/ai/tests.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/import/ai/tests.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -527,7 +621,7 @@
+       "before_mode": "100644",
+       "before_sha256": "e9cd535ee20083e551bb3c006dc544b728e28dceb4c2e489c863414849622e7f",
+       "path": "crates/eps/src/import/ate.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/import/ate.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/import/ate.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -535,7 +629,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5b9e73b90a13c34065db58201f12716c31de156515adde200f746049c4a6b723",
+       "path": "crates/eps/src/import/data.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/import/data.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/import/data.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -543,7 +637,7 @@
+       "before_mode": "100644",
+       "before_sha256": "2c0e19d1bfecaf8d84013dea9a7090d59f6d77bd2f5deaa78045d2bc262f4f4f",
+       "path": "crates/eps/src/import/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/import/mod.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/import/mod.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -551,7 +645,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5d82931a4b5afbf046d3c2324616be1027faf8d0bd590e98878c71d3a2d77aac",
+       "path": "crates/eps/src/import/tests_images.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/import/tests_images.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/import/tests_images.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -559,7 +653,7 @@
+       "before_mode": "100644",
+       "before_sha256": "5a0c28d9b4aa046e1cf07e33ff13ba525af12e80932452218aec3033ab669770",
+       "path": "crates/eps/src/legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/legacy_ai.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/legacy_ai.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -567,7 +661,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c89ad433de31d61ce7cb347d351b272de880d96ca00fa70b1a06282d077fae30",
+       "path": "crates/eps/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/lib.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/lib.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -575,7 +669,7 @@
+       "before_mode": "100644",
+       "before_sha256": "1b06c4771923641af09f5384be866d50166ce90a81faeaaae706a18e8107ea4d",
+       "path": "crates/eps/src/tests_legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/eps/src/tests_legacy_ai.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/eps/src/tests_legacy_ai.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -583,7 +677,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a88814542ca600391f51c6e3a9de4a6202488e65f7f8997e78247c235511a211",
+       "path": "crates/geom/src/path.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/geom/src/path.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/geom/src/path.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -591,7 +685,7 @@
+       "before_mode": "100644",
+       "before_sha256": "92f9c1a2e726517d1e95af564c608494570854fb879b5bbf604216b7e014903d",
+       "path": "crates/mcp/src/tests_fileio.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/mcp/src/tests_fileio.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/mcp/src/tests_fileio.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -599,7 +693,7 @@
+       "before_mode": "100644",
+       "before_sha256": "0866c9ffd3cba0a88903f82f87e777ac66b6ad2087326fc0a108e029e0f668ac",
+       "path": "crates/mcp/src/tools.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/mcp/src/tools.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/mcp/src/tools.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -607,7 +701,7 @@
+       "before_mode": "100644",
+       "before_sha256": "ba106b135f9d26c8ebff76a15a0eff10b80c1bd04b884525750255c12d30565e",
+       "path": "crates/pdf/src/editing.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/pdf/src/editing.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/pdf/src/editing.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -615,7 +709,7 @@
+       "before_mode": "100644",
+       "before_sha256": "7f10eaeda3dae31558cffc3c1773bf37bfd295f2b037ac1eb6beb2176fd5292f",
+       "path": "crates/pdf/src/export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/pdf/src/export.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/pdf/src/export.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -623,7 +717,7 @@
+       "before_mode": "100644",
+       "before_sha256": "d0de585a8c5962e7d99923269109ed57d90209610b773e7bcc8f09db26b48f21",
+       "path": "crates/pdf/src/print/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/pdf/src/print/mod.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/pdf/src/print/mod.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -631,7 +725,7 @@
+       "before_mode": "100644",
+       "before_sha256": "312d58f7b7bf414c2707406717ba61b8fddca720973e011ece5a3b8c2d133e63",
+       "path": "crates/pdf/src/tests_editing.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/pdf/src/tests_editing.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/pdf/src/tests_editing.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -639,7 +733,7 @@
+       "before_mode": "100644",
+       "before_sha256": "d5b5b8ca3911915dd2dbd7985d09f2ba7f62938ad0075969042f8dd3443ddc5a",
+       "path": "crates/pdf/src/tests_marks.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/pdf/src/tests_marks.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/pdf/src/tests_marks.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -647,7 +741,7 @@
+       "before_mode": "100644",
+       "before_sha256": "85083efc5fe8686ef163915074f61f2b6a7d997ffe89324ac563221638d20b12",
+       "path": "crates/render/src/fx.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/render/src/fx.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/render/src/fx.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -655,7 +749,7 @@
+       "before_mode": "100644",
+       "before_sha256": "f3023d8c1f37c6e938f0f4df534075966e69278715b35efbc493c76f07e073ba",
+       "path": "crates/render/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/render/src/lib.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/render/src/lib.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -663,7 +757,7 @@
+       "before_mode": "100644",
+       "before_sha256": "fe7e87d0f6f395dab5fd76934ae56e24c698fc0fceb954a490af7ce574d51981",
+       "path": "crates/render/src/tests_alternate.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/render/src/tests_alternate.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/render/src/tests_alternate.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -671,7 +765,7 @@
+       "before_mode": "100644",
+       "before_sha256": "06de9ecbe9d5bc9ef4ab70e761a727a869e2530263b6e7c94b590b18622e2ed7",
+       "path": "crates/render/src/tests_fontchange.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/render/src/tests_fontchange.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/render/src/tests_fontchange.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -679,7 +773,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a54742189336079dd9574339071e62da39a25ba88fcc7aecff946737437723e2",
+       "path": "crates/svg/src/export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/svg/src/export.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/svg/src/export.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -687,7 +781,7 @@
+       "before_mode": "100644",
+       "before_sha256": "9930d97341b15b7f50cb045de2fff9de43ad4cc74070f1bf40a4919134d78546",
+       "path": "crates/svg/src/import/fx.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/svg/src/import/fx.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/svg/src/import/fx.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -695,7 +789,7 @@
+       "before_mode": "100644",
+       "before_sha256": "25fc72fc59abc1ac45cb01bddce89db431ca98347e67143299236366182217f4",
+       "path": "crates/svg/tests/font_weights.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/svg/tests/font_weights.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/svg/tests/font_weights.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -703,7 +797,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c9b690a259e5be49867b69609f9687bb3ecb70753c0d1d53f6353275725b65f6",
+       "path": "crates/text/src/craft_fonts.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/src/craft_fonts.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/src/craft_fonts.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -711,7 +805,7 @@
+       "before_mode": "100644",
+       "before_sha256": "7f942e2a698592a62ec9d6d44f29282a4113d41259847c418c5f71719edff2be",
+       "path": "crates/text/src/fontdb.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/src/fontdb.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/src/fontdb.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -719,7 +813,7 @@
+       "before_mode": "100644",
+       "before_sha256": "289782f35e9c1b9cd705e66f4069396fa79232648b4636fdad3eb7625f178f5a",
+       "path": "crates/text/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/src/lib.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/src/lib.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -727,7 +821,7 @@
+       "before_mode": "100644",
+       "before_sha256": "bc28a0ed42354d9efeeeaa5cdb6cc9e073b68588cef0246bca3384eb220386c1",
+       "path": "crates/text/src/shape.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/src/shape.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/src/shape.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -735,7 +829,7 @@
+       "before_mode": null,
+       "before_sha256": null,
+       "path": "crates/text/src/tests_joiners.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/src/tests_joiners.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/src/tests_joiners.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -743,7 +837,7 @@
+       "before_mode": "100644",
+       "before_sha256": "67b8698078410e6a887adb1f62731e1b68d3f0ddf9e3312a9a06207fd7310a1e",
+       "path": "crates/text/src/tests_sysfonts.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/src/tests_sysfonts.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/src/tests_sysfonts.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -751,15 +845,55 @@
+       "before_mode": "100644",
+       "before_sha256": "fcd50b1d5b9449c03a694bb0dbdc1b6e5114e33673a9d0a595774bee2318d885",
+       "path": "crates/text/web-fonts.txt",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/text/web-fonts.txt"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "9545caf10b4dbfc4219ba4b6527fcac9bb3a9f989952658d93978ac8734e6272",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/text/web-fonts.txt"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "a8d425599d06148d9a9a9e69eb080e70b0c37bdc45c8a1a71b1f9f7ba0db714a",
++      "before_mode": "100644",
++      "before_sha256": "a1f064be7019f151e430628225d22b5753e71600454169787a2635307ad722ff",
++      "path": "crates/three-d/src/lib.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/three-d/src/lib.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "2157bf9e105b8f998e64bd2c37b09f72c6dc82d3c9dd2bc9e5a6dbfa0e8b7fbd",
++      "before_mode": "100644",
++      "before_sha256": "3925104adc151493cf4389abb74c828766395cef2622b39d48864f4cbca23b45",
++      "path": "crates/three-d/src/solid.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/three-d/src/solid.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "e60e255b96911b50ae2f5fdf455e3f085a8b2a60aa9f4dfe7f48f03e9d7d2ed5",
++      "before_mode": "100644",
++      "before_sha256": "fb9b3b6b95f43b0b9dfe725ec985e565468a272efe6cb61a41ea27769d110e2e",
++      "path": "crates/three-d/src/tests_solid.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/three-d/src/tests_solid.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "7af86905f6ef99413436293b8a520cd7fe298d3dbe323ad2554f56afa89e65ce",
++      "before_mode": "100644",
++      "before_sha256": "7d0e6b6e7a5428f97c32e493f5566db0d8ccdadacb6b116a0009953c058016a7",
++      "path": "crates/tools/src/builder.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/builder.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "e7e5ae519dbc5d18fa64e618b587ff5d42e5ce8a125874fa1a771389d99747d1",
++      "before_mode": "100644",
++      "before_sha256": "c3f80b3d021ca2629710f85715ccf1be14cd1df9057a28a90da4863bae799c74",
++      "path": "crates/tools/src/catalog.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/catalog.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "4b7fda6d2abfa80ce4f2ea8fcbe3021d5eb8ce2be229bc471b0a4aec3a6b2ea3",
+       "before_mode": "100644",
+       "before_sha256": "b9e0ecdd8b738428ff4eec56785beaee4b6a204f8640e4e5bffe7db87727afee",
+       "path": "crates/tools/src/cursors.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/cursors.toml"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/cursors.toml"
+     },
+     {
+       "after_mode": "100644",
+@@ -767,15 +901,15 @@
+       "before_mode": "100644",
+       "before_sha256": "c23702a357b9f094539e5b6f73d47faf43bec5451df4e69f866091e0cc72e22b",
+       "path": "crates/tools/src/draw2/gesture.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/draw2/gesture.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "afea94ee99791d85e7a2a50619dd125e395c73df2e15c1057da74618d9bb1b2f",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/draw2/gesture.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "686db34697613708e82a55b2391625cfcfd14e07ad05c47e09581dd74211bf2b",
+       "before_mode": "100644",
+       "before_sha256": "baf0e0a259ea322c7dfce3385aada0a2dca6d72fe9c91b4494d4b45f47349f2e",
+       "path": "crates/tools/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/lib.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/lib.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -783,7 +917,15 @@
+       "before_mode": null,
+       "before_sha256": null,
+       "path": "crates/tools/src/mirror.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/mirror.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/mirror.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "b9254ec4be9dc533f4860f0a85046bb23a4caef3f13fcfab5e6ab7264d8957f4",
++      "before_mode": null,
++      "before_sha256": null,
++      "path": "crates/tools/src/objects_on_path.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/objects_on_path.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -791,7 +933,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c27d15ab3356cf1db1449b9844a46e77ce7e00c39d7b1c7d4ecb1c2e06ef5eee",
+       "path": "crates/tools/src/rulerguide.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/rulerguide.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/rulerguide.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -799,7 +941,15 @@
+       "before_mode": "100644",
+       "before_sha256": "adf676523c9c9850fe75fe2798f1fc7bec0cd9b88b762a345dc81c39d6581831",
+       "path": "crates/tools/src/select.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/select.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/select.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "74e1f8c9b991c2b096609ae16963c9b8f71541d6424dfe79a6bb3c57ff625c69",
++      "before_mode": "100644",
++      "before_sha256": "744eace57756c901984b68b33c9346cb050cc0a85640fdd677d2109d14e8ed61",
++      "path": "crates/tools/src/settings.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/settings.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -807,7 +957,7 @@
+       "before_mode": "100644",
+       "before_sha256": "c137876ec463ccd03a81d4eaea65c163ad745e28116ee08b3df128fb62c481c6",
+       "path": "crates/tools/src/text.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/text.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/text.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -815,15 +965,15 @@
+       "before_mode": "100644",
+       "before_sha256": "466a0ed42c39d9011d01dcfc0dc9697de4f1ffac285b452a5434b7f6b11ffc7e",
+       "path": "crates/tools/src/text_tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/tools/src/text_tests.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "19479a7525e4a99577cd5d59e46d99b195c3bbb7ac60ebc1b46ae0462f7b069a",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/tools/src/text_tests.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "69649816e974b89d62b552358624e7d9040cb67d53c1a27ae2159aa1ecfb8950",
+       "before_mode": "100644",
+       "before_sha256": "f2600a0013f315cb33b4981c1f0256ea473ec27cc8b55ab9762d81c321750c83",
+       "path": "crates/ui-egui/src/canvas.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/canvas.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/canvas.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -831,15 +981,31 @@
+       "before_mode": "100644",
+       "before_sha256": "1c9c52565d345af25242fdd21486b633c67f6decce05481ec44dbc5dc72fbac5",
+       "path": "crates/ui-egui/src/chrome.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/chrome.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "f81729f2f56ecf60b77e2a48c4d410dcd3793013663251eea25c6586c462c7fa",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/chrome.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "6a201ec3812cbb3675a3b56d0211031bebcbdde993012f671398d05fb95d8e7a",
+       "before_mode": "100644",
+       "before_sha256": "11b4f8845cc1955a7337b2c3affc4a478166624ad2c05c65cf4d402fd5af5b0e",
+       "path": "crates/ui-egui/src/cursors.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/cursors.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/cursors.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "3430e143d08eefa04809c4f9fdbdec6c35d0e253cc71c06cbc1893074ed9d4b1",
++      "before_mode": "100644",
++      "before_sha256": "3d8dcbda3c7913f3f4b2ba318ad896c160a7f273ae692d7e8ecec7239ad290e3",
++      "path": "crates/ui-egui/src/dialogs/layers_panel_options.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/layers_panel_options.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "32b9c51f92ab19cdb95e2019bb419b7ca9fed2638f3bf31b8ce9dce866e6d2f1",
++      "before_mode": null,
++      "before_sha256": null,
++      "path": "crates/ui-egui/src/dialogs/live_paint_selection.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/live_paint_selection.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -847,7 +1013,15 @@
+       "before_mode": "100644",
+       "before_sha256": "f3f81d621be9236d8f506dac4c38abd8d4a5b3f77b61db4300993b3fd7ffab01",
+       "path": "crates/ui-egui/src/dialogs/missing_fonts.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/dialogs/missing_fonts.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/missing_fonts.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "aa65fdf5229f80d3aa94e18b0d08dacd6ce3241fee1428516bdced96336edc32",
++      "before_mode": "100644",
++      "before_sha256": "6b2dde261914d5353e423a2cecabae46c0d806bed82344732823edc58d0c87b6",
++      "path": "crates/ui-egui/src/dialogs/mod.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/mod.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -855,7 +1029,7 @@
+       "before_mode": "100644",
+       "before_sha256": "ba2fff9fd598732eb31e3e334cdeb04bf7a8bdfb4ddf7af554a49a7ad15a9fb4",
+       "path": "crates/ui-egui/src/dialogs/new_document.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/dialogs/new_document.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/new_document.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -863,7 +1037,7 @@
+       "before_mode": "100644",
+       "before_sha256": "03aac7d18698f2c120026734d400da5c4d5dcbdb7b2858d85defd89b4751f124",
+       "path": "crates/ui-egui/src/dialogs/save_for_web.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/dialogs/save_for_web.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/save_for_web.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -871,7 +1045,7 @@
+       "before_mode": "100644",
+       "before_sha256": "92c85b8cf7453fe3fb9715ad4db038b9593bfb79b29fd309752aa65531bac67f",
+       "path": "crates/ui-egui/src/dialogs/tests_save_for_web.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/dialogs/tests_save_for_web.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dialogs/tests_save_for_web.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -879,119 +1053,127 @@
+       "before_mode": "100644",
+       "before_sha256": "5f01a51873a0bcd0e318e12d814dde8e936c4777748be89652608543be455c1d",
+       "path": "crates/ui-egui/src/dock.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/dock.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "ebbbaf7437c93c2703993866dbac07dad45443d956a821d1a06e67516f75f9ad",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/dock.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "389af7eeedc8b22a395c18f24b97221a14a33d7c7f499592bb120fc534f5e3d9",
++      "before_mode": "100644",
++      "before_sha256": "82092ff6724ebf9326b2459c7ae05784afea856b62c540164b3355b5517ff9f6",
++      "path": "crates/ui-egui/src/edit_toolbar.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/edit_toolbar.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "f52b801089ea3e3debd516cb3af77a1d153aad8eedfbf707b0a919565de1d262",
+       "before_mode": "100644",
+       "before_sha256": "c90b9cdd61e2a58b6e81069f835096d5942e4d9e80d3a135fb346ce0fa5ee873",
+       "path": "crates/ui-egui/src/i18n/bg.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/bg.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "17e661a6b9bbc28727d23afdd8ed4468e6a5663e61a3554c6771f291cf8b3eef",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/bg.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "eeafd70733c4a38a58f3abc00ca155ee3a45fe2579eb1263689624599aab1d28",
+       "before_mode": "100644",
+       "before_sha256": "b4009492d5297547854fcd1af9bdb7cfc42e6cbe552e54c6b914bc0071ac5751",
+       "path": "crates/ui-egui/src/i18n/cs.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/cs.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "12ceefe053d70cb854003cb43dc97b8da6cc20bb393bcbaca28ba36c72f90e67",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/cs.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "bb0c6d9f7ba3d5ce2c1969f2eec71c32684b4800e273b0253dd956849546dca7",
+       "before_mode": "100644",
+       "before_sha256": "4a2343a04929c2875483234dbe4ae41d9e4227e4ff4275fc26f1158dba270009",
+       "path": "crates/ui-egui/src/i18n/da.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/da.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "2ab27e196bb2149382aca673a1249a58cec8febfa4a9b81216d0290fb282d9fa",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/da.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "861127c630b5a56b05ef7ce85614a0a60316cd813d199a21849af12104794e41",
+       "before_mode": "100644",
+       "before_sha256": "d349fb48647a31ab404417fc78f45a9f32692408717401493a9359ba086a2da7",
+       "path": "crates/ui-egui/src/i18n/de.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/de.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "d2437df3cf97402b1f4df4e4198367450fac842623d54bfac18df5cb0bf65f7a",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/de.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "661a30ebf817d152f748a7169c6faaa86264cdc9aedc3bb812e31b1dc8b30210",
+       "before_mode": "100644",
+       "before_sha256": "4d88f58891003358af9a73382f4156c19546643c428c77ac6eea341c83606d32",
+       "path": "crates/ui-egui/src/i18n/el.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/el.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "fcd39fb62b91b76647396673ffb594fcdce654d4b4ca66ff218d04c21e128afb",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/el.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "16fa20fad6a44d9c5a2ccdf21dc67460dfda03995eae5924e1cb5360be17da18",
+       "before_mode": "100644",
+       "before_sha256": "887d223f756c5c9a84e2b7f0774cad1d9382f1afb232894c2f31d492d684ca7b",
+       "path": "crates/ui-egui/src/i18n/es.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/es.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "cce78fdbc87d8cb9ab8ae51c7ee4e33d8cf03167342c023933f8ad5814ca28b5",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/es.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "94f63e0ecc10be70ab121202d66e2ce892d4095fb5e2af8fc3795c43d448fa8f",
+       "before_mode": "100644",
+       "before_sha256": "c46088fc0c7b54727e4e1858a9eec5ec08a4d79c8fef8b6e54687cd555df4f8b",
+       "path": "crates/ui-egui/src/i18n/fi.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/fi.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "37d88f5457cc181b14508bb4388dfcf6806cd9550339c3a7e3e68379402b8457",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/fi.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "6e1d945856b2114ab969eea8b06ae1a2fbd3e6ff8e45b5ca36947f2364f350ee",
+       "before_mode": "100644",
+       "before_sha256": "fe23eb3401168ddc769762446eee65b2c401f15e22ae2d35c687fc98a376b78f",
+       "path": "crates/ui-egui/src/i18n/fr.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/fr.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "73f07a45612a36527cc6bbc8a62fecdf85f4a5dc5bf46742a725909514c81fa9",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/fr.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "bf5ffa866db0a957f0aaef7e03ec8831eae75d77c4b66cb077cbe43e03aed9dc",
+       "before_mode": "100644",
+       "before_sha256": "3f72dd3c9e098999669ddecf00fa75613a3f3159322255d8efe1fba0fb765f20",
+       "path": "crates/ui-egui/src/i18n/hu.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/hu.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "546cc8ae83ca770b248f6c0b8464f838b9bb07bc0f7ddddb2046a0ca2b1b07e2",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/hu.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "4232958865dd9b5f4004c6de71dbbc1759e6d70f5eedeb23a50c7c28fcead60d",
+       "before_mode": "100644",
+       "before_sha256": "36513f5a76834eb4a3bd6958c76e18805f588f6b420ee238d292db8710f1295c",
+       "path": "crates/ui-egui/src/i18n/id.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/id.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "c9b17d2736bb22db4473746f111c77a2ecb5763ef0c2aa97a63b42161feb246a",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/id.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "40606a8268c5e8c208cb1879fd437d0efadb81062fb20ffe918064bc21f4aa78",
+       "before_mode": "100644",
+       "before_sha256": "9a67787eeddf58174127c8872e31d4f3e4e97a43f988a5a7adc22460edf0d6a6",
+       "path": "crates/ui-egui/src/i18n/it.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/it.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "203ec80fb4d39ae553f91b659493dcae600e63d1091b8c3938771417c735650a",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/it.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "5191e559fe445dd50ef5f9d90efb83e4b21a856991d0c36111a88781c0c10558",
+       "before_mode": "100644",
+       "before_sha256": "eb76329f33f6f67948b000f74c8804ba0f76c29a2fb6c50bd7c822c0229a693b",
+       "path": "crates/ui-egui/src/i18n/ja.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/ja.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "1a308f734748ecf287780b96d4d22835ee6c6683bf78f253e7306cf25c57c471",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/ja.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "4ced29cc1dfe6ac62f2fad251f7b7e65f2a8e51a719dac2911cb184ec1f92ffb",
+       "before_mode": null,
+       "before_sha256": null,
+       "path": "crates/ui-egui/src/i18n/ka.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/ka.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "ae16f8be7d31441fed94d205d903b072204a85b184d8d1e6fe08d9ee9afc49c7",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/ka.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "7a7684ffeaa61f2d172295e238386e2d71f6fbcd3539fe865fe35c10bf7cdd0d",
+       "before_mode": "100644",
+       "before_sha256": "06035a59e3c03e892a7961d652fa48d786a9d0f6d358a723f343a4bfc6be5e88",
+       "path": "crates/ui-egui/src/i18n/ko.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/ko.tsv"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/ko.tsv"
+     },
+     {
+       "after_mode": "100644",
+@@ -999,87 +1181,103 @@
+       "before_mode": "100644",
+       "before_sha256": "b55f5f53b5b3babce947ac719937e329d9ecccc579ad96885eab5bf0da346539",
+       "path": "crates/ui-egui/src/i18n/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/mod.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "2ad4bb88b1ac4615c57c8b8f6e0a9779b1af1f1470e80945f051fa748d60f02f",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/mod.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "ff1bf38bed89cb17d7b691016607b1e9af5fe101b611abf2297ed41a96964bca",
+       "before_mode": "100644",
+       "before_sha256": "3f6155730e6cb3988579d9a1dc54e355edd46da63ae5b54b36aeae6e03ed4164",
+       "path": "crates/ui-egui/src/i18n/nl.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/nl.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "538a69d5954000fac17ca6e68693b215a466b16b452579453796d8250d51874b",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/nl.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "258477fefd2830cbbd7240010ff03cd15c753585c0339dd87ba98b0a89fba6f6",
+       "before_mode": "100644",
+       "before_sha256": "f9af17112f2d91a769aaf4aa86a41cb48607a4e44b5dede06ba531085654ae66",
+       "path": "crates/ui-egui/src/i18n/pl.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/pl.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "c2f50e0a66147a33adf541d43353c48bdc3f47fcb2c5318affdf21541f30c164",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/pl.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "f15284ab457cfa213a5cdbeb0d8eee270587cc429ad55a890fab83587ed909e9",
+       "before_mode": "100644",
+       "before_sha256": "ffad2048611844085b6591a39a964f15293f9619a8a9453caeb73dbdc11b1166",
+       "path": "crates/ui-egui/src/i18n/pt-br.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/pt-br.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "d5a88e830f868bddd6d1fc205ab2ad4b1f633f8291ff9165e478697bda3c26eb",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/pt-br.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "122874f2cbdd626008db937fd12a89ec721ee0c4a90b90b2d88942b3bd767b4b",
+       "before_mode": "100644",
+       "before_sha256": "c13b56af9a80591005b690adc6562578941c9f4ee93b96742b8e08f6e0bc4ac6",
+       "path": "crates/ui-egui/src/i18n/ru.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/ru.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "25dfde5b279bb9feba063690245f9562fdd6ff43aafbd0b5c79fee511b56e16f",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/ru.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "6984bdbc7b5ee75fb1c5e8acae3f702a70d2f640ee9cf42a7433ec15db5896e9",
+       "before_mode": "100644",
+       "before_sha256": "4cba22e882544972de8f43b56e3bfd3319899a5d01300f41597189f8ca008915",
+       "path": "crates/ui-egui/src/i18n/sv.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/sv.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "1abc6607a40a744a562746ff2c74cc357b755998920f3fdae160665a1854d020",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/sv.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "0fd135de7f0faa4bc493ab319044b84fdeb233b31d61af6795689a626e36ae10",
+       "before_mode": "100644",
+       "before_sha256": "81107a8d3b1363c66d5a2841655fd163fc7a97fb1a1a3718f31d390bac90849c",
+       "path": "crates/ui-egui/src/i18n/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/tests.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "d1f9026d6781c6e6acd449a6528a95bcc2734fa04e22329c89669cfbb58724d9",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/tests.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "2b0ac577fe41ee2bd65962448884abd3afbb42507de937d08c1fe9418ed73d9c",
+       "before_mode": "100644",
+       "before_sha256": "40dbd4aae4d38278d18f841e515d0833371f11fb0a5d807cce4a53cfd61f5577",
+       "path": "crates/ui-egui/src/i18n/uk.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/uk.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "6799db0d691a397397b93b940a82cc2bb2a0d077013790ab33857543a743f9f9",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/uk.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "0af234535490bed872aadc21f9f4bc3cdde39eff6ce2d2f3375fa7ac5f92ff07",
+       "before_mode": "100644",
+       "before_sha256": "c31d5c25729229a91359b9def3aa990248d8ad179f65eaf9597f11f5a846dccc",
+       "path": "crates/ui-egui/src/i18n/vi.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/vi.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "e8c99a4463cd084d60cec1457841241cbf275aa15bd52480177d69d8fb004b62",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/vi.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "40ea21f1d46c898baa8b01fa9e5ef24a8734aa674a5ca4156900abf8d55075f3",
+       "before_mode": "100644",
+       "before_sha256": "06b29d9c2a130a0c1074cdd33f4b5acf14c2571aa92d35f7678df4fc17e32fea",
+       "path": "crates/ui-egui/src/i18n/zh-hans.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/zh-hans.tsv"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "d6abe1ca3108e5b023a8b176c55d6f9366dce49267ad1a6c4ca8052587bf58c9",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/zh-hans.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "e8e9cc19b86eb56b376fd817e5f9cfd37b315c2c6da7045e37bf3a660b3c1dd3",
+       "before_mode": "100644",
+       "before_sha256": "f8213a2be39f84bba2954cea5ba1e50ef681c1ad145c883259862876966263c3",
+       "path": "crates/ui-egui/src/i18n/zh-hant.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/i18n/zh-hant.tsv"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/i18n/zh-hant.tsv"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "4151d2318c7cb049d2f062aec7faa280824d8ba1f447394ea13686699532b831",
++      "before_mode": "100644",
++      "before_sha256": "3d4a771341711499ef36dbada59ac6d23c580d45fcb9489430e78b35852b8b66",
++      "path": "crates/ui-egui/src/icon_data.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/icon_data.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "29b33a8f8fc53d789d69d79e6687fe78fb9b96cf38e3a2b1d696bb1c456555f5",
++      "before_mode": "100644",
++      "before_sha256": "6a01fe877e72f5cfd4be0f8d8a96acab8ac4c451475af29aeb50a24e4d61d3d3",
++      "path": "crates/ui-egui/src/icons.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/icons.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1087,15 +1285,15 @@
+       "before_mode": "100644",
+       "before_sha256": "48f8ffc6fde741c4754e0a849142704bfedd4494ae3dd39a0ba1494def358ae8",
+       "path": "crates/ui-egui/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/lib.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "d9ffd62ebc725f90732c3b61f71950c02a6aafe688e0070a259ff6d21cd9d1a6",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/lib.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "d6380aa702820f18d2770e8344e3e12cee8c7128ba879db2f954935e02a109a7",
+       "before_mode": "100644",
+       "before_sha256": "062b3982723682c3e3deda2e51d9df1a5cc90efa5b83c824d1630a2c4705e9c2",
+       "path": "crates/ui-egui/src/menus.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/menus.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/menus.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1103,7 +1301,7 @@
+       "before_mode": "100644",
+       "before_sha256": "bfbccd4f470db7f1a06a71dd6d9de626ef0904d8369dbcca8886d34ef32dbadd",
+       "path": "crates/ui-egui/src/opening.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/opening.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/opening.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1111,7 +1309,7 @@
+       "before_mode": "100644",
+       "before_sha256": "19036e6f938bd0c59be6fb88275a298f40b4ced1c34ac6eb4aa91687deb81246",
+       "path": "crates/ui-egui/src/panel_docking.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/panel_docking.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/panel_docking.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1119,15 +1317,47 @@
+       "before_mode": "100644",
+       "before_sha256": "30003a8f43f32b5b3bf2da4f6a07e028d190aee3cb8c62184b0a718fc7869bc1",
+       "path": "crates/ui-egui/src/panel_docking_tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/panel_docking_tests.rs"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "12000560718a9268edd7c9187b29a81dfdff84a3c2c566b6052d274afd5528f9",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/panel_docking_tests.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "ac121f9f39a0c51ceef157018bfaab96e2aaada336883a1d56dafd8e44ce9aca",
++      "before_mode": "100644",
++      "before_sha256": "912cf32d7226dca7b3baea34a4f1af9738a3a1335c171d7f1de03bd803f964b4",
++      "path": "crates/ui-egui/src/panels/layers.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/panels/layers.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "0b33a26595b40cc40f4d06d34b47b6d59b86e09d1c9c142d9f06daf1a6dc7a5d",
++      "before_mode": "100644",
++      "before_sha256": "bf3c7a5c0e21e7f7e52df91e2d2aa7313648473d791f0b7647a8238f3817ec98",
++      "path": "crates/ui-egui/src/panels/tabs.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/panels/tabs.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "40d186d4f60a576c47ba972aca4f005c742c9991838096501b6e26b9e4d6358c",
++      "before_mode": "100644",
++      "before_sha256": "fd6f488ad986f1b69bf1ee7d62ae98469eea57c9d42f914e3d3cdb4dbcc65cc1",
++      "path": "crates/ui-egui/src/panels/variables.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/panels/variables.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "1bf393d38ab07193e793d0556d68850a85c245c84561f265fb2c22050bbc9895",
+       "before_mode": "100644",
+       "before_sha256": "5c7143075b2ed6d21c395fcfb6f584f8899159c1f2a1e3a4df44123828e4043f",
+       "path": "crates/ui-egui/src/state.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/state.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/state.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "0a030f5568b139fc7a6772b2d045814cb5fb3d9e3ab1db04f9fbdac0bc6ce38d",
++      "before_mode": "100644",
++      "before_sha256": "3cbfcad1ae74f65d39e20c7dd403619f8e2bd6062624b09e42beea21874f6a1f",
++      "path": "crates/ui-egui/src/tests_contextmenu.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/tests_contextmenu.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1135,7 +1365,7 @@
+       "before_mode": "100644",
+       "before_sha256": "62968d4c0c85b32a4853c21b4b2ef36efb4d8c17689ba51745062d6b57845e42",
+       "path": "crates/ui-egui/src/tests_numfields.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/tests_numfields.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/tests_numfields.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1143,7 +1373,7 @@
+       "before_mode": "100644",
+       "before_sha256": "e509595aa6851e7e08c285a0487bfa95febe36b46c494a0325e6df2b7a0c9c8f",
+       "path": "crates/ui-egui/src/tests_sysclip.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/tests_sysclip.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/tests_sysclip.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1151,7 +1381,15 @@
+       "before_mode": "100644",
+       "before_sha256": "e9a35618addae5737fe574851fae5532e184306390303808404a0c71336430f3",
+       "path": "crates/ui-egui/src/theme.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/theme.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/theme.rs"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "3959f81fdb6a4a1281b3672467be1870bf205dee8c2a388ba2ba583c5a1fc930",
++      "before_mode": "100644",
++      "before_sha256": "64b7b37ba01fcfabbd09fdfc965c8b26bcffa640fe7f9a797243caa1f2ca62f1",
++      "path": "crates/ui-egui/src/toolbar.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/toolbar.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1159,7 +1397,7 @@
+       "before_mode": "100644",
+       "before_sha256": "90b67460e1ede64efe391135afd12599ceea7d2ff27503d2499127c1ae2a898c",
+       "path": "crates/ui-egui/src/widgets.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/widgets.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/widgets.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1167,7 +1405,7 @@
+       "before_mode": "100644",
+       "before_sha256": "2b705897800b7ab330c7fc1856f18562545e987dbddd377dbc04fa0ad547b5f1",
+       "path": "crates/ui-egui/src/workspaces.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/crates/ui-egui/src/workspaces.rs"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/crates/ui-egui/src/workspaces.rs"
+     },
+     {
+       "after_mode": "100644",
+@@ -1175,7 +1413,7 @@
+       "before_mode": "100644",
+       "before_sha256": "a8022c4f0897ba232b3665cfc7f28748dc44911c5645e27ff7ca774e2851b615",
+       "path": "docs/control-protocol.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/control-protocol.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/control-protocol.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -1183,7 +1421,7 @@
+       "before_mode": "100644",
+       "before_sha256": "3d6b9b439fcf6530a02d6a56305b8272d63bccd03afa0f792aa8f5e4d7bd8262",
+       "path": "docs/development.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/development.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/development.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -1191,7 +1429,7 @@
+       "before_mode": "100644",
+       "before_sha256": "ea5418d84875c26fc4c513ffcb6fd85a260b97f2bfa7152737ffa638d80d8e0f",
+       "path": "docs/file-format-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/file-format-parity.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/file-format-parity.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -1199,7 +1437,7 @@
+       "before_mode": "100644",
+       "before_sha256": "84548bf385a8bc57d0edc74cc51c62d4b28fb1d2b1e8219928347ff5dd421059",
+       "path": "docs/gaps.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/gaps.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/gaps.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -1207,15 +1445,15 @@
+       "before_mode": "100644",
+       "before_sha256": "87a8787c5a41fbfb24042a8e885966477d6103bef97a6b7ef194b4306d9c763e",
+       "path": "docs/localization-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/localization-parity.md"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "c8d50f254fe646fbaa0f5156dbab388708cd8a06c20da867b66ca3a4d3e4a19b",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/localization-parity.md"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "780c945378ba317902faa8a3cf6f0edc7a6c162658ba08878869f6569f929104",
+       "before_mode": "100644",
+       "before_sha256": "e82d1903d80843ab54fd0e109c6db907d89abcceb93f85cd77518b66d1415715",
+       "path": "docs/mcp.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/mcp.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/mcp.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -1223,15 +1461,23 @@
+       "before_mode": "100644",
+       "before_sha256": "aae8c4e36aaf5d9c6674978479e6e80d4142a46d95e608282ba762b3dc00a4f0",
+       "path": "docs/roadmap.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/roadmap.md"
+-    },
+-    {
+-      "after_mode": "100644",
+-      "after_sha256": "641cb454a6ad6a3af85ebfc9c8f200a58dddae8c1d46d81f17340a2565a5e37b",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/roadmap.md"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "401d2c63e2ae4606b40ee3fa899203f8d8384df9f2f0e7ccc5bfff6313d85bd6",
+       "before_mode": "100644",
+       "before_sha256": "8d8103a7b205d0b4180cde728caae188aa4c5098dfd3839d4835bd525f6a4ab1",
+       "path": "docs/target-app-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/target-app-parity.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/target-app-parity.md"
++    },
++    {
++      "after_mode": "100644",
++      "after_sha256": "a5cd0aa19ab7fbc3cf4449b4f047c447e81a5b98f0fb696f2d1369d1fce377aa",
++      "before_mode": "100644",
++      "before_sha256": "944d8a2ec804410181c3ba8f9b9c01fab30422ac69a3a82ec8233c3fb4a7be16",
++      "path": "docs/three-d.md",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/three-d.md"
+     },
+     {
+       "after_mode": "100644",
+@@ -1239,14 +1485,14 @@
+       "before_mode": "100644",
+       "before_sha256": "77d422e08014e3dd78259c3105f4ba9bca61c410cc15617c3ae76e58528d561d",
+       "path": "docs/ui-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01/docs/ui-parity.md"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01/docs/ui-parity.md"
+     }
+   ],
+   "dispatcher_execution": false,
+   "execution_index_after": null,
+   "execution_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated",
+   "fresh_admission_required": true,
+-  "isolated_source_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01",
++  "isolated_source_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01",
+   "last_owned_runtime_closure": {
+     "bytes": 7511,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-ui-render-b6e58-capture-launch-01/terminal-closure-01/closure.json",
+@@ -1261,8 +1507,8 @@
+     "/usr/bin/python",
+     "-B",
+     "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/guide-ci-runner-v1.py",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/ci-config.json",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/admission.bound.json"
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/ci-config.json",
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/admission.bound.json"
+   ],
+   "mode_changes": [],
+   "outer_environment_application": "Apply every outer_environment_required entry to runner Popen env after inherited outer environment; do not reset PATH afterward. The unchanged runner then applies pinned r75 environment and its existing per-run target/XDG overrides. No validator launch performed.",
+@@ -1283,9 +1529,9 @@
+     "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/output-environment-02/runtime"
+   },
+   "output_environment_binding": {
+-    "bytes": 11352,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/output-environment.json",
+-    "sha256": "eb0df366d774b4f3ec4370c4341f9acd912e4655e09838fa16a0dab30877a3b5"
++    "bytes": 11347,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/output-environment.json",
++    "sha256": "39b707a7a54ae79857d8db0e2411f7d1615b5a4200f198a96ec0365bf2100fdc"
+   },
+   "predecessor_release": {
+     "bytes": 710,
+@@ -1330,11 +1576,11 @@
+     "terminate_grace_seconds": 10
+   },
+   "root_guard": {
+-    "candidate_head": "a466625c8987550635cda951ebf36e08e1e80a56",
+-    "candidate_index": "250308a2568ab40fdfded369577f25133ccb5578fdc0726b6790bbb241bcbe1f",
+-    "refs": "7521bb50c94644e304aba64e945d88697266db2aae1272d112aeda1d272d4f05",
+-    "root_head": "a466625c8987550635cda951ebf36e08e1e80a56",
+-    "root_index": "7b842f7e8f6292e1b87444f66d9a53e2fca7887f821b495b28f3e6dd89f29e3f",
++    "candidate_head": "320bffb8adede9eeff0efcd22145fe5a3128bf6e",
++    "candidate_index": "ce5bc81e26608ec6e7fc94fffa3401e9faddf3c6ce04c853d43e9ec585e2aebb",
++    "refs": "1b95e7865108bcd55575ff5c73ae7ea092e935b80cebfd5190693f2b0067553f",
++    "root_head": "320bffb8adede9eeff0efcd22145fe5a3128bf6e",
++    "root_index": "9056a66bd27225c0b6bdd7210baf4ceb3b117fb67b0361cc8bc4501c8f44d5a7",
+     "root_status_hex": "",
+     "target": {
+       "dev": 66310,
+@@ -1343,13 +1589,13 @@
+     "work_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+     "work_index": "45395712f142352d0ccc53b101dfa656ebe1a403d5b12a20f0f958c9792dba8a"
+   },
+-  "run_output": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-maina466-typef196-ci-01",
++  "run_output": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-main320b-typef196-ci-01",
+   "source_materialization": {
+-    "bytes": 10132,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/completion-01/final-source-receipt.json",
+-    "sha256": "512e0ba1e41c4008236ac9c1c792a77ca974b71f6a84d9ade75b98bd8fc37a0b"
+-  },
+-  "source_preservation_required": "Only after a fresh runtime grant: preserve every actual changed-path preimage, the seven absent paths and stable ordinary index, install the exact 1792-entry candidate map, verify its composed product tree, then perform the guarded detached HEAD b6e58-to-a466 update. Canonical root and all other reference sources remain unchanged. Existing private paired, CI and normal-capture archives remain preserved; no compiled-artifact seeding.",
++    "bytes": 9704,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/final-source-receipt.json",
++    "sha256": "a1448d430a1b9643b6cdf018c94873a756a351738416196d621916c75947740e"
++  },
++  "source_preservation_required": "Only after a fresh runtime grant: preserve every actual changed-path preimage, the 13 absent paths and stable ordinary index, install the exact 1798-entry candidate map, verify its composed product tree, then perform the guarded detached HEAD b6e58-to-320b update. Canonical root and all other reference sources remain unchanged. Existing private paired, CI and normal-capture archives remain preserved; no compiled-artifact seeding.",
+   "status": "PREPARED_DATA_ONLY_UNBOUND_UNRUN",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated"
+ }

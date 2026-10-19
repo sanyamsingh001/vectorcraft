@@ -1,0 +1,130 @@
+--- a466/admission.UNBOUND.json
++++ 320b/admission.UNBOUND.json
+@@ -1,30 +1,35 @@
+ {
+   "cases": {
+     "ci": {
+-      "canonical_source_digest": "43adf5ce456dfadf56529d9a801e624e64281b53850498b3c5dc031dcf678d1c",
++      "canonical_source_digest": "d80b77c20dbd9e7054e280d621911476d50635403d706cf6822f6aae45826fb1",
+       "config": {
+         "bytes": 470,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/ci-config.json",
+-        "sha256": "43678b616f78af54462a725f82bc6b7bf48a1c74311c3ab216e11652531e19e6"
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/ci-config.json",
++        "sha256": "8348f4ef9a92c82d5a258080384d424a03d7942491ae74d2e464eac78c3e8634"
+       },
+-      "expected_head": "a466625c8987550635cda951ebf36e08e1e80a56",
++      "expected_head": "320bffb8adede9eeff0efcd22145fe5a3128bf6e",
+       "source_manifest": {
+-        "bytes": 194308,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/completion-01/runtime-source-manifest.json",
+-        "sha256": "c61b68680ad3a7afcb5a6f583a8675163cb830b2f59d341a4c40b01a95beb48c"
++        "bytes": 194999,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/runtime-source-manifest.json",
++        "sha256": "b13eda7a7d1358fe34b3dfe7a4479dad7944ab50239a7bc420b39125e0681623"
+       },
+-      "tree": "9f7a5d09419f9b451c38aaf2a2bf9e63a13e921e"
++      "tree": "e2ccdaf3c6a13a59c87b78498ef63d2a0c5c4e36"
+     }
+-  },
+-  "current_integration_review": {
+-    "bytes": 1512,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/independent-integration-review.json",
+-    "sha256": "bd525c16c0219a7a1776cce062a79cda7e617b6cc642808636c53e2e0fc87cd1"
+   },
+   "current_production_source": {
+     "bytes": 2291,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/correction-proposal-02/receipt.json",
+     "sha256": "a82c4cce27f5a696e603f30b5ece5b3418d3e0e1208b63d1d349206b233733d6"
++  },
++  "current_source_applicability": {
++    "bytes": 17202,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/upstream320b-owned-scope-appraisal-01/receipt.json",
++    "sha256": "523c94197772eadce1f632c5ac3d3cbcce70bc0475b441722fb95c501a321c2b"
++  },
++  "current_source_fidelity": {
++    "bytes": 721,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/source-fidelity.json",
++    "sha256": "af5fa293ea985aac74b0ae77486d3e6377e7e4b9a2cd82862f9f47ae8ccc4639"
+   },
+   "equivalent_clippy_correction": {
+     "patch": {
+@@ -38,6 +43,11 @@
+       "sha256": "995ae5fdff9c4cef5b188936b2b257fab28c791add68d84e3bb102c8c67c6dc0"
+     },
+     "scope": "Previous source reviews remain attributed to their original bytes; root-authorized equivalent predicate delta only."
++  },
++  "historical_integration_review": {
++    "bytes": 1512,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/independent-integration-review.json",
++    "sha256": "bd525c16c0219a7a1776cce062a79cda7e617b6cc642808636c53e2e0fc87cd1"
+   },
+   "historical_source_reviews": {
+     "hindi_contract": {
+@@ -66,9 +76,9 @@
+     "sha256": "97c01f80d25b1f6f45a2bbea802a6689f04acb22862c9485f8080fd18b5792fc"
+   },
+   "outer_environment_binding": {
+-    "bytes": 11352,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/output-environment.json",
+-    "sha256": "eb0df366d774b4f3ec4370c4341f9acd912e4655e09838fa16a0dab30877a3b5"
++    "bytes": 11347,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/output-environment.json",
++    "sha256": "39b707a7a54ae79857d8db0e2411f7d1615b5a4200f198a96ec0365bf2100fdc"
+   },
+   "owner_review": {
+     "bytes": 743,
+@@ -76,9 +86,9 @@
+     "sha256": "6cc4460dff0c2e4db5dcbe6e237757eb7db35b55b77d16242874717f9ad7fc57"
+   },
+   "publication_materialization": {
+-    "bytes": 10132,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/completion-01/final-source-receipt.json",
+-    "sha256": "512e0ba1e41c4008236ac9c1c792a77ca974b71f6a84d9ade75b98bd8fc37a0b"
++    "bytes": 9704,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/final-source-receipt.json",
++    "sha256": "a1448d430a1b9643b6cdf018c94873a756a351738416196d621916c75947740e"
+   },
+   "publication_policy_review": {
+     "bytes": 1011,
+@@ -103,29 +113,29 @@
+     "terminate_grace_seconds": 10
+   },
+   "runner_sha256": "3236aeb0c94f50bc001291a7a00f78afed82eedd51ac118cf086505b0758960b",
+-  "runtime_admission_required": "Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual 150-path closed-b6-capture to a466 Guide+Type source transition and original CI. No automatic launch.",
++  "runtime_admission_required": "Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual 180-path closed-b6-capture to 320b Guide+Type source transition and original CI. No automatic launch.",
+   "semantic_acceptance": {
+-    "bytes": 9009,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/ci-acceptance-contract.json",
+-    "sha256": "6a5943fb3580b960c83547210b4ddd656148b070ac1a930fb9a4b267bff51222"
++    "bytes": 10202,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/ci-acceptance-contract.json",
++    "sha256": "23768c16716dd03059e6a22560238e0a042bb3dac24235226643ed123399bcaa"
+   },
+   "separate_private_positive_evidence": {
+     "bytes": 15238,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/independent-terminal-review-01/receipt.json",
+     "sha256": "dff840527257ebafef573076ec1d16acbc88f1d0fbcd3ca00bb9f18c6d92267c"
+   },
+-  "source_binding_note": "One original cargo xtask ci on pinned a466 plus three Guide-owned paths and the four-file published open PR3004 prerequisite. Seven aggregate paths preserve current upstream additions and all 13 Guide regressions. Actual stages/counts/source/closure require terminal qualification; all prior Type CI/private pairs/render evidence remains separately attributed.",
++  "source_binding_note": "One original cargo xtask ci on pinned 320b plus three Guide-owned paths and the four-file published open PR3004 prerequisite. Seven aggregate paths preserve current upstream additions and all 13 Guide regressions. Actual stages/counts/source/closure require terminal qualification; all prior Type CI/private pairs/render evidence remains separately attributed.",
+   "source_materialization": {
+-    "bytes": 10132,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/completion-01/final-source-receipt.json",
+-    "sha256": "512e0ba1e41c4008236ac9c1c792a77ca974b71f6a84d9ade75b98bd8fc37a0b"
++    "bytes": 9704,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/final-source-receipt.json",
++    "sha256": "a1448d430a1b9643b6cdf018c94873a756a351738416196d621916c75947740e"
+   },
+   "status": "UNBOUND",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated",
+   "upstream_reconciliation": {
+-    "bytes": 10132,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/completion-01/final-source-receipt.json",
+-    "sha256": "512e0ba1e41c4008236ac9c1c792a77ca974b71f6a84d9ade75b98bd8fc37a0b"
++    "bytes": 9704,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/final-source-receipt.json",
++    "sha256": "a1448d430a1b9643b6cdf018c94873a756a351738416196d621916c75947740e"
+   },
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }

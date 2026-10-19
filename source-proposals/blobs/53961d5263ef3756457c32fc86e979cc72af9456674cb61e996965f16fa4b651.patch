@@ -1,0 +1,256 @@
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -117,6 +117,8 @@
+ mod tests_printps;
+ #[cfg(test)]
+ mod tests_printtiling;
++#[cfg(test)]
++mod tests_properties_rotation_reference;
+ #[cfg(test)]
+ mod tests_puppetwarp;
+ #[cfg(test)]
+--- a/crates/ui-egui/src/tests_properties_rotation_reference.rs
++++ b/crates/ui-egui/src/tests_properties_rotation_reference.rs
+@@ -0,0 +1,242 @@
++//! Ordinary Properties/Transform rotation about a pointer-picked reference point.
++//! Original finite fixture for R80-VOLTA-TRANSFORM-001; no external-app behavior claim.
++
++use egui::{Event, Key, PointerButton, Pos2, Rect, Ui, vec2};
++use serde_json::json;
++use vectorcraft_doc::NodeId;
++use vectorcraft_engine::{DocState, HistoryEntry, Session};
++
++use crate::{VectorcraftApp, panels};
++
++const INITIAL: [[f64; 2]; 4] = [[100.0, 100.0], [200.0, 100.0], [200.0, 140.0], [100.0, 140.0]];
++// Positive angles are counter-clockwise with document Y down. At +90 degrees about (ox, oy),
++// (x, y) goes to (ox + y - oy, oy - x + ox). These literal vertices are independently specified;
++// no transform command, Affine, bounding-box helper or reference-point helper builds the oracle.
++const ABOUT_LEFT: [[f64; 2]; 4] = [[80.0, 120.0], [80.0, 20.0], [120.0, 20.0], [120.0, 120.0]];
++const ABOUT_CENTRE: [[f64; 2]; 4] = [[130.0, 170.0], [130.0, 70.0], [170.0, 70.0], [170.0, 170.0]];
++
++type Draw = fn(&mut VectorcraftApp, &mut Ui);
++
++#[derive(Default)]
++struct Painted {
++    texts: Vec<(String, Rect)>,
++    squares: Vec<Rect>,
++}
++
++fn frame(app: &mut VectorcraftApp, ctx: &egui::Context, draw: Draw, events: Vec<Event>) -> Painted {
++    let raw = egui::RawInput {
++        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(340.0, 900.0))),
++        time: Some(ctx.input(|i| i.time) + 0.05),
++        focused: true,
++        events,
++        ..Default::default()
++    };
++    let mut out = ctx.run_ui(raw, |ui| draw(app, ui));
++    out.textures_delta.clear();
++    fn walk(shape: &egui::Shape, painted: &mut Painted) {
++        match shape {
++            egui::Shape::Text(t) => painted.texts.push((t.galley.text().to_string(), Rect::from_min_size(t.pos, t.galley.size()))),
++            egui::Shape::Rect(r) if (r.rect.width() - 5.0).abs() < 0.01 && (r.rect.height() - 5.0).abs() < 0.01 => {
++                painted.squares.push(r.rect);
++            }
++            egui::Shape::Vec(shapes) => shapes.iter().for_each(|s| walk(s, painted)),
++            _ => {}
++        }
++    }
++    let mut painted = Painted::default();
++    out.shapes.iter().for_each(|s| walk(&s.shape, &mut painted));
++    painted
++}
++
++fn click(app: &mut VectorcraftApp, ctx: &egui::Context, draw: Draw, at: Pos2) {
++    let button = |pressed| Event::PointerButton { pos: at, button: PointerButton::Primary, pressed, modifiers: Default::default() };
++    frame(app, ctx, draw, vec![Event::PointerMoved(at), button(true)]);
++    frame(app, ctx, draw, vec![button(false)]);
++    frame(app, ctx, draw, vec![]);
++}
++
++fn locator(painted: &Painted, index: usize) -> Pos2 {
++    let label = |s: &str| painted.texts.iter().find(|(t, _)| t == s).unwrap_or_else(|| panic!("setup: missing {s}")).1;
++    let (x, y) = (label("X:"), label("Y:"));
++    // Observe the actual nine painted squares beside X/Y; fill and outline may paint one twice.
++    let mut points: Vec<_> = painted
++        .squares
++        .iter()
++        .map(Rect::center)
++        .filter(|p| p.x < x.left() && p.x > x.left() - 45.0 && p.y > x.top() - 30.0 && p.y < y.bottom() + 30.0)
++        .collect();
++    points.sort_by(|a, b| a.y.total_cmp(&b.y).then_with(|| a.x.total_cmp(&b.x)));
++    points.dedup();
++    assert_eq!(points.len(), 9, "setup: the actual reference locator must be found: {points:?}");
++    for row in points.chunks_exact(3) {
++        assert_eq!(row[0].y, row[1].y);
++        assert_eq!(row[1].y, row[2].y);
++        assert!(row[0].x < row[1].x && row[1].x < row[2].x);
++    }
++    points[index]
++}
++
++fn angle_field(painted: &Painted) -> Pos2 {
++    // Transform also has a zero-valued Shear field to the right; Rotation is the first on this row.
++    painted
++        .texts
++        .iter()
++        .filter(|(t, _)| t == "0°")
++        .min_by(|a, b| a.1.top().total_cmp(&b.1.top()).then_with(|| a.1.left().total_cmp(&b.1.left())))
++        .expect("setup: the actual zero-degree rotation field is painted")
++        .1
++        .center()
++}
++
++fn vertices(app: &VectorcraftApp, id: NodeId) -> Vec<[f64; 2]> {
++    let st = app.session.active().unwrap();
++    let vectorcraft_doc::NodeKind::Path { path, live, .. } = &st.doc.node(id).unwrap().kind else { panic!("fixture must remain a path") };
++    assert!(live.is_none());
++    assert_eq!(path.subpaths.len(), 1);
++    let subpath = &path.subpaths[0];
++    assert!(subpath.closed);
++    assert_eq!(subpath.anchors.len(), 4);
++    subpath
++        .anchors
++        .iter()
++        .map(|a| {
++            assert_eq!(a.h_in, a.p, "straight edge stays straight");
++            assert_eq!(a.h_out, a.p, "straight edge stays straight");
++            [a.p.x, a.p.y]
++        })
++        .collect()
++}
++
++fn run_case(draw: Draw, index: usize, expected: [[f64; 2]; 4], marker: &str) {
++    let mut app = VectorcraftApp::new(Session::new(), Default::default());
++    app.run("file.new", json!({"width": 400, "height": 300})).unwrap();
++    app.run("prefs.set", json!({"key": "usePreviewBounds", "value": false})).unwrap();
++    let id = NodeId(
++        app.run(
++            "path.create",
++            json!({"anchors": [
++        {"x": 100, "y": 100}, {"x": 200, "y": 100}, {"x": 200, "y": 140}, {"x": 100, "y": 140}
++    ], "closed": true}),
++        )
++        .unwrap()["id"]
++            .as_u64()
++            .unwrap(),
++    );
++    app.run("object.setProps", json!({"name": "Reference rectangle", "opacity": 75})).unwrap();
++    let other = NodeId(app.run("shape.rectangle", json!({"x": 270, "y": 200, "width": 30, "height": 20})).unwrap()["id"].as_u64().unwrap());
++    app.run("object.setProps", json!({"name": "Untouched artwork", "opacity": 40})).unwrap();
++    app.run("select.set", json!({"ids": [id.0]})).unwrap();
++    app.select_tool("selection");
++    let ctx = egui::Context::default();
++    crate::theme::install_fonts(&ctx);
++    frame(&mut app, &ctx, draw, vec![]);
++    let painted = frame(&mut app, &ctx, draw, vec![]);
++    // Establish the saved checkpoint as in existing headless component tests. No file is written.
++    app.session.active_mut().unwrap().mark_saved();
++    let before = app.session.active().unwrap().clone();
++    let history = |st: &DocState| {
++        let entries = |items: &[HistoryEntry]| items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>();
++        (entries(&st.history.undo), entries(&st.history.redo))
++    };
++    let history_before = history(&before);
++    assert_eq!(vertices(&app, id), INITIAL);
++    assert_eq!(before.selection.objects, vec![id]);
++    assert!(before.selection.anchors.is_empty());
++    assert!(before.history.redo.is_empty());
++    assert!(!before.is_dirty());
++    assert!(before.interaction.is_none() && before.undo_group.is_none());
++    eprintln!("{marker}_SETUP_READY");
++
++    click(&mut app, &ctx, draw, locator(&painted, index));
++    assert_eq!(ctx.data(|d| d.get_temp::<usize>(egui::Id::new("refpt"))), Some(index), "the real locator click selected the intended point");
++    let selected = app.session.active().unwrap();
++    assert_eq!(selected.doc, before.doc);
++    assert_eq!(selected.selection, before.selection);
++    assert_eq!(history(selected), history_before);
++    assert_eq!(selected.revision, before.revision);
++    assert!(!selected.is_dirty());
++    eprintln!("{marker}_LOCATOR_CLICKED");
++
++    let painted = frame(&mut app, &ctx, draw, vec![]);
++    click(&mut app, &ctx, draw, angle_field(&painted));
++    assert!(ctx.memory(|m| m.focused().is_some()), "setup: pointer click focuses the numeric field");
++    // Existing number fields select their whole value on the released focus click.
++    frame(&mut app, &ctx, draw, vec![Event::Text("90".into())]);
++    assert_eq!(app.session.active().unwrap().doc, before.doc, "typing waits for Enter");
++    frame(
++        &mut app,
++        &ctx,
++        draw,
++        vec![Event::Key { key: Key::Enter, physical_key: None, pressed: true, repeat: false, modifiers: Default::default() }],
++    );
++    let shown = frame(&mut app, &ctx, draw, vec![]);
++    assert!(shown.texts.iter().any(|(text, _)| text == "90°"), "the committed angle is painted");
++    let after = app.session.active().unwrap().clone();
++    assert!((after.doc.node(id).unwrap().bbox_angle - 90.0).abs() < 1e-9, "setup: the input committed a 90-degree rotation");
++    assert_eq!(after.selection, before.selection);
++    assert_eq!(after.uid, before.uid);
++    assert_eq!(after.path, before.path);
++    assert_eq!((after.history.limit, after.history.byte_budget), (before.history.limit, before.history.byte_budget));
++    assert!(after.is_dirty());
++    assert!(after.interaction.is_none() && after.undo_group.is_none());
++    let mut expected_undo = history_before.0.clone();
++    expected_undo.push(("Rotate".into(), before.doc.clone(), std::sync::Arc::new(before.selection.clone())));
++    assert_eq!(history(&after), (expected_undo, vec![]), "one Rotate entry preserves every prior history document and selection");
++    assert_eq!(after.doc.node(other), before.doc.node(other), "unselected art and its appearance stay exact");
++    let mut non_geometry = after.doc.as_ref().clone();
++    *non_geometry.node_mut(id).unwrap() = before.doc.node(id).unwrap().clone();
++    assert_eq!(non_geometry, *before.doc, "the rest of the complete document stays exact");
++    let mut target = after.doc.node(id).unwrap().clone();
++    let vectorcraft_doc::NodeKind::Path { path, .. } = &mut target.kind else { panic!("fixture must remain a path") };
++    let vectorcraft_doc::NodeKind::Path { path: original_path, .. } = &before.doc.node(id).unwrap().kind else {
++        panic!("original fixture must be a path")
++    };
++    path.clone_from(original_path);
++    target.bbox_angle = before.doc.node(id).unwrap().bbox_angle;
++    assert_eq!(&target, before.doc.node(id).unwrap(), "identity, appearance and all non-geometric target properties stay exact");
++    eprintln!("{marker}_ANGLE_ENTERED");
++
++    // Check history before the intended geometry failure, so a RED cannot mask a broken Undo path.
++    app.run("edit.undo", json!({})).unwrap();
++    let undone = app.session.active().unwrap();
++    assert_eq!(undone.doc, before.doc, "Undo restores the complete saved document");
++    assert_eq!(undone.selection, before.selection);
++    assert_eq!(undone.uid, before.uid);
++    assert_eq!(undone.path, before.path);
++    assert_eq!(history(undone), (history_before.0.clone(), vec![("Rotate".into(), after.doc.clone(), std::sync::Arc::new(after.selection.clone()))]));
++    assert!(!undone.is_dirty());
++    app.run("edit.redo", json!({})).unwrap();
++    let redone = app.session.active().unwrap();
++    assert_eq!(redone.doc, after.doc, "Redo restores the complete rotated document");
++    assert_eq!(redone.selection, before.selection);
++    assert_eq!(redone.uid, before.uid);
++    assert_eq!(redone.path, before.path);
++    assert_eq!(history(redone), history(&after));
++    assert_eq!((redone.history.limit, redone.history.byte_budget), (before.history.limit, before.history.byte_budget));
++    assert!(redone.is_dirty());
++    assert_eq!(ctx.data(|d| d.get_temp::<usize>(egui::Id::new("refpt"))), Some(index));
++    eprintln!("{marker}_UNDO_REDO_PRESERVED");
++
++    let actual = vertices(&app, id);
++    assert!(
++        actual.iter().zip(expected).all(|(a, b)| (a[0] - b[0]).abs() < 1e-7 && (a[1] - b[1]).abs() < 1e-7),
++        "{marker}_PIVOT_MISMATCH: actual {actual:?}; independently specified {expected:?}"
++    );
++    eprintln!("{marker}_LITERAL_GEOMETRY_PASSED");
++}
++
++#[test]
++fn properties_middle_left_reference_rotates_about_picked_point() {
++    run_case(panels::properties::show, 3, ABOUT_LEFT, "PROPERTIES_ROTATION_REFERENCE");
++}
++
++#[test]
++fn transform_middle_left_reference_rotation_control() {
++    run_case(panels::transform::show, 3, ABOUT_LEFT, "TRANSFORM_ROTATION_REFERENCE_CONTROL");
++}
++
++#[test]
++fn properties_and_transform_centre_reference_rotation_controls() {
++    run_case(panels::properties::show, 4, ABOUT_CENTRE, "PROPERTIES_ROTATION_CENTRE_CONTROL");
++    run_case(panels::transform::show, 4, ABOUT_CENTRE, "TRANSFORM_ROTATION_CENTRE_CONTROL");
++}

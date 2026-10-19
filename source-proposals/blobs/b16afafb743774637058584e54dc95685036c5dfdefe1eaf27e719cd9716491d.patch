@@ -1,0 +1,170 @@
+--- original/bindings.json
++++ update/bindings.json
+@@ -1,55 +1,144 @@
+ {
+   "base_proof": null,
+   "base_proof_mode": "fresh-negotiate",
+-  "body": "When text contains an RTL run, Type uses visual caret stops for Left/Right. A font can expose multiple shaping clusters inside one Unicode grapheme; in `\u0939\u093f\u0928\u094d\u0926\u0940 \u05e9\u05dc\u05d5\u05dd`, this can stop the caret at byte 12 instead of moving from byte 6 to byte 18. Filter visual stops by the text's grapheme boundaries before applying the existing directional ordering and distance logic.\n\nAdd `caret_horizontal_cluster` for Type's two arrow callers while preserving the raw `caret_horizontal` API, same-x RTL ordering, soft-wrap tie exclusion, and line fallback. Separate raw shaping-cluster coverage from editing boundaries in the Hindi test, and add an actual Type-key regression with a plain-LTR control and an RTL suffix. The regression uses the existing installed-font order and explicit skip policy.\n\nValidation on pinned base `797e899c56957d292fe6140b4af18366d3cf0eb2`:\n\n- Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,229 passed, 0 failed, 12 ignored across 143 summaries; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.\n- Captured CI success does not establish that every font-dependent assertion ran: allowed font/capability returns can report success.\n- A separate private 73f causal pair reached the mixed-direction Right failure (12 instead of 18) before the correction and passed both original cases afterward. That proof is limited to its recorded font/input prerequisites and is not transferred to this 797 publication fixture.\n- Rendered application verification: the original 1280\u00d7960 VectorcraftApp/egui_kittest/wgpu scene passed real double-click entry and Right/Left caret movement 6 \u2192 18 \u2192 6, matching production caret paint and the specified document/selection/history checks. Owner, independent reviewer and coordinator inspected the original PNG without a scoped visual blocker. This is one headless scene, not physical-keyboard, OS-window or accessibility validation.\n",
++  "body": "When text contains an RTL run, Type uses visual caret stops for Left/Right. A font can expose multiple shaping clusters inside one Unicode grapheme; in `\u0939\u093f\u0928\u094d\u0926\u0940 \u05e9\u05dc\u05d5\u05dd`, this can stop the caret at byte 12 instead of moving from byte 6 to byte 18. Filter visual stops by the text's grapheme boundaries before applying the existing directional ordering and distance logic.\n\nAdd `caret_horizontal_cluster` for Type's two arrow callers while preserving the raw `caret_horizontal` API, same-x RTL ordering and soft-wrap tie exclusion. When a wrapped-line fallback lands inside a grapheme, preserve no-op and valid results, then normalize the invalid fallback in the source line's logical direction (`right != line.rtl`). Separate raw shaping-cluster coverage from editing boundaries in the Hindi test, and cover plain-LTR, mixed-direction and wrapped text through actual Type-key dispatch. Publication regressions retain the installed-family/coverage checks and explicit missing-font skip policy.\n\nValidation of the correction over published head `b6e58adbb2863e9672ab93fc4b18f1635831d3d8` (qualified source tree `06dff1aef861a800cee2b07da30146c974b03d80`):\n\n- Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,230 passed, 0 failed, 12 ignored; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.\n- Captured CI success does not establish that every font-dependent assertion ran: allowed font/capability returns can report success.\n- A separate private wrapped-text causal pair reached the intended Right failure (12 instead of 18) before the fallback correction; the positive reached Right 18 and Left 6. That proof retains its recorded font, shaping and wrapped-line prerequisites; it is separate from the publication-policy regression and rendered scene.\n- Current rendered application verification: the original single-line 1280\u00d7960 VectorcraftApp/egui_kittest/wgpu scene passed real double-click entry and Right/Left movement 6 \u2192 18 \u2192 6, with production caret paint and the specified document/selection/history checks. Owner, independent reviewer and coordinator inspected the actual current PNG without a scoped visual blocker. This single-line scene does not demonstrate wrapped-line fallback behavior, physical-keyboard/OS-window operation or accessibility. The screenshot remains a private local artifact; no reviewer-accessible image attachment or URL has been posted.\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n## Summary by CodeRabbit\n\n* **Bug Fixes**\n  * Arrow-key caret movement now respects Unicode grapheme boundaries, preventing the caret from stopping inside a character cluster\u2014even when text shaping divides it into smaller parts.\n  * Left and Right navigation in right-to-left text now follows caret clusters. Movement in other text remains unchanged.\n  * Improved handling of Devanagari text, including when it appears before a right-to-left text segment.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
++  "body_before": "When text contains an RTL run, Type uses visual caret stops for Left/Right. A font can expose multiple shaping clusters inside one Unicode grapheme; in `\u0939\u093f\u0928\u094d\u0926\u0940 \u05e9\u05dc\u05d5\u05dd`, this can stop the caret at byte 12 instead of moving from byte 6 to byte 18. Filter visual stops by the text's grapheme boundaries before applying the existing directional ordering and distance logic.\n\nAdd `caret_horizontal_cluster` for Type's two arrow callers while preserving the raw `caret_horizontal` API, same-x RTL ordering, soft-wrap tie exclusion, and line fallback. Separate raw shaping-cluster coverage from editing boundaries in the Hindi test, and add an actual Type-key regression with a plain-LTR control and an RTL suffix. The regression uses the existing installed-font order and explicit skip policy.\n\nValidation on pinned base `797e899c56957d292fe6140b4af18366d3cf0eb2`:\n\n- Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,229 passed, 0 failed, 12 ignored across 143 summaries; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.\n- Captured CI success does not establish that every font-dependent assertion ran: allowed font/capability returns can report success.\n- A separate private 73f causal pair reached the mixed-direction Right failure (12 instead of 18) before the correction and passed both original cases afterward. That proof is limited to its recorded font/input prerequisites and is not transferred to this 797 publication fixture.\n- Rendered application verification: the original 1280\u00d7960 VectorcraftApp/egui_kittest/wgpu scene passed real double-click entry and Right/Left caret movement 6 \u2192 18 \u2192 6, matching production caret paint and the specified document/selection/history checks. Owner, independent reviewer and coordinator inspected the original PNG without a scoped visual blocker. This is one headless scene, not physical-keyboard, OS-window or accessibility validation.\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n## Summary by CodeRabbit\n\n* **Bug Fixes**\n  * Arrow-key caret movement now respects Unicode grapheme boundaries, preventing the caret from stopping inside a character cluster\u2014even when text shaping divides it into smaller parts.\n  * Left and Right navigation in right-to-left text now follows caret clusters. Movement in other text remains unchanged.\n  * Improved handling of Devanagari text, including when it appears before a right-to-left text segment.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
+   "branch": "codex/r82-type-grapheme-boundaries",
+   "draft_receipt": {
+-    "bytes": 5250,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/publication-draft-02/receipt.json",
+-    "sha256": "27eddccfd9007666f56772f47eb7957b8b9f15fe40cd34f8a300880f0ecd1159"
++    "bytes": 15448,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/publication-draft-01/receipt.json",
++    "sha256": "b223bd874354cf01e35d1f773f7def1ae88dda9604d0a1da827f41dfe46dacc7"
+   },
+-  "lease": "",
++  "latest_remote_snapshot": {
++    "bytes": 21740,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/remote-reconcile-89-20261019-mnt/result.json",
++    "sha256": "7ec7ecc91e3c336ca3092441ff5d3fc6d0708f86b986009284d33a0515be4b8e"
++  },
++  "lease": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++  "managed_suffix": "\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n## Summary by CodeRabbit\n\n* **Bug Fixes**\n  * Arrow-key caret movement now respects Unicode grapheme boundaries, preventing the caret from stopping inside a character cluster\u2014even when text shaping divides it into smaller parts.\n  * Left and Right navigation in right-to-left text now follows caret clusters. Movement in other text remains unchanged.\n  * Improved handling of Devanagari text, including when it appears before a right-to-left text segment.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
+   "owner_release": true,
++  "pr_number": 3004,
+   "preflight": {
+-    "bytes": 8603,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/publication-preflight-01/receipt.json",
+-    "sha256": "769f9dc82c580e0cf0282f400b0a0cb8216cbad51fecfb81af9b891d89373a5c"
++    "bytes": 3352,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/publication-checkout-01/result.json",
++    "sha256": "1f11448dd0cb4bf5cdaad4c2a8d18f3623ff2ba7b417296e9fd2a5a5f8dcc050"
+   },
++  "prior_tracking_reconciliation": {
++    "bytes": 3666,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/publication-action-01/preservation-reconciliation.json",
++    "sha256": "b682614e0a2b12b78e643197774e34d4b25d99565884aa6bee5c23fa3aaedc87"
++  },
++  "protected_indices": [
++    {
++      "bytes": 181300,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/format-correction-01/candidate.index",
++      "sha256": "7459357e52db4451defb5b7bfc9b4463e47d28ec09d512f8fbc970281975b711"
++    },
++    {
++      "bytes": 181300,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/candidate.index",
++      "sha256": "89c266f652c038a8b687d628e449cb41feefe9a69998b397343608ed347cd7b0"
++    },
++    {
++      "bytes": 181300,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/candidate.index",
++      "sha256": "8a6bcd351581f81f87beb305f352adca432d6e3053400e88f6d099f3c72c5381"
++    },
++    {
++      "bytes": 181300,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/candidate.index",
++      "sha256": "43901420e71ea96cedd04602fa95378370804bc350ea25896f323c8f74241299"
++    }
++  ],
++  "protected_refs_sha256": "ccacf0023c70cfe608e207260eaab7d6cea9b0b8d3e4d977d9980b3899e8216c",
++  "protected_sources": [
++    {
++      "head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++      "index_path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/worktrees/r82-pr1919-validation06b-consolidated/index",
++      "index_sha256": "45395712f142352d0ccc53b101dfa656ebe1a403d5b12a20f0f958c9792dba8a",
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated",
++      "source_sha256": "7af22e42af5aec9b25a9def5576c2c5888b07dabf90d9368863d2eac2971591b"
++    },
++    {
++      "head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++      "index_path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/worktrees/r82-pr3004-wrap-baseline-b6e58-01/index",
++      "index_sha256": "5c19703379e605f5c82883a6a98320f6c65b5dbc5e0d5a728f96621084700ecf",
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-baseline-b6e58-01",
++      "source_sha256": "0ed326a67cc21ee6f9d0144d480bee63295e5ab82d71d2765d5d940927da2499"
++    },
++    {
++      "head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++      "index_path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/worktrees/r82-pr3004-wrap-positive-b6e58-01/index",
++      "index_sha256": "a085efcb62d891f45c5eca46527cbf328ac0e656e184749a73f72e77ae309317",
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-positive-b6e58-01",
++      "source_sha256": "dc9a3944e45ca08157bdf5671054966150ce47dd8e8527087775770f83943ad0"
++    },
++    {
++      "head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++      "index_path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/worktrees/r82-pr3004-wrap-publishable-b6e58-01/index",
++      "index_sha256": "1bbf273cd579ee3e5e00136985a1e682cca4be24c7f3c76c0612667895ffaf4c",
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-publishable-b6e58-01",
++      "source_sha256": "7af22e42af5aec9b25a9def5576c2c5888b07dabf90d9368863d2eac2971591b"
++    },
++    {
++      "head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++      "index_path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/worktrees/r82-text-caret-publication797-01/index",
++      "index_sha256": "6febd075cefd02b5f08e0053789b26a3c0dfc66af7d41e5853cc0874e4a6df37",
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-caret-publication797-01",
++      "source_sha256": "7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002"
++    },
++    {
++      "head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
++      "index_path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/worktrees/r82-text-cluster-caret-797-publishable-01/index",
++      "index_sha256": "9651f7d3bbec066d148e85eb0729cb158eef4545d24a67bfa1f449b5897b917d",
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-cluster-caret-797-publishable-01",
++      "source_sha256": "7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002"
++    }
++  ],
++  "publication_index_sha256": "8257d95dbd6630a08c9a23d436170abda8089592d3a1a2d196cb26bd4f7cad74",
+   "qualification": {
+-    "bytes": 22795,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/independent-terminal-review-01/receipt.json",
+-    "sha256": "c4093e05f8d3fdcbc6cfca34ac6f823881f82c9856d79f1978dde1911ddff7d2"
++    "bytes": 21309,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/independent-terminal-review-01/receipt.json",
++    "sha256": "928abba86a3ffe6addad31622e7e76d5fd9c35d81d98e72716641e7eeb8e2c36"
+   },
+   "render_qualification": {
+-    "bytes": 5963,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-ui-render-797-capture-launch-02/independent-terminal-review-01/dep-info-spelling-correction.json",
+-    "sha256": "44a6123f29a9145d3e880de3d7d1bc30ca98a449fb32a58da00748a8d6310066"
++    "bytes": 24725,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-ui-render-b6e58-capture-launch-01/independent-terminal-review-01/receipt.json",
++    "sha256": "9740f8a074115d2b88ff7bbd5890d25f03c0a1d698b8ce49faaa34cc363fce8d"
+   },
++  "reply": "Updated `caret_horizontal_cluster` to normalize wrapped-line fallback results as well as filtering glyph stops. No-op and already-valid results remain unchanged. For an invalid fallback, the normalization follows the source line's logical direction (`right != line.rtl`), so an RTL line does not incorrectly treat visual Right as logical forward.\n\nAdded a Type-key wrapped-text regression while retaining the installed-family/coverage checks and explicit missing-font skip policy. A separate private paired run reached the intended Right = 12 versus expected 18 failure before the correction and completed Right 18 / Left 6 afterward. The corrected publication source passed all 10 original CI stages (8,230 workspace passes, 0 failures, 12 ignored; separate no-bundled-fonts 1 pass; 23 Wasm packages). Captured CI success does not prove the public font-dependent regression was non-skipped.\n\nThe original current single-line 1280\u00d7960 production-app render also completed 6 \u2192 18 \u2192 6 with caret-paint/history assertions and owner, independent and coordinator image review. That scene is separate from the wrapped regression; it supplies no physical-keyboard or accessibility claim. Its image is retained locally and is not yet a reviewer-accessible attachment.\n",
++  "reply_to": 4309525469,
+   "route": {
+     "base": "main",
+     "git_push_url": "https://github.com/sanyamsingh001/vectorcraft.git",
+     "head": "sanyamsingh001:codex/r82-type-grapheme-boundaries",
++    "inline_reply_api": "/repos/storytold/vectorcraft/pulls/3004/comments/4309525469/replies",
+     "owned_ref_api": "/repos/sanyamsingh001/vectorcraft/git/ref/heads/codex/r82-type-grapheme-boundaries",
+-    "pr_api": "/repos/storytold/vectorcraft/pulls"
++    "pr_api": "/repos/storytold/vectorcraft/pulls/3004"
+   },
+-  "scope": "Exact qualified four-file797 candidate; upstreama466 clean text merge is source-only, no current-main runtime credit.",
++  "scope": "Update existing PR3004 with the exact two-file correction over b6e58, four aggregate paths versus797. Original currentCI8230+1/23Wasm, private wrapped pair and single-line render remain separate. Currenta466 compatibility is source-only. No new PR, rebase or runtime.",
+   "source_manifest": {
+     "bytes": 193557,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/runtime-source-manifest.json",
+-    "sha256": "9dc1f122e048c73e905a4c874d16d24cbddd594ed07f88bb969b07d316f444d5"
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/format-correction-01/runtime-source-manifest.json",
++    "sha256": "69375e20daacb4feae402dbfb00b50983d1716d644b836b3c522ab24f11e3ffa"
+   },
+-  "source_sha256": "7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002",
++  "source_sha256": "7af22e42af5aec9b25a9def5576c2c5888b07dabf90d9368863d2eac2971591b",
++  "target": {
++    "device": 66310,
++    "inode": 865301590,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated"
++  },
+   "title": "Keep Type arrows on grapheme boundaries in mixed-direction text",
+-  "tree": "7abbe28c9a942c9e81f28f196a78308290228b42",
++  "tree": "06dff1aef861a800cee2b07da30146c974b03d80",
+   "visual": {
+     "accepted": true,
+-    "receipt": "/mnt/downloads/dev/artcraft/.codex-coordinator-20261016/vector-type797-root-image-review-20261019T002432Z.json",
++    "receipt": "/mnt/downloads/dev/artcraft/.codex-coordinator-20261016/vector-b6e58-root-visual-review-20261019T094408Z.json",
+     "scenes": [
+       {
+         "name": "type-mixed-direction-right-cluster.png",
+-        "observation": "Original1280x960 production-app scene accepted by owner, independent reviewer and root; actual double-click entry,6\u219218\u21926,paint/document/selection/history assertions qualified separately from the inspected PNG."
++        "observation": "Original current single-line1280x960 production-app scene accepted after actual double-click,6->18->6,production caret paint and retained document/selection/history assertions. The inspected PNG is separate from wrapped fallback test coverage; no physical-keyboard/OS-window/accessibility claim."
+       }
+     ],
+-    "sha256": "8bfc934331f0230ea341d41cd23524c57b2a4505fdfb179414460c38eb9a9a24"
++    "sha256": "bd5433690fe7df5f48ce072572a4a77e75416d8706d342921583406f3448bff8"
+   }
+ }

@@ -1,0 +1,93 @@
+--- canonical-main-a466-ff-01/source.py
++++ canonical-main-320b-ff-01/source.py
+@@ -1,9 +1,9 @@
+ import os,sys,json,hashlib,pathlib,subprocess,datetime,difflib
+-R=pathlib.Path("/mnt/downloads/dev/artcraft/vectorcraft");A=R/".git/codex/r82/consolidation-20261016";C=A/"text-wrap-fallback-publishable-b6e58-01";P=A/"canonical-main-a466-ff-01";W=R/".git/codex/worktrees/r82-pr1919-maina466-typef196-repair-01";N=R/".git/worktrees/r82-pr1919-maina466-typef196-repair-01"
++R=pathlib.Path("/mnt/downloads/dev/artcraft/vectorcraft");A=R/".git/codex/r82/consolidation-20261016";C=A/"text-wrap-fallback-publishable-b6e58-01";P=A/"canonical-main-320b-ff-01";W=R/".git/codex/worktrees/r82-pr1919-main320b-typef196-repair-01";N=R/".git/worktrees/r82-pr1919-main320b-typef196-repair-01"
+ PUB=A/"text-cluster-caret-publishable-797-01";Q=PUB/"pr3004-wrapped-type-test-proposal-01"
+ PB=A/"text-wrap-fallback-baseline-b6e58-01";BM=PB/"materialization-02";POS=A/"text-wrap-fallback-positive-b6e58-01";CORRECTION=PB/"correction-proposal-02";LIBPATH="crates/text/src/lib.rs"
+ BASE="b6e58adbb2863e9672ab93fc4b18f1635831d3d8";BASE_TREE="7abbe28c9a942c9e81f28f196a78308290228b42";ROOT="797e899c56957d292fe6140b4af18366d3cf0eb2";PATH="crates/tools/src/text_tests.rs";COMPACT="7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002"
+-G=A/"guide-current-maina466-01";ADMITTED="a466625c8987550635cda951ebf36e08e1e80a56";ADMITTED_TREE="c48fefed8c022e684b7d2076aba442739df7a536";PUBHEAD="f196baab5326881c6b83f960875a1fad1df5c91d"
++G=A/"guide-current-maina466-01";ROOT_BEFORE="a466625c8987550635cda951ebf36e08e1e80a56";ADMITTED="320bffb8adede9eeff0efcd22145fe5a3128bf6e";ADMITTED_TREE="15653caa6007b91c8cc8fbe08aed5135802b5f4c";PUBHEAD="f196baab5326881c6b83f960875a1fad1df5c91d"
+ phase="preflight";seq=0;registered=False
+ def sha(b):return hashlib.sha256(b).hexdigest()
+ def pin(p):
+@@ -35,7 +35,8 @@
+  ("r82-pr3004-wrap-positive-b6e58-01",BASE,"a085efcb62d891f45c5eca46527cbf328ac0e656e184749a73f72e77ae309317",positive_manifest["files"]),
+  ("r82-pr3004-wrap-publishable-b6e58-01",BASE,"1bbf273cd579ee3e5e00136985a1e682cca4be24c7f3c76c0612667895ffaf4c",current_manifest["files"]),
+  ("r82-pr3004-wrap-publication-b6e58-01",PUBHEAD,"8257d95dbd6630a08c9a23d436170abda8089592d3a1a2d196cb26bd4f7cad74",current_manifest["files"]),
+- ("r82-pr1919-maina466-repair-01",ADMITTED,"a2b53730d0b65aad28d27321f456fa22499ce2c9ae24824052433748240f88ac",guide_manifest["files"]),
++ ("r82-pr1919-maina466-repair-01",ROOT_BEFORE,"a2b53730d0b65aad28d27321f456fa22499ce2c9ae24824052433748240f88ac",guide_manifest["files"]),
++ ("r82-pr1919-maina466-typef196-repair-01",ROOT_BEFORE,"250308a2568ab40fdfded369577f25133ccb5578fdc0726b6790bbb241bcbe1f",old_composed_manifest["files"]),
+  ("r82-pr1919-validation06b-consolidated",BASE,"45395712f142352d0ccc53b101dfa656ebe1a403d5b12a20f0f958c9792dba8a",current_manifest["files"])]:
+   w=R/".git/codex/worktrees"/name;h=git(w,"rev-parse","HEAD").decode().strip();ip=R/".git/worktrees"/name/"index";ih=sha(ip.read_bytes());actual={p:sha((w/p).read_bytes()) for p in expected_files};digest=sha(json.dumps(actual,sort_keys=True,separators=(",",":")).encode())
+   assert h==head and (expected_index is None or ih==expected_index) and actual==expected_files,("protected",name,h,ih,digest)
+@@ -48,8 +49,8 @@
+  t=(R/".git/codex/targets/r82-pr1919-validation06b-consolidated").stat();d["target_identity"]={"device":t.st_dev,"inode":t.st_ino}
+  return d
+ 
+-GP=A/"guide-current-maina466-typef196-01";COMP=GP/"completion-01"
+-print("CANONICAL_A466_FF_START",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
++GP=A/"guide-current-main320b-typef196-01";COMP=GP
++print("CANONICAL_320B_FF_START",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
+ assert sys.flags.optimize==0 and not P.exists()
+ P.mkdir();source_pin=save("source.py",sys.orig_argv[sys.orig_argv.index("-c")+1].encode())
+ phase="preflight"
+@@ -60,31 +61,33 @@
+  current_manifest=json.loads(auth(C/"format-correction-01/runtime-source-manifest.json",193557,"69375e20daacb4feae402dbfb00b50983d1716d644b836b3c522ab24f11e3ffa"))
+  guide_manifest=json.loads(auth(G/"runtime-source-manifest.json",194308,"3d0a1a4f1adcb365b8fd4befec44dc625fa8c9cbcdeeb3fe239e433922bbcf42"))
+ 
+- donor=auth(A/"canonical-main-797-ff-01/source.py",10427,"3b6736805925c7fc94429bf2d9d615b7f1d8d03e932ffc686e5d4c45bf7efafd")
++ old_composed_manifest=json.loads(auth(A/"guide-current-maina466-typef196-01/completion-01/runtime-source-manifest.json",194308,"c61b68680ad3a7afcb5a6f583a8675163cb830b2f59d341a4c40b01a95beb48c"))
++ donor=auth(A/"canonical-main-a466-ff-01/source.py",12043,"c5aa5facd5124d61fc79130ce566f9ebdabb662aa1a60d26d03d0b76f07e4f3a")
+  save("original-source.py",donor)
+- final=json.loads(auth(COMP/"final-source-receipt.json",10132,"512e0ba1e41c4008236ac9c1c792a77ca974b71f6a84d9ade75b98bd8fc37a0b"))
+- composed=json.loads(auth(COMP/"runtime-source-manifest.json",194308,"c61b68680ad3a7afcb5a6f583a8675163cb830b2f59d341a4c40b01a95beb48c"))
+- assert composed["head"]==ADMITTED and len(composed["files"])==1792 and composed["sha256"]=="43adf5ce456dfadf56529d9a801e624e64281b53850498b3c5dc031dcf678d1c"
++ save("source-delta.patch","".join(difflib.unified_diff(donor.decode().splitlines(True),sys.orig_argv[sys.orig_argv.index("-c")+1].splitlines(True),fromfile="canonical-main-a466-ff-01/source.py",tofile="canonical-main-320b-ff-01/source.py")).encode())
++ final=json.loads(auth(COMP/"final-source-receipt.json",9704,"a1448d430a1b9643b6cdf018c94873a756a351738416196d621916c75947740e"))
++ composed=json.loads(auth(COMP/"runtime-source-manifest.json",194999,"b13eda7a7d1358fe34b3dfe7a4479dad7944ab50239a7bc420b39125e0681623"))
++ assert composed["head"]==ADMITTED and len(composed["files"])==1798 and composed["sha256"]=="d80b77c20dbd9e7054e280d621911476d50635403d706cf6822f6aae45826fb1"
+  def composed_map():
+   actual={p:sha((W/p).read_bytes()) for p in composed["files"]};assert actual==composed["files"]
+   assert git(W,"rev-parse","HEAD").decode().strip()==ADMITTED
+-  assert sha((N/"index").read_bytes())=="250308a2568ab40fdfded369577f25133ccb5578fdc0726b6790bbb241bcbe1f"
+-  git(W,"diff","--quiet",final["candidate_product_tree"])
++  assert sha((N/"index").read_bytes())=="ce5bc81e26608ec6e7fc94fffa3401e9faddf3c6ce04c853d43e9ec585e2aebb"
++  assert set(git(W,"ls-files","--cached","--others","--exclude-standard","-z").decode().split("\0"))-{""}==set(composed["files"])
+   return {"source_compact":sha(json.dumps(actual,sort_keys=True,separators=(",",":")).encode()),"ordinary_index":pin(N/"index"),"private_index":pin(COMP/"candidate.index"),"product_tree":final["candidate_product_tree"]}
+  before=snapshot();old_composed=composed_map()
+- assert before==json.loads((COMP/"protected-after.json").read_bytes())
+- assert before["root_head"]==ROOT and before["root_index"]["sha256"]=="04fbbddc2207b434912ecda888569aef1ee76d484404200d2284c1dcb85dc185"
++ assert before["refs_raw_show_ref_sha256"]=="7521bb50c94644e304aba64e945d88697266db2aae1272d112aeda1d272d4f05"
++ assert before["root_head"]==ROOT_BEFORE and before["root_index"]["sha256"]=="7b842f7e8f6292e1b87444f66d9a53e2fca7887f821b495b28f3e6dd89f29e3f"
+  assert not git(R,"status","--porcelain=v1","--untracked-files=normal")
+  assert git(R,"symbolic-ref","HEAD").decode().strip()=="refs/heads/main"
+  assert git(R,"rev-parse",ADMITTED+"^{tree}").decode().strip()==ADMITTED_TREE
+- git(R,"merge-base","--is-ancestor",ROOT,ADMITTED)
++ git(R,"merge-base","--is-ancestor",ROOT_BEFORE,ADMITTED)
+  for name,digest in [("AGENTS.md","39a68e5e8c7c8c1997cb0f474e9ee61274bd401c122a82921e9dfa7cc7b7478b"),("CLAUDE.md","46f12a6f848d87a79307346b467e106e35a0ca0070d4f6ef78c35658a360adf7")]:
+   assert sha(git(R,"show",ADMITTED+":"+name))==digest
+  oids=[]
+  for row in git(R,"ls-tree","-r","-z",ADMITTED).split(b"\0"):
+   if not row:continue
+   meta,name=row.split(b"\t",1);mode,kind,oid=meta.decode().split();assert kind=="blob";oids.append(oid)
+- assert len(oids)==1792
++ assert len(oids)==1798
+  got=git(R,"cat-file","--batch-check=%(objectname) %(objecttype)",data=("\n".join(oids)+"\n").encode()).decode().splitlines()
+  assert got==[oid+" blob" for oid in oids]
+  old_index=save("root-index-before.bin",(R/".git/index").read_bytes())
+@@ -108,11 +111,11 @@
+  def refs(s):return dict(l.split(" ",1) for l in s.splitlines())
+  expected=refs(before["refs"]);expected["refs/heads/main"]=ADMITTED
+  assert refs(after["refs"])==expected
+- result={"status":"CANONICAL_MAIN_ORDINARY_FAST_FORWARD_VERIFIED","old_head":ROOT,"head":ADMITTED,"base_HEAD_tree":ADMITTED_TREE,"composed_product_tree":final["candidate_product_tree"],"old_index_preserved":old_index,"index":after["root_index"],"show_ref":{"domain":"git show-ref raw objectname SP refname LF","before_sha256":before["refs_raw_show_ref_sha256"],"after_sha256":after["refs_raw_show_ref_sha256"]},"refname_first_inventory":{"domain":"git for-each-ref --format=%(refname) %(objectname), raw bytes including final LF","before_sha256":sha(before["refs"].encode()),"after_sha256":sha(after["refs"].encode())},"intentional_ref_change":"refs/heads/main","protected_sources_target_FETCH_HEAD_shallow_unchanged":True,"all1792_target_blobs_available":True,"composed_source_indices_unchanged":True,"command":command,"source":source_pin,"donor_source_sha256":sha(donor),"boot_id":pathlib.Path("/proc/sys/kernel/random/boot_id").read_text().strip(),"finished_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"runtime":None,"publication":None}
++ result={"status":"CANONICAL_MAIN_ORDINARY_FAST_FORWARD_VERIFIED","old_head":ROOT_BEFORE,"head":ADMITTED,"base_HEAD_tree":ADMITTED_TREE,"composed_product_tree":final["candidate_product_tree"],"old_index_preserved":old_index,"index":after["root_index"],"show_ref":{"domain":"git show-ref raw objectname SP refname LF","before_sha256":before["refs_raw_show_ref_sha256"],"after_sha256":after["refs_raw_show_ref_sha256"]},"refname_first_inventory":{"domain":"git for-each-ref --format=%(refname) %(objectname), raw bytes including final LF","before_sha256":sha(before["refs"].encode()),"after_sha256":sha(after["refs"].encode())},"intentional_ref_change":"refs/heads/main","protected_sources_target_FETCH_HEAD_shallow_unchanged":True,"all1798_target_blobs_available":True,"composed_source_indices_unchanged":True,"command":command,"source":source_pin,"donor_source_sha256":sha(donor),"boot_id":pathlib.Path("/proc/sys/kernel/random/boot_id").read_text().strip(),"finished_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"runtime":None,"publication":None}
+  rp=save("result.json",result);print(json.dumps({"receipt":rp,"result":result},indent=2),flush=True)
+ except BaseException as e:
+  f={"status":"STOPPED_PRESERVE_PARTIAL_STATE","phase":phase,"error":type(e).__name__+": "+str(e),"retry":False}
+  try:f["readback"]=snapshot()
+  except BaseException as x:f["readback_error"]=repr(x)
+  print(json.dumps({"failure":f,"receipt":save("failure.json",f)},indent=2),flush=True);raise
+-print("CANONICAL_A466_FF_END",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
++print("CANONICAL_320B_FF_END",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)

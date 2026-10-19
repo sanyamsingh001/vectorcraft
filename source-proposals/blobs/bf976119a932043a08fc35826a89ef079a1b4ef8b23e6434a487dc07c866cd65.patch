@@ -1,0 +1,40 @@
+diff --git a/crates/ui-egui/src/dialogs/mod.rs b/crates/ui-egui/src/dialogs/mod.rs
+index 27e16e45..caf5f8bd 100644
+--- a/crates/ui-egui/src/dialogs/mod.rs
++++ b/crates/ui-egui/src/dialogs/mod.rs
+@@ -395,14 +395,14 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
+     about::show(app, ctx);
+     settle(app);
+     confirm::show_waiting(app);
+-    // The kind of dialog shown last frame: a different one (or none) means this one just opened, and
+-    // its first field is to take the keyboard focus (`focus_id`, until a field takes it).
++    // The kind and, for Color Picker, the instance shown last frame identify a newly opened dialog.
++    // Its first field takes the keyboard focus (`focus_id`, until a field takes it).
+     let (shown_id, focus_id) = (egui::Id::new("dialog-shown"), egui::Id::new("dialog-focus-pending"));
+     let Some(mut d) = app.ui.dialog.clone() else {
+         revolve_gizmo::clear(ctx);
+         app.ui.dialog_file = None;
+         ctx.data_mut(|m| {
+-            m.remove::<String>(shown_id);
++            m.remove::<(String, Option<u64>)>(shown_id);
+             m.remove::<bool>(focus_id);
+         });
+         return;
+@@ -410,9 +410,15 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
+     if !revolve_gizmo::active(&d) {
+         revolve_gizmo::clear(ctx);
+     }
++    let picker = if DialogKind::of(&d.kind) == Some(DialogKind::ColorPicker) {
++        d.fields.get(crate::screen_color::PICKER_ID).and_then(Value::as_u64)
++    } else {
++        None
++    };
++    let shown = (d.kind.clone(), picker);
+     let focus_first = ctx.data_mut(|m| {
+-        if m.get_temp::<String>(shown_id).as_deref() != Some(d.kind.as_str()) {
+-            m.insert_temp(shown_id, d.kind.clone());
++        if m.get_temp::<(String, Option<u64>)>(shown_id).as_ref() != Some(&shown) {
++            m.insert_temp(shown_id, shown);
+             m.insert_temp(focus_id, true);
+         }
+         m.get_temp::<bool>(focus_id).unwrap_or(false)

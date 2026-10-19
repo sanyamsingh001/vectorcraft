@@ -1,0 +1,53 @@
+--- /dev/null
++++ publication-draft-01/title.txt
+@@ -0,0 +1 @@
++Keep Type arrows on grapheme boundaries in mixed-direction text
+--- /dev/null
++++ publication-draft-01/body.md
+@@ -0,0 +1,10 @@
++When text contains an RTL run, Type uses visual caret stops for Left/Right. A font can expose multiple shaping clusters inside one Unicode grapheme; in `हिन्दी שלום`, this can stop the caret at byte 12 instead of moving from byte 6 to byte 18. Filter visual stops by the text's grapheme boundaries before applying the existing directional ordering and distance logic.
++
++Add `caret_horizontal_cluster` for Type's two arrow callers while preserving the raw `caret_horizontal` API, same-x RTL ordering, soft-wrap tie exclusion, and line fallback. Separate raw shaping-cluster coverage from editing boundaries in the Hindi test, and add an actual Type-key regression with a plain-LTR control and an RTL suffix. The regression uses the existing installed-font order and explicit skip policy.
++
++Validation on pinned base `797e899c56957d292fe6140b4af18366d3cf0eb2`:
++
++- Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,229 passed, 0 failed, 12 ignored across 143 summaries; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.
++- Captured CI success does not establish that every font-dependent assertion ran: allowed font/capability returns can report success.
++- A separate private 73f causal pair reached the mixed-direction Right failure (12 instead of 18) before the correction and passed both original cases afterward. That proof is limited to its recorded font/input prerequisites and is not transferred to this 797 publication fixture.
++- [ ] Complete and inspect the original one-scene 1280×960 production-app egui_kittest/wgpu render. Its recipe is ready but unrun. Metadata/bootstrap and resolved dependency-edge qualification establish readiness only, not UI evidence.
+--- /dev/null
++++ publication-draft-01/reviewer-context.md
+@@ -0,0 +1,33 @@
++This is a private, unpublished description for the four-file text/caret candidate on pinned 797e899c56957d292fe6140b4af18366d3cf0eb2. No text PR has been created. No push, post, merge, author identity, or trailer change is part of this packet; retain the existing author/trailer policy for any later authorized publication.
++
++Candidate tree: 7abbe28c9a942c9e81f28f196a78308290228b42.
++Complete source: 1,785 files; compact digest 7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002.
++Actual product diff: candidate.patch, 10,394 bytes, SHA256 47214ec5fc2bc422aa5e7b9ec193968cba0d4d338f478c50fb7ee00d701aca77.
++
++The four changed paths and their intent are:
++
++- crates/text/src/lib.rs: retain the raw caret_horizontal wrapper with an always-true predicate; add caret_horizontal_cluster using UTF-8 and Unicode grapheme boundaries. Filter before the unchanged visual candidate selection. Preserve upstream same-x RTL ordering, soft-wrap tie exclusion, comparator, and line fallback.
++- crates/tools/src/text.rs: only the existing Left and Right visual-route calls use caret_horizontal_cluster with the same text used to create the layout. The plain-LTR logical-cluster route remains unchanged.
++- crates/text/src/tests_devanagari.rs: do not require a font-specific count of raw shaping clusters. Require positive, contiguous, nonoverlapping UTF-8 source coverage; retain the first-cluster, pre-base matra placement, semantic editing-boundary, and caret-position checks. The raw layout API/data are not normalized or changed.
++- crates/tools/src/text_tests.rs: exercise actual Type key dispatch on हिन्दी and हिन्दी שלום, with collapsed caret/anchor movement 6 -> 18 -> 6. Establish the actual RTL-route predicate and Hindi face-byte/index use. Keep the installed-family order and explicit missing-font skip; do not select a Noto version or require three raw spans to obtain a passing publication test.
++
++The prior test-only scale: 1.0 adaptation in tests_bidi.rs is already upstream in 797. It is not a fifth own-path change here. All 26 recorded 73f-to-797 upstream changes remain in the candidate; no Guide/parity-document changes are included.
++
++Evidence boundaries:
++
++- The accepted original 797 CI has all 10 stages passed: fmt, clippy, test, no-bundled-fonts, pdf-deps, assets, brands, cursors, layers, wasm. Workspace totals are 8,229 passed / 0 failed / 12 ignored across 143 summaries; no-bundled-fonts is separately 1 / 0 / 0; Wasm covers 23 packages.
++- Font-dependent assertion non-skip is unknown from captured successful output and the allowed capability returns. Do not describe that output as proof that the current publication regression exercised a particular installed face.
++- The private 73f pair used the original exact 4,051-byte diagnostic in both variants. Its plain हिन्दी control completed; the baseline mixed हिन्दी שלום case reached the intended first Right assertion with 12 instead of 18, so its later mixed Left assertion was not credited. The positive completed both original cases. That diagnostic's raw-prefix spans [(0, 6), (6, 6), (12, 6)], actual RTL-route prerequisite, and selected/used Hindi face equality constrain its coverage. The recorded TYPE_ARROW_FONT identity belongs to that run; this draft does not generalize it to other fonts or the 797 publication run.
++- Keep the original failed raw-cluster oracle and private before/after sources as historical evidence. Their assertions and files are not altered by this draft.
++- The current original one-scene 1280×960 production VectorcraftApp/egui_kittest/wgpu workflow is ready but unrun. It uses real app Right/Left events, actual Type state and caret paint, plus document/object-selection/history checks. Executable/result/PNG evidence and original image inspection remain pending. No physical-keyboard, OS-window, accessibility, or backend guarantee is claimed.
++- The completed metadata bootstrap and normalized lock audit are readiness evidence: 477 common identities unchanged, zero added/rebound common edges, 87 removed edges, 120 packages pruned, and only the capture root added. They are not UI evidence or normal-library/test/Wasm artifact equivalence.
++- Validation applies to pinned 797 only. The reported current-main 0f615 workflow delta has static appraisal only; no current-main CI or render is claimed.
++
++Existing evidence pointers (under /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016):
++
++- text-cluster-caret-publishable-797-01/independent-terminal-review-01/receipt.json — accepted CI, source, closure and artifact limits.
++- text-cluster-caret-publishable-797-01/independent-terminal-review-01/artifact-archive.json — preserved native test artifacts and raw provenance; no build-target seeding.
++- text-mixed-direction-caret-baseline-73f-01/independent-semantic-audit-01-rayp46xm/receipt.json — private baseline first-failure attribution.
++- text-mixed-direction-caret-positive-73f-01/independent-terminal-audit-01-e8p3ezod/receipt.json — private positive, both original completion markers.
++- text-ui-render-binding-797-01/capture-source-binding-receipt.json — current capture data readiness and remaining root/runtime/image inputs.
++- text-ui-render-797-bootstrap-launch-01/resolved-edge-audit.json — actual normalized dependency-edge qualification.

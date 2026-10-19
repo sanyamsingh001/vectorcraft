@@ -1,0 +1,93 @@
+diff --git a/crates/engine/src/lib.rs b/crates/engine/src/lib.rs
+index 50ed6976ea02a03a462527907be11b4fda1cc728..fe6c29551b937514e59ae5ca0596f5865ddb03e7 100644
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -1702,14 +1702,17 @@ impl Session {
+         let before = st.doc.clone();
+         let before_sel = st.selection.clone();
+         let doc = Arc::make_mut(&mut st.doc);
+-        // Dimensions follow the art they measure.
++        // Objects attached to a path follow it, and dimensions follow the art they measure.
+         let result = match f(doc, &mut st.selection).and_then(|v| {
++            cmd::objects_on_path::refresh(&before, doc);
+             cmd::dimension::refresh(&before, doc)?;
+             Ok(v)
+         }) {
+             Ok(v) => match cmd::shaper::refresh(&before, Arc::make_mut(&mut st.doc)) {
+                 Err(e) => Err(e),
+                 Ok(()) => {
++                    // Attached Shaper groups whose art was rebuilt go back on their path.
++                    cmd::objects_on_path::refresh(&before, Arc::make_mut(&mut st.doc));
+                     // Inline graphics in text follow their symbols.
+                     cmd::inline::refresh(&before, Arc::make_mut(&mut st.doc));
+                     // Text Wrap: area type follows its wrap objects; then threads re-flow.
+@@ -2185,6 +2188,8 @@ mod tests_newart;
+ #[cfg(test)]
+ mod tests_newdoc;
+ #[cfg(test)]
++mod tests_objects_on_path;
++#[cfg(test)]
+ mod tests_objexpand;
+ #[cfg(test)]
+ mod tests_opacitymask;
+diff --git a/crates/ui-egui/src/canvas.rs b/crates/ui-egui/src/canvas.rs
+index 84b46b637fd6621cf7cf467113d7d3f299f72209..faeac9d7799d46156544f7e4ff4ce87ca16e235e 100644
+--- a/crates/ui-egui/src/canvas.rs
++++ b/crates/ui-egui/src/canvas.rs
+@@ -680,6 +680,7 @@ fn cursor_icon(c: Cursor) -> egui::CursorIcon {
+         | Cursor::SymbolStainer
+         | Cursor::SymbolScreener
+         | Cursor::SymbolStyler
++        | Cursor::ObjectsOnPath
+         | Cursor::Scissors
+         | Cursor::ScissorsNotAllowed
+         | Cursor::MeshAdd
+@@ -1981,8 +1982,8 @@ fn panel_drop(app: &mut VectorcraftApp, ui: &Ui, resp: &egui::Response, xf: &Xf)
+ 
+ fn hover_highlight(app: &VectorcraftApp, p: &egui::Painter, xf: &Xf) {
+     let Some(h) = app.hover_doc else { return };
+-    // Smart Guides › Object Highlighting: a Smart Guides display option, so it needs them on.
+-    if !app.ui.view.smart_guides || !app.session.prefs.object_highlighting {
++    // Smart Guides › Object Highlighting: a Smart Guides display option, so it needs them on and Snap to Grid and Pixel Preview off.
++    if !app.ui.view.smart_guides || !app.session.prefs.object_highlighting || app.ui.view.snap_to_grid || app.ui.view.pixel_preview {
+         return;
+     }
+     if app.session.tool_busy() || !matches!(app.session.tool_id(), "selection" | "directSelection" | "groupSelection") {
+@@ -5274,6 +5275,37 @@ mod tests {
+         assert_eq!(dots(&mut app).len(), 2, "one anchor still shows them");
+     }
+ 
++    /// Smart Guides › Object Highlighting (#394): the outline of the object under the pointer does not
++    /// show with View › Snap to Grid or View › Pixel Preview on, even with Smart Guides and the option on.
++    #[test]
++    fn snap_to_grid_and_pixel_preview_hide_the_hover_outline() {
++        let mut app = VectorcraftApp::new(Session::new(), Default::default());
++        app.session.execute("file.new", &json!({"width": 400, "height": 300})).unwrap();
++        let id = app.session.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 100, "height": 100})).unwrap()["id"].as_u64().unwrap();
++        app.session.execute("select.none", &json!({})).unwrap();
++        let ctx = egui::Context::default();
++        frame(&mut app, &ctx, vec![]);
++        let rect = app.canvas_rect.unwrap();
++        let over = Xf::new(rect, app.view().unwrap()).to_screen(Point::new(150.0, 150.0));
++        let layer = egui::epaint::ColorMode::Solid(c32(app.session.active().unwrap().doc.layer_color(vectorcraft_doc::NodeId(id))));
++        let outlines = |app: &mut VectorcraftApp| {
++            frame(app, &ctx, vec![egui::Event::PointerMoved(over)]);
++            shapes(app, &ctx).iter().filter(|s| matches!(s, Shape::Path(ps) if ps.stroke.width == 1.5 && ps.stroke.color == layer)).count()
++        };
++        assert!(app.ui.view.smart_guides && app.session.prefs.object_highlighting);
++        assert!(outlines(&mut app) > 0, "highlighted with Snap to Grid and Pixel Preview off");
++        app.run("view.snapToGrid", json!({})).unwrap();
++        assert!(app.ui.view.snap_to_grid);
++        assert_eq!(outlines(&mut app), 0, "Snap to Grid on");
++        app.run("view.snapToGrid", json!({})).unwrap();
++        assert!(outlines(&mut app) > 0, "Snap to Grid off again");
++        app.run("view.pixelPreview", json!({})).unwrap();
++        assert!(app.ui.view.pixel_preview);
++        assert_eq!(outlines(&mut app), 0, "Pixel Preview on");
++        app.run("view.pixelPreview", json!({})).unwrap();
++        assert!(outlines(&mut app) > 0, "Pixel Preview off again");
++    }
++
+     /// Smart Guides › Object Highlighting (#394): the outline of the object under the pointer
+     /// shows with Smart Guides on and the option on, and not otherwise.
+     #[test]

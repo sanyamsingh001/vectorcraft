@@ -1,0 +1,47 @@
+--- a466/output-environment.json
++++ 320b/output-environment.json
+@@ -1,11 +1,11 @@
+ {
+   "HOME_changed": false,
+   "additional_verified_cache_input": {
+-    "bytes": 2976,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/cache-input-presence.json",
+-    "sha256": "4438055cf2e84bb65eb0bec946c9f39d2056cdab5b6f0a47cb1c2b579a13a8d9"
+-  },
+-  "at": "2026-10-19T11:13:13.558594+00:00",
++    "bytes": 2011,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/cache-input-presence.json",
++    "sha256": "882e5b0efe2a565c265286881a67cd3b18034311d1f47bee30f94ee8adb6b02a"
++  },
++  "at": "2026-10-19T15:43:33.719104+00:00",
+   "cache_copy_performed": false,
+   "ci_runner_environment_source": {
+     "direct_keys_present_in_inherited_record": [],
+@@ -125,10 +125,10 @@
+     "TMP": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/tmp",
+     "TMPDIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/tmp",
+     "VECTORCRAFT_NO_PREFS": "1",
+-    "XDG_CACHE_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-maina466-typef196-ci-01/environment/cache",
+-    "XDG_CONFIG_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-maina466-typef196-ci-01/environment/config",
+-    "XDG_DATA_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-maina466-typef196-ci-01/environment/data",
+-    "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-maina466-typef196-ci-01/environment/rt"
++    "XDG_CACHE_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-main320b-typef196-ci-01/environment/cache",
++    "XDG_CONFIG_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-main320b-typef196-ci-01/environment/config",
++    "XDG_DATA_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-main320b-typef196-ci-01/environment/data",
++    "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-pr1919-main320b-typef196-ci-01/environment/rt"
+   },
+   "existing_cache": {
+     "bytes": 9349,
+@@ -158,9 +158,9 @@
+     "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/output-environment-02/runtime"
+   },
+   "preparation_source": {
+-    "bytes": 11315,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/ci-binding-01/output-environment.json",
+-    "sha256": "17d28590db89c5f0ad1014b3d6fdfdedbd6229ea351165bef6922a7861daa5b1"
++    "bytes": 11352,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/output-environment.json",
++    "sha256": "eb0df366d774b4f3ec4370c4341f9acd912e4655e09838fa16a0dab30877a3b5"
+   },
+   "runtime": null,
+   "scope": "Same accepted direct toolchain, owned homes/cache, pinned inherited profiles and existing version receipts. Only per-run XDG output paths and runner attribution change; no new version command or validator.",

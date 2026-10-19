@@ -1,0 +1,66 @@
+--- positive/positive-dispatch.py
++++ ci/ci-dispatch.py
+@@ -3,11 +3,11 @@
+ R=Path('/mnt/downloads/dev/artcraft/vectorcraft')
+ A=R/'.git/codex/r82/consolidation-20261016'
+ V=A
+-D=A/'text-mixed-direction-caret-positive-e6ae-01/dispatch-01'
++D=A/'text-cluster-caret-publishable-e6ae-01/ci-dispatch-01'
+ E=D/'export-copy'
+ W=R/'.git/codex/worktrees/r82-pr1919-validation06b-consolidated'
+ T=R/'.git/codex/targets/r82-pr1919-validation06b-consolidated'
+-P=A/'text-mixed-direction-caret-positive-e6ae-01/runner-binding-01'
++P=A/'text-cluster-caret-publishable-e6ae-01/ci-binding-02'
+ G=Path(sys.argv[1])
+ H=lambda b:hashlib.sha256(b).hexdigest()
+ BASE='e6aec0664cf8ebc86677cb17f46be42b511208a7'
+@@ -76,11 +76,11 @@
+     assert transition['before_head']==OLD_BASE and transition['after_head']==BASE
+     ub=pin(ready['admission']);admission=json.loads(ub.read_text());assert admission['status']=='UNBOUND'
+     runner=pin(ready['runner_unchanged'])
+-    assert admission['runner_sha256']==grant['runner_sha256']==ready['runner_unchanged']['sha256']=='2faba37df44851611e1f56f4a0ea77c09f65d09e584296173f4c04e31c3b2584'
+-    case=admission['cases']['candidate'];configpath=pin(case['config']);config=json.loads(configpath.read_text());manifest=json.loads(pin(case['source_manifest']).read_text())
++    assert admission['runner_sha256']==grant['runner_sha256']==ready['runner_unchanged']['sha256']=='3236aeb0c94f50bc001291a7a00f78afed82eedd51ac118cf086505b0758960b'
++    case=admission['cases']['ci'];configpath=pin(case['config']);config=json.loads(configpath.read_text());manifest=json.loads(pin(case['source_manifest']).read_text())
+     assert case['canonical_source_digest']==grant['source_after']==ready['source_compact_sha256']
+-    assert config['commands']==grant['commands'] and config['expected_exits']==[0] and config['phase']=='candidate'
+-    assert config['commands']==[['cargo','test','--locked','--offline','-p','vectorcraft-tools','--lib','text::tests::type_arrows_keep_devanagari_clusters_with_an_rtl_suffix','--','--exact','--nocapture','--test-threads=1']]
++    assert config['commands']==grant['commands'] and config['expected_exits']==[0] and config['phase']=='ci'
++    assert config['commands']==[['cargo','xtask','ci']]
+     for role in ['owner_review','independent_review','inherited_environment']:pin(admission[role])
+     assert admission['resources']==grant['resources']==transition['resource_limits']
+     assert transition['output_environment_binding']==ready['output_environment_binding']==admission['outer_environment_binding']
+@@ -130,9 +130,9 @@
+         if i<2:time.sleep(1)
+     changes=sorted(k for k in set(before['files'])|set(manifest['files']) if before['files'].get(k)!=manifest['files'].get(k))
+     entries=transition['changed_paths']
+-    assert [e['path'] for e in entries]==changes and len(changes)==3 and len(manifest['files'])==1778
++    assert [e['path'] for e in entries]==changes and len(changes)==2 and len(manifest['files'])==1778
+     added=set(manifest['files'])-set(before['files']);removed=set(before['files'])-set(manifest['files'])
+-    assert len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==3
++    assert len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==2
+     incoming={}
+     for entry in entries:
+         rel=entry['path'];assert not Path(rel).is_absolute() and '..' not in Path(rel).parts
+@@ -161,10 +161,10 @@
+     assert git(W,'diff','--name-only')==b'' and not git(W,'ls-files','--others','--exclude-standard','-z')
+     assert (R/'.git/index').read_bytes()==rootidx and git(R,'rev-parse','HEAD').decode().strip()==ROOT_BASE and H(git(R,'show-ref'))==refs
+     save('source-after-transition.json',after)
+-    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1778,'after_entries':1778,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':0,'modified':3,'removed':0},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
++    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1778,'after_entries':1778,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':0,'modified':2,'removed':0},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
+     expired();sample();assert Path('/proc/sys/kernel/random/boot_id').read_text().strip()==boot
+     admission['status']='ROOT_ADMITTED';admission['resources']['status']='ROOT_ADMITTED'
+-    admission['coordinator_grant']={'path':str(G),'raw_sha256':H(gb),'grant_id':grant['grant_id'],'slot':grant['slot'],'launch_expires_utc':grant['launch_only_expires_at'],'allowed_phases':['candidate'],'test_count':1}
++    admission['coordinator_grant']={'path':str(G),'raw_sha256':H(gb),'grant_id':grant['grant_id'],'slot':grant['slot'],'launch_expires_utc':grant['launch_only_expires_at'],'allowed_phases':['ci'],'ci_command_count':1,'ci_stage_count':10}
+     admission['admission_evidence']={'path':str(D/'status.json'),'source_transition':str(D/'transition.json'),'boot_id':boot,'effective_environment':str(D/'effective-output-environment.json')}
+     with bound.open('x') as f:json.dump(admission,f,indent=2);f.write('\n')
+     save('admission.bound.json',admission)
+@@ -175,7 +175,7 @@
+     log=(D/'runner.log').open('xb');argv=grant['argv']
+     child=subprocess.Popen(argv,cwd=R,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,close_fds=True);log.close()
+     ident=proc(child.pid)
+-    state.update(status='RUNNER_DISPATCHED',runner_launched=True,runner=ident,argv=argv,bound_admission_sha256=H(bound.read_bytes()),source_after=after['sha256'],tree=tree,runner_log=str(D/'runner.log'),run_directory=str(out),dispatched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),grant_id=grant['grant_id'],metadata_attribution='One exact mixed-direction Type positive; expected0 alone is not semantic acceptance; both original case completion markers control.')
++    state.update(status='RUNNER_DISPATCHED',runner_launched=True,runner=ident,argv=argv,bound_admission_sha256=H(bound.read_bytes()),source_after=after['sha256'],tree=tree,runner_log=str(D/'runner.log'),run_directory=str(out),dispatched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),grant_id=grant['grant_id'],metadata_attribution='Original cargo xtask ci; expected0 alone does not qualify its ten stages/counts/source/closure; focused Type proof remains separately attributed.')
+     save('status.json',state);time.sleep(1)
+     observation={'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'boot_id':boot,'runner':proc(child.pid),'result_exists':(out/'result.json').exists()}
+     if (out/'result.json').exists():

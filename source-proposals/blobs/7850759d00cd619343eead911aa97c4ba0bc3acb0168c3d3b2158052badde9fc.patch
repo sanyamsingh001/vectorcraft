@@ -1,0 +1,142 @@
+--- accepted-e6/config
++++ current73f/config
+@@ -12,9 +12,9 @@
+   "expected_exits": [
+     0
+   ],
+-  "expected_head": "e6aec0664cf8ebc86677cb17f46be42b511208a7",
+-  "name": "r82-text-cluster-caret-e6ae-ci-02",
++  "expected_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
++  "name": "r82-text-cluster-caret-73f-ci-01",
+   "phase": "ci",
+-  "tree": "5467804c649dfbf5d5bec969cb2126fd01c31d89",
++  "tree": "cc9eb50ab36b711ea7dd6ef45596eb3512c8d76a",
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }
+--- accepted-e6/admission
++++ current73f/admission
+@@ -1,20 +1,25 @@
+ {
+   "cases": {
+     "ci": {
+-      "canonical_source_digest": "7f584d31f7634a4650d9607930c864f1f15e5fe334a8b768a7bfa0e164c41d44",
++      "canonical_source_digest": "0527d82cf43c804ea67b055444a6a4a71e90b029462b6ec85530c17e1b3653d2",
+       "config": {
+-        "bytes": 469,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-e6ae-01/ci-binding-03/ci-config.json",
+-        "sha256": "cc87f46387c6fbb355818fa3afe91a56626e14aa3d36ecb75093094d12be3513"
++        "bytes": 468,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-73f-01/ci-binding-01/ci-config.json",
++        "sha256": "43a71d4041b66798d430daa81b442fa8c5ad1bfdef3e2d9e1dd02eb981818d5c"
+       },
+-      "expected_head": "e6aec0664cf8ebc86677cb17f46be42b511208a7",
++      "expected_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
+       "source_manifest": {
+-        "bytes": 192775,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-e6ae-01/clippy-int-plus-one-correction-01/runtime-source-manifest.json",
+-        "sha256": "2c34a686a998d77238bf3c81092e06b78b622cdb6db835992a81e404625c729e"
++        "bytes": 193557,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-73f-01/runtime-source-manifest.json",
++        "sha256": "eec1d0818d49cf07e044e8876a61962ad059d85766293273deda03d80d66556b"
+       },
+-      "tree": "5467804c649dfbf5d5bec969cb2126fd01c31d89"
++      "tree": "cc9eb50ab36b711ea7dd6ef45596eb3512c8d76a"
+     }
++  },
++  "current_production_source": {
++    "bytes": 4824,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/result.json",
++    "sha256": "aca58a0d3df43af74cf423c6a8ef7b8c83d3240e39a6776ed0b95f3a7fcf6996"
+   },
+   "equivalent_clippy_correction": {
+     "patch": {
+@@ -29,6 +34,23 @@
+     },
+     "scope": "Previous source reviews remain attributed to their original bytes; root-authorized equivalent predicate delta only."
+   },
++  "historical_source_reviews": {
++    "hindi_contract": {
++      "bytes": 9601,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-raw-cluster-contract-proposal-01/independent-source-review-01-14fo8mr2/receipt.json",
++      "sha256": "58bc8acf497c26b2aa2c630ef1f2c7b0b7cd55f9047bf9ded2e8ce321110ef84"
++    },
++    "production": {
++      "bytes": 9934,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-source-preparation-01/proposal-01/independent-source-review-01-w9s87xtp/receipt.json",
++      "sha256": "b46c89be164626952e1b7de6016e490bb71837cf36a8f04d86dac48aa43a6543"
++    },
++    "publication_fixture": {
++      "bytes": 10033,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-type-publication-policy-proposal-01/independent-source-review-01-negrxyyg/receipt.json",
++      "sha256": "dde1183be0a64d2afecf00a036171873f5d6e98b79c968700ecbed1c25a6ed49"
++    }
++  },
+   "independent_review": {
+     "bytes": 591,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-ci-8bc-transition-01/ci-independent-review.json",
+@@ -39,9 +61,9 @@
+     "sha256": "97c01f80d25b1f6f45a2bbea802a6689f04acb22862c9485f8080fd18b5792fc"
+   },
+   "outer_environment_binding": {
+-    "bytes": 10688,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-e6ae-01/ci-binding-03/output-environment.json",
+-    "sha256": "e8531e68c83137745af804f888226721777950cbf522d3819c5cdd1ef8eb5622"
++    "bytes": 11312,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-73f-01/ci-binding-01/output-environment.json",
++    "sha256": "c0832d37a1bc977df329301069dada4573fea47d2f789d84833c1f4b7fc2013f"
+   },
+   "owner_review": {
+     "bytes": 743,
+@@ -66,34 +88,27 @@
+     "terminate_grace_seconds": 10
+   },
+   "runner_sha256": "3236aeb0c94f50bc001291a7a00f78afed82eedd51ac118cf086505b0758960b",
+-  "runtime_admission_required": "Separate fresh root slot/grant plus the unchanged resource/boot/source/root/target/closure/lock guards precede the one-test-file transition and original CI. No automatic launch.",
++  "runtime_admission_required": "Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual three-test-file transition and original CI. No automatic launch.",
+   "semantic_acceptance": {
+-    "bytes": 1311,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-e6ae-01/ci-binding-02/ci-acceptance-contract.json",
+-    "sha256": "549ca266b3af5a82856629309191b525cb550dd71840e6512b52b9e8052e5208"
++    "bytes": 2049,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-73f-01/ci-binding-01/ci-acceptance-contract.json",
++    "sha256": "acd68d1d9740a12dcc48ed49c2b1b9322f957e2d8ee3e6cd4da7088bc9ac9bd1"
+   },
+-  "source_binding_note": "One original cargo xtask ci command with current ten-stage semantics. Actual stages/counts/source/closure require terminal qualification; private focused proof and native UI validation remain separate.",
++  "separate_fixture_compatibility": {
++    "bytes": 961,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-73f-01/upstream-bidi-scale-compatibility.json",
++    "sha256": "e76db5965aa10e2ecc821e09b6c13946fa664070e53bb54861d4474e424b1322"
++  },
++  "separate_private_positive_evidence": {
++    "bytes": 17580,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/independent-terminal-audit-01-e8p3ezod/receipt.json",
++    "sha256": "8f1c7813e0a4c8892305bfe6ce1330f652dc83cd028e67a9d4f81c8075aa7373"
++  },
++  "source_binding_note": "One original cargo xtask ci command on current73f five-path text publication source with ten-stage semantics. Actual stages/counts/source/closure require terminal qualification; private73f one-test proof and rendered UI remain separate. Historical Guide/11-test metadata is not current membership.",
+   "source_materialization": {
+-    "bytes": 12208,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-e6ae-01/clippy-int-plus-one-correction-01/result.json",
+-    "sha256": "995ae5fdff9c4cef5b188936b2b257fab28c791add68d84e3bb102c8c67c6dc0"
+-  },
+-  "source_reviews": {
+-    "hindi_contract": {
+-      "bytes": 9601,
+-      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-raw-cluster-contract-proposal-01/independent-source-review-01-14fo8mr2/receipt.json",
+-      "sha256": "58bc8acf497c26b2aa2c630ef1f2c7b0b7cd55f9047bf9ded2e8ce321110ef84"
+-    },
+-    "production": {
+-      "bytes": 9934,
+-      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-source-preparation-01/proposal-01/independent-source-review-01-w9s87xtp/receipt.json",
+-      "sha256": "b46c89be164626952e1b7de6016e490bb71837cf36a8f04d86dac48aa43a6543"
+-    },
+-    "publication_fixture": {
+-      "bytes": 10033,
+-      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-type-publication-policy-proposal-01/independent-source-review-01-negrxyyg/receipt.json",
+-      "sha256": "dde1183be0a64d2afecf00a036171873f5d6e98b79c968700ecbed1c25a6ed49"
+-    }
++    "bytes": 4219,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-73f-01/result.json",
++    "sha256": "472972ca6726bddfcfc0d5187a184f77f52c86e94b3edcdc2cd2423382f03190"
+   },
+   "status": "UNBOUND",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated",

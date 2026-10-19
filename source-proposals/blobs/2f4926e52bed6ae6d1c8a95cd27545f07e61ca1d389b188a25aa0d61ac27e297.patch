@@ -1,0 +1,11 @@
+--- 797e899c56957d292fe6140b4af18366d3cf0eb2/crates/text/src/lib.rs
++++ a466625c8987550635cda951ebf36e08e1e80a56/crates/text/src/lib.rs
+@@ -557,6 +557,8 @@
+ #[cfg(test)]
+ mod tests_inline;
+ #[cfg(test)]
++mod tests_joiners;
++#[cfg(test)]
+ mod tests_justify;
+ #[cfg(test)]
+ mod tests_scripts;

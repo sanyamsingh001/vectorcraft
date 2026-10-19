@@ -1,0 +1,242 @@
+diff --git a/crates/ui-egui/src/i18n/cs.tsv b/crates/ui-egui/src/i18n/cs.tsv
+--- a/crates/ui-egui/src/i18n/cs.tsv
++++ b/crates/ui-egui/src/i18n/cs.tsv
+@@ -4911,6 +4911,9 @@
+ 	Softness	Měkkost
+ 	Ambient Light	Okolní světlo
+ 	Light behind the object	Světlo za objektem
++
++	Average and Join	Zprůměrovat a spojit
++	Average and Join…	Zprůměrovat a spojit…
+ 	Registration:	Registrace:
+ # Dimension tool (linked dimension annotations)
+ 	Display	Zobrazení
+diff --git a/crates/ui-egui/src/i18n/de.tsv b/crates/ui-egui/src/i18n/de.tsv
+--- a/crates/ui-egui/src/i18n/de.tsv
++++ b/crates/ui-egui/src/i18n/de.tsv
+@@ -4444,6 +4444,9 @@
+ 	Softness	Weichheit
+ 	Ambient Light	Umgebungslicht
+ 	Light behind the object	Licht hinter dem Objekt
++
++	Average and Join	Mitteln und verbinden
++	Average and Join…	Mitteln und verbinden…
+ 	Registration:	Registrierung:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Bemaßung
+diff --git a/crates/ui-egui/src/i18n/es.tsv b/crates/ui-egui/src/i18n/es.tsv
+--- a/crates/ui-egui/src/i18n/es.tsv
++++ b/crates/ui-egui/src/i18n/es.tsv
+@@ -4852,6 +4852,9 @@
+ 	Softness	Suavidad
+ 	Ambient Light	Luz ambiental
+ 	Light behind the object	Luz detrás del objeto
++
++	Average and Join	Promediar y unir
++	Average and Join…	Promediar y unir…
+ 	Registration:	Registro:
+ # Dimension tool (linked dimension annotations)
+ 	Create Dimension	Crear cota
+diff --git a/crates/ui-egui/src/i18n/fr.tsv b/crates/ui-egui/src/i18n/fr.tsv
+--- a/crates/ui-egui/src/i18n/fr.tsv
++++ b/crates/ui-egui/src/i18n/fr.tsv
+@@ -4911,6 +4911,9 @@
+ 	Softness	Douceur
+ 	Ambient Light	Lumière ambiante
+ 	Light behind the object	Lumière derrière l'objet
++
++	Average and Join	Moyenne et jonction
++	Average and Join…	Moyenne et jonction…
+ 	Registration:	Repère d'alignement :
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Cote
+diff --git a/crates/ui-egui/src/i18n/hu.tsv b/crates/ui-egui/src/i18n/hu.tsv
+--- a/crates/ui-egui/src/i18n/hu.tsv
++++ b/crates/ui-egui/src/i18n/hu.tsv
+@@ -4878,6 +4878,9 @@
+ 	Softness	Lágyság
+ 	Ambient Light	Környezeti fény
+ 	Light behind the object	Fény az objektum mögött
++
++	Average and Join	Átlagolás és összekapcsolás
++	Average and Join…	Átlagolás és összekapcsolás…
+ 	Registration:	Regisztráció:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Méret
+diff --git a/crates/ui-egui/src/i18n/it.tsv b/crates/ui-egui/src/i18n/it.tsv
+--- a/crates/ui-egui/src/i18n/it.tsv
++++ b/crates/ui-egui/src/i18n/it.tsv
+@@ -4484,6 +4484,9 @@
+ 	Softness	Morbidezza
+ 	Ambient Light	Luce ambientale
+ 	Light behind the object	Luce dietro l'oggetto
++
++	Average and Join	Media e unione
++	Average and Join…	Media e unione…
+ 	Registration:	Registrazione:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Quota
+diff --git a/crates/ui-egui/src/i18n/ja.tsv b/crates/ui-egui/src/i18n/ja.tsv
+--- a/crates/ui-egui/src/i18n/ja.tsv
++++ b/crates/ui-egui/src/i18n/ja.tsv
+@@ -4524,6 +4524,9 @@
+ 	Softness	柔らかさ
+ 	Ambient Light	環境光
+ 	Light behind the object	オブジェクトの背後のライト
++
++	Average and Join	平均化して連結
++	Average and Join…	平均化して連結…
+ 	Registration:	基準点:
+ # Dimension tool (linked dimension annotations)
+ 	Create Dimension	寸法を作成
+diff --git a/crates/ui-egui/src/i18n/ko.tsv b/crates/ui-egui/src/i18n/ko.tsv
+--- a/crates/ui-egui/src/i18n/ko.tsv
++++ b/crates/ui-egui/src/i18n/ko.tsv
+@@ -4448,6 +4448,9 @@
+ 	Softness	부드러움
+ 	Ambient Light	주변광
+ 	Light behind the object	개체 뒤의 조명
++
++	Average and Join	평균화 및 연결
++	Average and Join…	평균화 및 연결…
+ 	Registration:	기준점:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	치수
+diff --git a/crates/ui-egui/src/i18n/pl.tsv b/crates/ui-egui/src/i18n/pl.tsv
+--- a/crates/ui-egui/src/i18n/pl.tsv
++++ b/crates/ui-egui/src/i18n/pl.tsv
+@@ -4741,6 +4741,9 @@
+ 	Softness	Miękkość
+ 	Ambient Light	Światło otoczenia
+ 	Light behind the object	Światło za obiektem
++
++	Average and Join	Uśrednij i połącz
++	Average and Join…	Uśrednij i połącz…
+ 	Registration:	Punkt rejestracji:
+ 	Legacy (version 7)	Starsza (wersja 7)
+ 	Transparent Images:	Przezroczyste obrazy:
+diff --git a/crates/ui-egui/src/i18n/pt-br.tsv b/crates/ui-egui/src/i18n/pt-br.tsv
+--- a/crates/ui-egui/src/i18n/pt-br.tsv
++++ b/crates/ui-egui/src/i18n/pt-br.tsv
+@@ -260,6 +260,8 @@
+ 	Automatically	Automaticamente
+ 	Automatically Save Recovery Data	Salvar Dados de Recuperação Automaticamente
+ 	Average	Média
++	Average and Join	Calcular Média e Unir
++	Average and Join…	Calcular Média e Unir…
+ 	Average…	Média…
+ 	BLANK DOCUMENT PRESETS	PREDEFINIDOS DE DOCUMENTO EM BRANCO
+ 	Background Color:	Cor do Plano de Fundo:
+diff --git a/crates/ui-egui/src/i18n/ru.tsv b/crates/ui-egui/src/i18n/ru.tsv
+--- a/crates/ui-egui/src/i18n/ru.tsv
++++ b/crates/ui-egui/src/i18n/ru.tsv
+@@ -4480,6 +4480,9 @@
+ 	Softness	Мягкость
+ 	Ambient Light	Окружающий свет
+ 	Light behind the object	Свет позади объекта
++
++	Average and Join	Усреднить и соединить
++	Average and Join…	Усреднить и соединить…
+ 	Registration:	Регистрация:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Размер
+diff --git a/crates/ui-egui/src/i18n/uk.tsv b/crates/ui-egui/src/i18n/uk.tsv
+--- a/crates/ui-egui/src/i18n/uk.tsv
++++ b/crates/ui-egui/src/i18n/uk.tsv
+@@ -4464,6 +4464,9 @@
+ 	Softness	М'якість
+ 	Ambient Light	Навколишнє світло
+ 	Light behind the object	Світло позаду об'єкта
++
++	Average and Join	Усереднити та з’єднати
++	Average and Join…	Усереднити та з’єднати…
+ 	Registration:	Реєстрація:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Розмір
+diff --git a/crates/ui-egui/src/i18n/vi.tsv b/crates/ui-egui/src/i18n/vi.tsv
+--- a/crates/ui-egui/src/i18n/vi.tsv
++++ b/crates/ui-egui/src/i18n/vi.tsv
+@@ -4466,6 +4466,9 @@
+ 	Softness	Độ mềm
+ 	Ambient Light	Ánh sáng môi trường
+ 	Light behind the object	Ánh sáng phía sau đối tượng
++
++	Average and Join	Lấy trung bình và nối
++	Average and Join…	Lấy trung bình và nối…
+ 	Registration:	Điểm đăng ký:
+ # Dimension tool and Object › Dimensions (dimension groups, their dialog and messages).
+ 	Dimension	Kích thước
+diff --git a/crates/ui-egui/src/i18n/zh-hans.tsv b/crates/ui-egui/src/i18n/zh-hans.tsv
+--- a/crates/ui-egui/src/i18n/zh-hans.tsv
++++ b/crates/ui-egui/src/i18n/zh-hans.tsv
+@@ -4046,6 +4046,9 @@
+ 	Softness	柔和度
+ 	Ambient Light	环境光
+ 	Light behind the object	光源位于对象后方
++
++	Average and Join	平均并连接
++	Average and Join…	平均并连接…
+ 	Registration:	对齐点:
+ # Dimension tool (linked dimension annotations)
+ 	Create Dimension	创建尺寸标注
+diff --git a/crates/ui-egui/src/i18n/zh-hant.tsv b/crates/ui-egui/src/i18n/zh-hant.tsv
+--- a/crates/ui-egui/src/i18n/zh-hant.tsv
++++ b/crates/ui-egui/src/i18n/zh-hant.tsv
+@@ -3831,6 +3831,9 @@
+ 	Softness	柔和度
+ 	Ambient Light	環境光
+ 	Light behind the object	光源位於物件後方
++
++	Average and Join	平均並連接
++	Average and Join…	平均並連接…
+ 	Registration:	對齊點:
+ # Dimension tool (linked dimension annotations)
+ 	Create Dimension	建立尺寸標註
+diff --git a/docs/gaps.md b/docs/gaps.md
+--- a/docs/gaps.md
++++ b/docs/gaps.md
+@@ -70,7 +70,7 @@
+   OS cursor display and Caps Lock remain unverified.
+ - **Done (#1251):** Eyedropper source reads are independent of locks and isolation, including Shift/Shift+Alt and gradient stops. Source and selection preservation, unchanged Alt reverse/selection restrictions, hidden art and Undo/Redo have regression coverage. This addresses the reported behavior, with no new full-parity measurement.
+ - **Done (#1253):** adding paint to an unpainted zero-width stroke restores the existing 1 pt default, including new-art defaults and Swap Fill/Stroke. The real Eyedropper inheritance sequence, targeted appearance items, preserved widths and Undo/Redo have regression coverage.
+-- **Missing:** Average and Join in one step, with a corner or smooth choice for the joined anchor. `path.average` and `path.join` are separate commands and Join has no such choice (coinciding anchors merge into one since #1533). [ui-parity.md](ui-parity.md) listed "Join with corner/smooth choice" as done until 2026-10-13. About 1–2 h (estimated), inside the estimate below.
++- **Average and Join (two endpoints):** `path.averageJoin` averages exactly two direct-selected open-path endpoints in both axes and joins them with Corner or Smooth in one undo step. Object › Path › Average and Join…, the context menu for an eligible selection, and the default Cmd/Ctrl+Alt+Shift+J shortcut open its dialog. The main-menu entry is disabled for an ineligible selection; the context entry is omitted. Corner retains the surviving handles; Smooth uses VectorCraft's existing neighboring-anchor smoothing operation. The ends of one open subpath close it when at least two anchors remain, or two open subpaths join. Interior/closed-path anchors, whole-object and segment selections are excluded. The existing `path.average` and `path.join` commands remain separate. The existing 1–2 h allowance remains within the G1 estimate; this does not close the broader gap.
+ - **Implemented (#1760):** Effect › Warp has a shared style selector with original previews, orientation buttons and percent sliders. Existing effects retain their stack slot and target. Focused checks passed and original captures were reviewed; optional Properties integration and remembered defaults remain outside this change.
+ - **Done (#2120):** Smart Guides line extension: dragging the end of a straight segment with Direct Selection or Curvature, the point snaps to the segment's own direction at any angle and the guide runs along it from the other end. Inside the estimate below.
+ - **Missing (noted for reporters, 2026-10-14):** Tab in the Color Picker moves through its fields in order (#1692); aligning anchor points selected with
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -51,7 +51,7 @@
+ |---|---|---|---|
+ | M0 | Skeleton + vertical slice | ✅ done | — |
+ | M1 | Selection, transform, layers, MCP (common command tools, strict keys, session resources and version-aware result hints) | ✅ mostly done (malformed MCP app replies discard the connection without replay, #1761; bounded control socket waits and connection-slot recovery, #1726; bounded synthetic control input, #1709; no-op anchor Align keeps Undo, Redo and saved state (#1180 follow-up); transform reference point snaps to anchors/centres; rotated objects keep a rotated bounding box and their angle; Free Transform, Scale and Reflect along a rotated box pending) | 4–6 |
+-| M2 | Drawing tools + smart guides | ✅ mostly done (Curvature point markers without direction handles (#1236, in part); Direct Selection segment click/Delete preserves neighboring edges, #1278; Flare, Reshape, Live Corners widget dragging and per-corner radii and kinds landed, on any path's corners; Shaper rough-shape recognition and orientation steps, the remaining Pen modifier nuances; Shaper Groups with editable sources and separate fill/stroke edits landed; custom ruler origin with drag preview, active-artboard reset, relative X/Y fields and native round-trip (#1212); construction widget/refinements pending) | 12–18 |
++| M2 | Drawing tools + smart guides | ✅ mostly done (Curvature point markers without direction handles (#1236, in part); Direct Selection segment click/Delete preserves neighboring edges, #1278; Flare, Reshape, Live Corners widget dragging and per-corner radii and kinds landed, on any path's corners; Shaper rough-shape recognition and orientation steps, the remaining Pen modifier nuances; Shaper Groups with editable sources and separate fill/stroke edits landed; custom ruler origin with drag preview, active-artboard reset, relative X/Y fields and native round-trip (#1212); construction widget/refinements pending; two-open-endpoint Average and Join with Corner/Smooth in one undo step) | 12–18 |
+ | M3 | Paint & appearance (swatches, color, gradient, stroke, appearance, transparency, styles) | ✅ done (M3.7–M3.98): swatches, groups, libraries, tints, Lab spots and Registration; Eyedropper reads visible locked and outside-isolation sources (#1251); Color Picker, Color panel, Color Guide, Color Themes, Edit Colors and Recolor Artwork; gradients that follow every transform, the annotator, linked stops, freeform gradients, focal points, gradients on strokes and Expand; visible strokes when paint is added to inherited None/zero-width art (#1253); stroke geometry, arrowheads, dashes fitted to corners, stroke on type, width profiles and the Width tool (Shift-double-click enables adjoining adjustment in Width Point Edit; finite-arithmetic follow-up regressions and full CI passed ([Validation evidence](target-app-parity.md#evidence-what-ships-today-by-area))), Scale Strokes and preview bounds; Appearance targeting, container appearance, target circles, Expand Appearance; knockout, isolation, blend accuracy, CMYK blending, overprint, Attributes, masks and clipping, Flatten Transparency; graphic styles, links and libraries. Left: freeform and mixed spot/process gradients export as stops or process colours to SVG/PDF; confirm the Scale Strokes & Effects default | 4–8 |
+ | M4 | Files (native, SVG, PDF, raster, Export for Screens, clipboard interop) | ✅ done (M4.14–M4.98 on 2026-10-05): Save As/Save a Copy/Revert/templates, Data Recovery and background save, SVG import and export fidelity (units, text, symbols, filters, SVGZ, Preserve Editing, SVG Options), shared guarded PDF writer and windowed reader ([pdf-backend.md](pdf-backend.md)), PDF import (colours, layers, masks, editable text, security) and export (presets, marks, bleed, ICC and output intent, raster effects, subset fonts, PDF/X-1a, X-3 and X-4, PDF layers, overprint, page thumbnails, fast web view, PDF 1.3), Place and Links, Package, EPS and DXF in and out (closed SPLINE flags round-trip, #1299), EMF/WMF, TIFF/BMP/Targa/PSD/GIF/PNG-8 export, Print and print presets, slices, Save for Web, TIFF in Export for Screens and Asset Export, clipboard flavours, File Info; AF.1–AF.4 add Affinity import (native layers, artboards, vectors, text and images from Affinity 1–3 files; the embedded preview only as a warned fallback; AF.4 expands current `.af` fixtures and every-board round-trip validation). Left: DWG (use DXF), PSD placement as layers, overprint read back from PDF, Affinity export, polish | 3–6 (existing scope; Affinity export unestimated) |
+ | M3 | Paint & appearance (swatches, color, gradient, stroke, appearance, transparency, styles) | ✅ done (M3.7–M3.98): swatches, groups, libraries, tints, Lab spots and Registration; Eyedropper reads visible locked and outside-isolation sources (#1251); Color Picker, Color panel, Color Guide, Color Themes, Edit Colors and Recolor Artwork; gradients that follow every transform, the annotator, linked stops, freeform gradients, focal points, gradients on strokes and Expand; visible strokes when paint is added to inherited None/zero-width art (#1253); stroke geometry, arrowheads, dashes fitted to corners, stroke on type, width profiles and the Width tool (Shift-double-click enables adjoining adjustment in Width Point Edit), Scale Strokes and preview bounds; Appearance targeting, container appearance, target circles, Expand Appearance; knockout, isolation, blend accuracy, CMYK blending, overprint, Attributes, masks and clipping, Flatten Transparency; graphic styles, links and libraries. Left: freeform and mixed spot/process gradients export as stops or process colours to SVG/PDF; confirm the Scale Strokes & Effects default | 4–8 |
+diff --git a/docs/target-app-parity.md b/docs/target-app-parity.md
+--- a/docs/target-app-parity.md
++++ b/docs/target-app-parity.md
+@@ -491,7 +491,7 @@
+   - **Direct Selection (#1278):** clicking a segment picks its connection, with hollow endpoint anchors and only that curve's direction handles. Delete leaves the neighboring curves and appearance intact, opens/splits contours in one undo step, and another Delete removes the remaining selected path. A whole-path drag and deliberate anchor selection keep their existing behavior; egui frames and native control/art checked, OS mouse/visual QA pending. Where anchors of overlapping objects coincide, a click or drag takes the anchor of the selected object, also when another object lies over it (#1509, fixes #1508). Delete removes every selected anchor of a closed path (it used to remove the wrong ones), removes objects selected whole along with the selected anchors of others, and keeps the remainder selected so a second Delete removes it (#1674). In isolation mode Direct Selection and Group Selection pick only inside the isolated object (#1666). Escape cancels a Direct Selection drag (#1803, #1743). Double-clicking type (including type nested inside a group) switches to the Type tool and puts the caret at the clicked character.
+   - **Live Corners:** drag a live rectangle's corner widgets (Selection or Direct Selection) to round all corners, with a radius readout; with Direct Selection, select corner anchors to show and round just those corners (#381). Each corner keeps its own radius and kind (Round, Inverted Round, Chamfer): Alt-click a widget to cycle the kind, double-click it for the Corners dialog, and the Properties and Transform radius fields set the selected corners (`object.setLiveShape {corners, radius, kind}`). A link toggle behind Corner Radius (the `singleCornerRadius` preference) switches the panels to a field for each corner of a live rectangle: Top Left, Top Right, Bottom Right and Bottom Left. Corners stay circular when the rectangle is scaled unevenly or along its own sides when rotated (the radius keeps its size, or scales by the mean scale with Scale Corners on); only a shear distorts them. On a rectangle that isn't square every corner is the same circle: a radius past half the shorter side stops there for all of them, the widgets sit on the corners as drawn and turn the edited corners red at that limit, CSS export writes the drawn radii, and rectangles saved stretched by older versions get circular corners when their corners are next set (#442). Live Corners work on any path's corners too, as on a rectangle's (#511): a star's, a live polygon's (which also shows them to the Selection tool, has a Corner Radius field in the Properties and Transform panels and keeps its radius as its sides change) and a pen path's, wherever two sides meet at an angle at an anchor that isn't smooth: curved sides too, trimmed to what the cut leaves of them (#1144). Direct Selection shows the widgets of every corner, or of the corners holding selected anchors; each corner is a circle tangent to both sides, drawn no larger than takes its cut halfway along its shorter side; a path keeps its uncut outline so its corners stay editable, and the same command, dialog, angle preference and View › Hide Corner Widget apply. With Direct Selection a click on a widget (no drag) selects its corner, as a click on the corner's anchor does, so the next drag on it rounds that corner alone; Shift-click toggles it (#1239). While a corner widget is dragged with the Selection tool the bounding box hides, so the rounding shows against the path alone (#1229). A round corner next to a curved side curves smoothly instead of sticking out of the shape (#1547, fixes #1512).
+     View › Hide Edges hides the Live Corners widgets, the bounding box and the type widget, and the selection tools then do not answer a press on them or change the cursor over them.
+-  - **Path editing (#494):** the handles shown are the handles that drag: Direct Selection drags those of a path selected as a whole (as the Pen leaves it), the Anchor Point tool and Pen+Alt no longer grab handles that Show handles when multiple anchors are selected hides, a handle shorter than the tolerance leaves its anchor to be picked, and the anchor tools pick within Selection & Anchor Display › Tolerance. A dragged segment keeps a smooth anchor at either end smooth. With Direct Selection, the Pen, the Curvature and the anchor tools, a path selected as a whole shows all its anchors selected, and the Control bar and the Properties panel offer Convert (corner, smooth) for them too; Remove and Cut wait for anchors direct-selected (#504). A handle drag gathers its snap targets once per drag (it took 21 ms per pointer move on a 20,000-path document, now 1 ms; `vectorcraft-cli perf` measures handle and segment drags on a 5,000-anchor path). Join merges the selected anchor points that lie on one another, as after Average, into one anchor (#1582, fixes #1533); Average and Join in one step, with a corner or smooth choice for the joined anchor, is missing ([gap 1](gaps.md)).
++  - **Path editing (#494):** the handles shown are the handles that drag: Direct Selection drags those of a path selected as a whole (as the Pen leaves it), the Anchor Point tool and Pen+Alt no longer grab handles that Show handles when multiple anchors are selected hides, a handle shorter than the tolerance leaves its anchor to be picked, and the anchor tools pick within Selection & Anchor Display › Tolerance. A dragged segment keeps a smooth anchor at either end smooth. With Direct Selection, the Pen, the Curvature and the anchor tools, a path selected as a whole shows all its anchors selected, and the Control bar and the Properties panel offer Convert (corner, smooth) for them too; Remove and Cut wait for anchors direct-selected (#504). A handle drag gathers its snap targets once per drag (it took 21 ms per pointer move on a 20,000-path document, now 1 ms; `vectorcraft-cli perf` measures handle and segment drags on a 5,000-anchor path). Join merges the selected anchor points that lie on one another, as after Average, into one anchor (#1582, fixes #1533). Average and Join (`path.averageJoin`) averages exactly two direct-selected open-path endpoints in both axes and joins them in one undo step. Object › Path › Average and Join…, the context menu for an eligible selection, and the default Cmd/Ctrl+Alt+Shift+J shortcut open a Corner/Smooth dialog. Corner retains the surviving handles; Smooth uses VectorCraft's existing neighboring-anchor smoothing operation. Supported selections and exclusions are listed in [gap 1](gaps.md).
+   - **Graphs:** Column, Stacked Column, Bar, Stacked Bar, Line, Area, Scatter, Pie and Radar graph tools with Graph Data and Graph Type. A series starts in greyscale; Group Selection's fill and stroke are kept separately on the graph and reapplied when its data, type or size changes, and through save, open and undo. Graph Type's Override Calculated Values (both `axisMin` and `axisMax`) uses exactly that value-axis range, split into the tick count (5 when automatic). Line graphs take Edge-to-Edge Lines (off by default: the points sit at the centres of their categories; graphs saved before the option keep their edge-to-edge lines), and radar graphs follow Mark Data Points and Connect Data Points. Blank cells (an empty CSV cell or `null`) are values left out, not zeros: columns, bars and stacked segments skip them, lines and scatter lines break around them and the value axis ignores them, while area, pie and radar draw them as 0; a number in straight quotes is a label, and the data window writes it back quoted. Graph types combine: Graph Type on series picked with Group Selection (or `series` indexes) draws them as their own type, with column, stacked column, line and area mixing on the vertical value axis and bar and stacked bar on the horizontal one; stacked columns take one slot of the cluster, lines draw in front of columns and areas behind. The value axis goes on the left, the right or both sides (column, stacked column, line, area and scatter graphs; bar graphs keep theirs along the bottom), and Separate Scales gives the series assigned to the right axis a scale of their own with its own tick values. Each value axis takes tick marks of no, short or full (across the plot) length and a count per division, and a prefix and suffix for its numbers; the category axis takes tick marks too (none by default), at or between its labels. Graph designs: Object › Graph › Design lists the designs with a preview of the selected one, and New Design (the selected art), Rename, Delete Design, Paste Design (a copy back to edit) and Select Unused, and Marker draws the data points and legend swatches of line, scatter and radar series with a design, scaled so its backmost object fills the default marker's square. Graph Data transposes rows and columns and switches a scatter graph's x and y, and a `|` in a category or series label starts a new line. Pie graphs take Legends in Wedges, Position (Even, Ratio sized by area, Stacked on one centre) and Sort (None, All, First). Graph Type takes column and cluster widths up to 1000% (overlapping past 100%) with First Row and First Column in Front (First Row orders each series' categories; across series the series order decides, so series stay one group each for Group Selection), draws filled lines, adds drop shadows behind columns, bars, lines and wedges, and puts the legend in rows across the top. Text formatted with the Character or Appearance controls, on the whole graph or on labels picked with Group Selection, is kept per kind of label (value axis numbers, category labels, legend labels) through the graph being drawn again. Object › Graph › Data opens a worksheet: cells picked with a click and edited above the sheet (Tab moves right, Enter down, the arrows between cells), Import Data from a tab-separated text file, Transpose, Switch x/y, Cell Style (decimals shown, column width), Revert and Apply. Column designs remain open. `graph.setData` returns and takes the data as CSV with each value written exactly, not rounded to two decimals, so applying the returned CSV changes nothing (#1485).
+   - **Other:** Eyedropper, Gradient annotator, Artboard (Alt-drag duplicates an artboard, and its art with Move/Copy Artwork with Artboard on; Copy, Cut and Paste take the artboard with its art, Paste right of the last artboard, Paste in Place where it was, into this or another document, #446; Object › Artboards › Rearrange All Artboards lays them out in a grid by row or by column, in one row or one column, left to right or right to left, from the menu, the Artboards panel or Properties' Rearrange All, #681; Scale Artwork with Artboard, in the Control bar and Properties beside Move Artwork with Artboard, resizes the artboard proportionally with the art fully inside it and its guides, strokes and corners per the Scale preferences, #602), Measure, Type, Hand, Zoom, Rotate View.
+   - **Editing type:** double-clicking type with a selection tool (Selection or Direct Selection) switches to the Type tool with the caret where it was clicked; pressing Escape finishes editing and switches back to the selection tool used before double-clicking it (when in isolation mode, the first Escape exits text editing while preserving isolation mode, and a second Escape exits isolation).
+diff --git a/docs/ui-parity.md b/docs/ui-parity.md
+--- a/docs/ui-parity.md
++++ b/docs/ui-parity.md
+@@ -56,7 +56,7 @@
+ | Add/Delete/Anchor Point tools; Anchor Point tool drags segments to reshape | done | #2267: a click on a handle end retracts that handle and leaves the anchor a corner with the other one |
+ | Pencil: Fidelity, Keep selected, Alt to Smooth, edit selected paths, close by proximity | partial | Alt to Smooth is missing; with Keep selected (Pencil and Paintbrush, on by default) off, the path a stroke draws or continues is not selected afterwards; a filled Pencil path keeps a stroke of None (#1804, part of #1679) |
+ | Join tool scrubbing, Average, Join | done | Join merges the direct-selected anchors lying on one another along a path, as after Average, into one (#1533) |
+-| Average and Join in one step, with a corner or smooth choice for the joined anchor | missing | `path.join` and `path.average` are separate commands, and Join has no corner/smooth choice; [gap 1](gaps.md) |
++| Average and Join in one step, with a corner or smooth choice for the joined anchor | partial | Exactly two direct-selected open-path endpoints; Object › Path › Average and Join…, the eligible-selection context menu, or default Cmd/Ctrl+Alt+Shift+J open the dialog. Corner retains surviving handles; Smooth uses VectorCraft's existing neighboring-anchor smoothing operation. One undo step. Interior/closed-path anchors, whole-object and segment selections are excluded; [scope and limits](gaps.md). |
+ | Smooth tool smooths only the stretch of path under the drag | done | #1512 |
+ | Simplify (slider, auto, corner angle threshold) | partial | Tolerance, default-on Preview and original/new point counts (#1272); Corner Point Angle Threshold, Convert to Straight Lines and Show Original Path; slider, auto-simplify and Retain my latest settings remain missing |
+ 

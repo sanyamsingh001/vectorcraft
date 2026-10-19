@@ -1,0 +1,13 @@
+diff --git a/crates/ui-egui/src/lib.rs b/crates/ui-egui/src/lib.rs
+index b6c58414ff62e42f29d4295f54e22259e2a33b2e..a7406bdb470b028d213e2b4534fdf642dd8cad07 100644
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -117,6 +117,8 @@ mod tests_printps;
+ #[cfg(test)]
+ mod tests_printtiling;
+ #[cfg(test)]
++mod tests_properties_rotation_reference;
++#[cfg(test)]
+ mod tests_puppetwarp;
+ #[cfg(test)]
+ mod tests_recolor;

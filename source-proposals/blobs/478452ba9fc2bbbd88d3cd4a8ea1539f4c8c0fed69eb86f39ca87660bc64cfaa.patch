@@ -1,0 +1,397 @@
+diff --git a/crates/ui-egui/src/dialogs/color_picker.rs b/crates/ui-egui/src/dialogs/color_picker.rs
+index 75d337c55906108cd0dea12c1ac05187e5502aab..114f0ab7206b27d5c84b3950217bc7ac978d35a9 100644
+--- a/crates/ui-egui/src/dialogs/color_picker.rs
++++ b/crates/ui-egui/src/dialogs/color_picker.rs
+@@ -256,7 +256,8 @@ fn body(app: &mut VectorcraftApp, ui: &mut Ui, d: &mut Dialog) -> bool {
+                 });
+             });
+             ui.add_space(10.0);
+-            let (edit, ch) = value_fields(ui, &p, channel);
++            let mode = app.session.active().map(|s| s.doc.color_mode);
++            let (edit, ch) = value_fields(ui, &p, channel, mode);
+             pick = pick.or(edit);
+             new_channel = ch;
+         });
+@@ -327,7 +328,16 @@ fn new_original_chips(ui: &mut Ui, new: &Color, original: &Color) -> bool {
+ /// HSB, RGB and hex are in one grid, and Lab and CMYK are in a second grid beside it. Tab goes
+ /// through the fields in the order they are drawn: H, S, B, R, G, B, hex, then L, a, b, C, M, Y,
+ /// K, with a stop at each channel's radio button before its field.
+-fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel) -> (Option<Picked>, Option<Channel>) {
++fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel, mode: Option<ColorMode>) -> (Option<Picked>, Option<Channel>) {
++    // #1692: defer the dialog's one-time focus offer until the document mode's first component.
++    // Each target restores it in its own UI context; sizing/click deferral and select-all remain
++    // the shared fields' responsibility. Without a document keep the existing Hue default.
++    let focus_first = ui.data_mut(|m| m.remove_temp::<bool>(widgets::dialog_focus_flag())).unwrap_or(false);
++    let first = match mode {
++        Some(ColorMode::Rgb) => ("cp-left", 3),
++        Some(ColorMode::Cmyk) => ("cp-right", 3),
++        None => ("cp-left", 0),
++    };
+     let t = Tokens::get(ui.ctx());
+     let rgb = p.color.to_rgb();
+     let lab = p.color.to_lab();
+@@ -349,6 +359,9 @@ fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel) -> (Option<Picked>, O
+                         1 | 2 => (p.hsb[i] * 100.0, "%"),
+                         _ => (rgb[i - 3] * 255.0, ""),
+                     };
++                    if focus_first && first == ("cp-left", i) {
++                        ui.data_mut(|m| m.insert_temp(widgets::dialog_focus_flag(), true));
++                    }
+                     if let Some(nv) = widgets::plain_field(ui, ("cp-left", i), v as f64, suffix, 0, VALUE_W) {
+                         let nv = nv as f32;
+                         edit = Some(match i {
+@@ -386,6 +399,9 @@ fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel) -> (Option<Picked>, O
+                     ui.add_space(12.0);
+                     ui.label(egui::RichText::new(label).size(12.5).color(t.text));
+                 });
++                if focus_first && first == ("cp-right", i) {
++                    ui.data_mut(|m| m.insert_temp(widgets::dialog_focus_flag(), true));
++                }
+                 if let Some(nv) = widgets::plain_field(ui, ("cp-right", i), v as f64, suffix, 0, VALUE_W) {
+                     let nv = nv as f32;
+                     edit = Some(Picked::of(if i < 3 {
+@@ -622,12 +638,140 @@ mod tests {
+         assert_eq!(crate::panels::current_paints(&app).0.color(), Some(Color::cmyk(0.0, 1.0, 1.0, 0.0)));
+     }
+ 
++    /// A persistent context drives the real dialog, including its opening-click deferral and
++    /// keyboard handling. No test requests a particular field's focus.
++    fn focus_frame(ctx: &egui::Context, app: &mut VectorcraftApp, events: Vec<egui::Event>) {
++        let screen_rect = Some(Rect::from_min_size(egui::Pos2::ZERO, vec2(1280.0, 900.0)));
++        let mut out = ctx.run_ui(egui::RawInput { events, screen_rect, focused: true, ..Default::default() }, |ui| {
++            crate::shortcuts::handle(app, ui.ctx());
++            super::super::show(app, ui.ctx());
++        });
++        out.textures_delta.clear();
++    }
++
++    fn focus_key(key: egui::Key) -> Vec<egui::Event> {
++        [true, false]
++            .into_iter()
++            .map(|pressed| egui::Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE })
++            .collect()
++    }
++
++    fn focus_colors(mode: ColorMode) -> (Color, Color) {
++        match mode {
++            ColorMode::Rgb => (Color::rgb8(51, 102, 153), Color::rgb8(40, 102, 153)),
++            ColorMode::Cmyk => (Color::cmyk(0.25, 0.2, 0.1, 0.1), Color::cmyk(0.4, 0.2, 0.1, 0.1)),
++        }
++    }
++
++    /// #1692's opening-focus request is separate from Tab order and stale hex buffering.
++    #[test]
++    fn initial_focus_uses_document_color_mode() {
++        let rgb = Color::rgb8(51, 102, 153);
++        let cmyk = Color::cmyk(0.25, 0.2, 0.1, 0.1);
++        // The document mode chooses the first field even when the supplied paint uses the other model.
++        for (mode, original) in [(ColorMode::Rgb, rgb), (ColorMode::Cmyk, cmyk), (ColorMode::Rgb, cmyk), (ColorMode::Cmyk, rgb)] {
++            let mut app = app();
++            app.run("file.documentColorMode", json!({"mode": mode})).unwrap();
++            app.run("paint.setFill", json!({"color": color_json(&original)})).unwrap();
++            let before = app.session.active().unwrap().doc.clone();
++            let undo = app.session.active().unwrap().history.undo.len();
++            let ctx = egui::Context::default();
++            crate::theme::install_fonts(&ctx);
++            app.run("ui.colorPicker", json!({"stroke": false})).unwrap();
++            // paint.setFill may convert the supplied colour to the document model before opening.
++            // Preserve the components displayed on opening, not a new conversion of the input.
++            let opened = picked(app.ui.dialog.as_ref().unwrap()).color;
++            let expected = match mode {
++                ColorMode::Rgb => {
++                    let [_, g, b] = opened.to_rgb();
++                    Color::rgb(40.0 / 255.0, g, b)
++                }
++                ColorMode::Cmyk => {
++                    let [_, m, y, k] = opened.to_cmyk_managed(cms::active().settings().intent);
++                    Color::cmyk(0.4, m, y, k)
++                }
++            };
++            for _ in 0..3 {
++                focus_frame(&ctx, &mut app, vec![]);
++            }
++            assert_eq!(picked(app.ui.dialog.as_ref().unwrap()).color, opened, "opening focus leaves the colour unchanged");
++            let initial = ctx.memory(|m| m.focused()).unwrap();
++            // No Select All: opening focus must select the complete value for replacement.
++            focus_frame(&ctx, &mut app, vec![egui::Event::Text("40".into())]);
++            focus_frame(&ctx, &mut app, focus_key(egui::Key::Tab));
++            focus_frame(&ctx, &mut app, vec![]);
++            assert_eq!(picked(app.ui.dialog.as_ref().unwrap()).color, expected, "{mode:?}: typing must edit R or C, not H");
++            assert_eq!(crate::panels::current_paints(&app).0.color(), Some(expected), "live preview");
++            assert_eq!(app.ui.dialog.as_ref().unwrap().str("channel"), "hue", "focus does not select a channel radio");
++            let after_tab = ctx.memory(|m| m.focused());
++            assert!(after_tab.is_some() && after_tab != Some(initial), "Tab still leaves the initial field");
++            for _ in 0..2 {
++                focus_frame(&ctx, &mut app, vec![]);
++                assert_eq!(ctx.memory(|m| m.focused()), after_tab, "initial focus is not reclaimed");
++            }
++            assert_eq!(app.session.active().unwrap().history.undo.len(), undo, "preview adds no history step");
++            focus_frame(&ctx, &mut app, focus_key(egui::Key::Escape));
++            assert!(app.ui.dialog.is_none());
++            assert_eq!(app.session.active().unwrap().doc, before, "Cancel restores the document");
++            assert_eq!(app.session.active().unwrap().history.undo.len(), undo);
++            assert!(!app.session.in_interaction());
++        }
++    }
++
++    #[test]
++    fn initial_focus_after_click_open_tracks_document_mode() {
++        let mut app = app();
++        let ctx = egui::Context::default();
++        crate::theme::install_fonts(&ctx);
++        // Reopen the same dialog/context, including a change of document mode between openings.
++        for mode in [ColorMode::Cmyk, ColorMode::Rgb, ColorMode::Cmyk] {
++            app.run("file.documentColorMode", json!({"mode": mode})).unwrap();
++            let (original, expected) = focus_colors(mode);
++            app.run("paint.setFill", json!({"color": color_json(&original)})).unwrap();
++            let undo = app.session.active().unwrap().history.undo.len();
++            app.run("ui.colorPicker", json!({"stroke": false})).unwrap();
++            let pos = egui::pos2(5.0, 5.0);
++            let button =
++                |pressed| egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::NONE };
++            focus_frame(&ctx, &mut app, vec![egui::Event::PointerMoved(pos), button(true), button(false)]);
++            for _ in 0..3 {
++                focus_frame(&ctx, &mut app, vec![]);
++            }
++            focus_frame(&ctx, &mut app, vec![egui::Event::Text("40".into())]);
++            focus_frame(&ctx, &mut app, focus_key(egui::Key::Enter));
++            assert!(app.ui.dialog.is_none());
++            assert_eq!(crate::panels::current_paints(&app).0.color(), Some(expected), "{mode:?}: reopened first field");
++            assert_eq!(app.session.active().unwrap().history.undo.len(), undo + 1, "Enter commits once");
++            focus_frame(&ctx, &mut app, vec![]);
++        }
++    }
++
++    #[test]
++    fn initial_focus_without_document_keeps_hue() {
++        let mut app = VectorcraftApp::new(Session::new(), Default::default());
++        let ctx = egui::Context::default();
++        crate::theme::install_fonts(&ctx);
++        let original = Picked::of(Color::rgb8(51, 102, 153));
++        app.run("ui.colorPicker", json!({"color": color_json(&original.color)})).unwrap();
++        for _ in 0..3 {
++            focus_frame(&ctx, &mut app, vec![]);
++        }
++        focus_frame(&ctx, &mut app, vec![egui::Event::Text("120".into())]);
++        focus_frame(&ctx, &mut app, focus_key(egui::Key::Tab));
++        let expected = Picked::from_hsb([120.0, original.hsb[1], original.hsb[2]]);
++        assert_eq!(picked(app.ui.dialog.as_ref().unwrap()).color.to_hex(), expected.color.to_hex());
++        focus_frame(&ctx, &mut app, focus_key(egui::Key::Escape));
++        assert!(app.ui.dialog.is_none());
++        assert!(app.session.active().is_none());
++    }
++
+     /// #1692: Tab goes through one color model's fields before the next: H, S, B, then R, G, B, the
+     /// hex field, then L, a, b, then C, M, Y, K. Each Lab or CMYK field is level with the field on
+     /// its left.
+     #[test]
+     fn tab_goes_through_one_color_models_fields_before_the_next() {
+-        let mut app = app();
++        // Use the no-document H fallback to exercise the complete traversal.
++        let mut app = VectorcraftApp::new(Session::new(), Default::default());
+         app.run("ui.colorPicker", json!({})).unwrap();
+         let ctx = egui::Context::default();
+         crate::theme::install_fonts(&ctx);
+@@ -673,4 +817,162 @@ mod tests {
+         super::super::confirm(&mut app).unwrap();
+         assert!(matches!(crate::panels::current_paints(&app).0.color(), Some(Color::Cmyk { .. })));
+     }
++
++    /// Replacing a Color Picker within one control drain still starts a fresh dialog lifecycle.
++    #[test]
++    fn same_frame_control_reopen_refreshes_document_mode_focus() {
++        fn shell(ctx: &egui::Context, app: &mut VectorcraftApp, time: &mut f64, before_ui: &mut dyn FnMut(&VectorcraftApp)) -> Vec<(String, Rect)> {
++            *time += 0.1;
++            let mut raw = egui::RawInput {
++                time: Some(*time),
++                screen_rect: Some(Rect::from_min_size(egui::Pos2::ZERO, vec2(1600.0, 900.0))),
++                focused: true,
++                ..Default::default()
++            };
++            // No text, pointer, key or focus request is injected into these frames.
++            app.raw_input_hook(&mut raw);
++            assert!(raw.events.is_empty(), "SETUP: the control commands must not inject input");
++            let mut observed = false;
++            let mut out = ctx.run_ui(raw, |ui| {
++                app.logic(ui.ctx());
++                if !observed {
++                    before_ui(app);
++                    observed = true;
++                }
++                app.ui(ui);
++            });
++            assert!(observed, "SETUP: full app logic reached the before-UI observation");
++            assert!(!app.ui.status.starts_with("Internal error:"), "SETUP: full shell reported {}", app.ui.status);
++            out.textures_delta.clear();
++            fn collect(shape: &egui::Shape, texts: &mut Vec<(String, Rect)>) {
++                match shape {
++                    egui::Shape::Text(t) => texts.push((t.galley.text().to_string(), t.visual_bounding_rect())),
++                    egui::Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect(shape, texts)),
++                    _ => {}
++                }
++            }
++            let mut texts = vec![];
++            out.shapes.iter().for_each(|shape| collect(&shape.shape, &mut texts));
++            texts
++        }
++
++        let (tx, rx) = std::sync::mpsc::channel();
++        let mut app = app().with_control(rx);
++        app.run("file.documentColorMode", json!({"mode": "rgb"})).unwrap();
++        app.run("paint.setFill", json!({"color": "#336699"})).unwrap();
++        let ctx = egui::Context::default();
++        let mut time = 0.0;
++        for _ in 0..3 {
++            shell(&ctx, &mut app, &mut time, &mut |_| {});
++        }
++        let before = app.session.doc().unwrap().clone();
++        let history_counts = |st: &vectorcraft_engine::DocState| (st.history.undo.len(), st.history.redo.len());
++        let enqueue = |method: &str, params: Value| {
++            let (request, reply) = crate::control::ControlRequest::new(method, params);
++            tx.send(request).expect("SETUP: live in-process control receiver");
++            reply
++        };
++        let selected_range = |id| {
++            let range = egui::TextEdit::load_state(&ctx, id)?.cursor.char_range()?.as_sorted_char_range();
++            Some((range.start.0, range.end.0))
++        };
++
++        let open = enqueue("engine.execute", json!({"command": "ui.colorPicker", "params": {"stroke": false}}));
++        shell(&ctx, &mut app, &mut time, &mut |_| {
++            assert_eq!(open.try_recv().expect("SETUP: initial open drained")["ok"], true, "SETUP: initial open accepted");
++        });
++        shell(&ctx, &mut app, &mut time, &mut |_| {});
++        let texts = shell(&ctx, &mut app, &mut time, &mut |_| {});
++        assert_eq!(focused_field(&ctx, &texts).map(|(label, _)| label), Some("R".into()), "SETUP: RGB opening gives R focus");
++        let r_id = ctx.memory(|m| m.focused()).expect("SETUP: R field has focus");
++        let picker_layer = ctx.read_response(r_id).expect("SETUP: actual R widget").layer_id;
++        let r_text = ctx.data(|d| d.get_temp::<String>(r_id)).expect("SETUP: actual R buffer");
++        assert!(!r_text.is_empty(), "SETUP: R has a displayed value");
++        assert_eq!(ctx.data(|d| d.get_temp::<String>(r_id.with("shown"))), Some(r_text.clone()), "SETUP: no pending field edit");
++        assert_eq!(selected_range(r_id), Some((0, r_text.chars().count())), "SETUP: RGB opening selects all of R");
++        let initial = app.ui.dialog.as_ref().expect("SETUP: RGB picker exists");
++        assert_eq!(initial.kind, KIND);
++        let first_picker = initial.fields[crate::screen_color::PICKER_ID].as_u64().expect("SETUP: initial picker identity");
++        assert_eq!(picked(initial).color, Color::rgb8(51, 102, 153), "SETUP: no edited picker color");
++        let st = app.session.doc().unwrap();
++        assert_eq!(st.doc.color_mode, ColorMode::Rgb);
++        assert_eq!(st.doc, before.doc, "SETUP: opening leaves the full document unchanged");
++        assert_eq!(st.selection, before.selection);
++        assert_eq!(history_counts(st), history_counts(&before));
++        assert!(st.interaction.is_none() && st.undo_group.is_none(), "SETUP: no pending preview or undo group");
++        eprintln!("CP_REOPEN_RGB_FOCUS_READY");
++
++        // All three real requests are queued before the next full app frame. No None-dialog
++        // draw, direct dialog reset, field edit or focus-memory write separates the openings.
++        let replies = [
++            enqueue("ui.dialog.cancel", json!({})),
++            enqueue("engine.execute", json!({"command": "file.documentColorMode", "params": {"mode": "cmyk"}})),
++            enqueue("engine.execute", json!({"command": "ui.colorPicker", "params": {"stroke": false}})),
++        ];
++        let mut replacement = None;
++        let mut after_logic = None;
++        shell(&ctx, &mut app, &mut time, &mut |app| {
++            for (index, reply) in replies.iter().enumerate() {
++                let answer = reply.try_recv().expect("SETUP: all three requests drain before UI");
++                assert_eq!(answer["ok"], true, "SETUP: queued request {index} accepted: {answer}");
++            }
++            eprintln!("CP_REOPEN_CONTROL_DRAIN_ACCEPTED");
++            let dialog = app.ui.dialog.as_ref().expect("SETUP: replacement exists before UI");
++            assert_eq!(dialog.kind, KIND, "SETUP: replacement is a Color Picker");
++            let id = dialog.fields[crate::screen_color::PICKER_ID].as_u64().expect("SETUP: replacement identity");
++            assert_ne!(id, first_picker, "SETUP: reopen created a distinct picker");
++            let st = app.session.doc().unwrap();
++            assert_eq!(st.doc.color_mode, ColorMode::Cmyk, "SETUP: mode changed before replacement draws");
++            assert_eq!(st.uid, before.uid, "SETUP: same active document");
++            assert_eq!(st.selection, before.selection);
++            assert!(st.interaction.is_none() && st.undo_group.is_none(), "SETUP: no preview before replacement draws");
++            replacement = Some(id);
++            after_logic = Some(st.clone());
++            eprintln!("CP_REOPEN_REPLACEMENT_BEFORE_UI");
++        });
++        shell(&ctx, &mut app, &mut time, &mut |_| {});
++        let texts = shell(&ctx, &mut app, &mut time, &mut |_| {});
++        let dialog = app.ui.dialog.as_ref().expect("SETUP: replacement survived its opening frames");
++        assert_eq!(dialog.kind, KIND);
++        assert_eq!(dialog.fields[crate::screen_color::PICKER_ID].as_u64(), replacement);
++        let expected = after_logic.expect("SETUP: captured post-drain model before UI");
++        let st = app.session.doc().unwrap();
++        assert_eq!(st.uid, expected.uid);
++        assert_eq!(st.doc, expected.doc, "SETUP: idle replacement frames do not edit the full document");
++        assert_eq!(st.selection, expected.selection);
++        assert_eq!(history_counts(st), history_counts(&expected));
++        assert!(st.interaction.is_none() && st.undo_group.is_none(), "SETUP: still no pending preview");
++
++        // Locate C independently of current focus, using the actual dialog layer's TextEdit
++        // widgets and their painted row labels, as focused_field does for the retained tests.
++        let ids: Vec<_> = ctx.viewport(|vp| vp.prev_pass.widgets.layers().flat_map(|(_, widgets)| widgets.iter()).map(|w| w.id).collect());
++        let mut cyan = vec![];
++        let labels = ["H", "S", "B", "R", "G", "#", "L", "a", "b", "C", "M", "Y", "K"];
++        for id in ids {
++            let Some(response) = ctx.read_response(id) else { continue };
++            if response.layer_id != picker_layer || egui::TextEdit::load_state(&ctx, id).is_none() {
++                continue;
++            }
++            let label = texts
++                .iter()
++                .filter(|(text, rect)| {
++                    labels.contains(&text.as_str()) && rect.max.x <= response.rect.min.x && response.rect.y_range().contains(rect.center().y)
++                })
++                .max_by(|a, b| a.1.max.x.total_cmp(&b.1.max.x));
++            if label.is_some_and(|(text, _)| text == "C") && !cyan.contains(&id) {
++                cyan.push(id);
++            }
++        }
++        assert_eq!(cyan.len(), 1, "SETUP: uniquely locate actual C widget in the picker layer");
++        let c_id = cyan[0];
++        assert_ne!(c_id, r_id, "SETUP: C and R are distinct widgets");
++        let c_text = ctx.data(|d| d.get_temp::<String>(c_id)).expect("SETUP: C displayed buffer");
++        assert!(!c_text.is_empty(), "SETUP: C has a displayed value");
++        assert_eq!(ctx.data(|d| d.get_temp::<String>(c_id.with("shown"))), Some(c_text.clone()), "SETUP: no pending C edit");
++        eprintln!("CP_REOPEN_LATE_READY");
++        assert_eq!(ctx.memory(|m| m.focused()), Some(c_id), "CP_REOPEN_FRESH_C_FOCUS: replacement must use the new document mode");
++        eprintln!("CP_REOPEN_C_FOCUS_VERIFIED");
++        assert_eq!(selected_range(c_id), Some((0, c_text.chars().count())), "CP_REOPEN_FRESH_C_SELECT_ALL: replacement selects the complete value");
++        eprintln!("CP_REOPEN_FOCUS_AND_SELECTION_VERIFIED");
++    }
+ }
+diff --git a/crates/ui-egui/src/dialogs/mod.rs b/crates/ui-egui/src/dialogs/mod.rs
+index bc6504d624496265d7b0c1536296e12ddf09d56e..ad73e9a6001f52ba2442ecd372737dfc1449fa37 100644
+--- a/crates/ui-egui/src/dialogs/mod.rs
++++ b/crates/ui-egui/src/dialogs/mod.rs
+@@ -406,14 +406,14 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
+     about::show(app, ctx);
+     settle(app);
+     confirm::show_waiting(app);
+-    // The kind of dialog shown last frame: a different one (or none) means this one just opened, and
+-    // its first field is to take the keyboard focus (`focus_id`, until a field takes it).
++    // The kind and, for Color Picker, the instance shown last frame identify a newly opened dialog.
++    // Its first field takes the keyboard focus (`focus_id`, until a field takes it).
+     let (shown_id, focus_id) = (egui::Id::new("dialog-shown"), egui::Id::new("dialog-focus-pending"));
+     let Some(mut d) = app.ui.dialog.clone() else {
+         revolve_gizmo::clear(ctx);
+         app.ui.dialog_file = None;
+         ctx.data_mut(|m| {
+-            m.remove::<String>(shown_id);
++            m.remove::<(String, Option<u64>)>(shown_id);
+             m.remove::<bool>(focus_id);
+         });
+         return;
+@@ -421,9 +421,15 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
+     if !revolve_gizmo::active(&d) {
+         revolve_gizmo::clear(ctx);
+     }
++    let picker = if DialogKind::of(&d.kind) == Some(DialogKind::ColorPicker) {
++        d.fields.get(crate::screen_color::PICKER_ID).and_then(Value::as_u64)
++    } else {
++        None
++    };
++    let shown = (d.kind.clone(), picker);
+     let focus_first = ctx.data_mut(|m| {
+-        if m.get_temp::<String>(shown_id).as_deref() != Some(d.kind.as_str()) {
+-            m.insert_temp(shown_id, d.kind.clone());
++        if m.get_temp::<(String, Option<u64>)>(shown_id).as_ref() != Some(&shown) {
++            m.insert_temp(shown_id, shown);
+             m.insert_temp(focus_id, true);
+         }
+         m.get_temp::<bool>(focus_id).unwrap_or(false)

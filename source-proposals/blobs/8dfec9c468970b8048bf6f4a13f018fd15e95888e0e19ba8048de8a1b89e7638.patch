@@ -1,0 +1,52 @@
+--- qualified-b6/ci-dispatch.py
++++ guide-a466-type/ci-dispatch.py
+@@ -3,15 +3,15 @@
+ R=Path('/mnt/downloads/dev/artcraft/vectorcraft')
+ A=R/'.git/codex/r82/consolidation-20261016'
+ V=A
+-D=A/'text-wrap-fallback-publishable-b6e58-01/ci-dispatch-01'
++D=A/'guide-current-maina466-typef196-01/ci-dispatch-01'
+ E=D/'export-copy'
+ W=R/'.git/codex/worktrees/r82-pr1919-validation06b-consolidated'
+ T=R/'.git/codex/targets/r82-pr1919-validation06b-consolidated'
+-P=A/'text-wrap-fallback-publishable-b6e58-01/ci-binding-01'
++P=A/'guide-current-maina466-typef196-01/ci-binding-01'
+ G=Path(sys.argv[1])
+ H=lambda b:hashlib.sha256(b).hexdigest()
+-BASE='b6e58adbb2863e9672ab93fc4b18f1635831d3d8'
+-ROOT_BASE='797e899c56957d292fe6140b4af18366d3cf0eb2'
++BASE='a466625c8987550635cda951ebf36e08e1e80a56'
++ROOT_BASE='a466625c8987550635cda951ebf36e08e1e80a56'
+ OLD_BASE='b6e58adbb2863e9672ab93fc4b18f1635831d3d8'
+ GUIDE='66b7a03bcf5ef3a8a4922e21c9a317cabeebe47ecc871c2fb039d4fed63f3753'
+ state={'status':'PREFLIGHT','started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'samples':[],'source_transition_started':False,'runner_launched':False}
+@@ -130,9 +130,9 @@
+         if i<2:time.sleep(1)
+     changes=sorted(k for k in set(before['files'])|set(manifest['files']) if before['files'].get(k)!=manifest['files'].get(k))
+     entries=transition['changed_paths']
+-    assert [e['path'] for e in entries]==changes and len(changes)==1 and len(manifest['files'])==1785
++    assert [e['path'] for e in entries]==changes and len(changes)==150 and len(manifest['files'])==1792
+     added=set(manifest['files'])-set(before['files']);removed=set(before['files'])-set(manifest['files'])
+-    assert len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==1
++    assert len(added)==7 and len(removed)==0 and len(changes)-len(added)-len(removed)==143
+     incoming={}
+     for entry in entries:
+         rel=entry['path'];assert not Path(rel).is_absolute() and '..' not in Path(rel).parts
+@@ -161,7 +161,7 @@
+     assert git(W,'diff','--name-only')==b'' and not git(W,'ls-files','--others','--exclude-standard','-z')
+     assert (R/'.git/index').read_bytes()==rootidx and git(R,'rev-parse','HEAD').decode().strip()==ROOT_BASE and H(git(R,'show-ref'))==refs
+     save('source-after-transition.json',after)
+-    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1785,'after_entries':1785,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':0,'modified':1,'removed':0},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
++    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1785,'after_entries':1792,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':7,'modified':143,'removed':0},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
+     expired();sample();assert Path('/proc/sys/kernel/random/boot_id').read_text().strip()==boot
+     admission['status']='ROOT_ADMITTED';admission['resources']['status']='ROOT_ADMITTED'
+     admission['coordinator_grant']={'path':str(G),'raw_sha256':H(gb),'grant_id':grant['grant_id'],'slot':grant['slot'],'launch_expires_utc':grant['launch_only_expires_at'],'allowed_phases':['ci'],'ci_command_count':1,'ci_stage_count':10}
+@@ -175,7 +175,7 @@
+     log=(D/'runner.log').open('xb');argv=grant['argv']
+     child=subprocess.Popen(argv,cwd=R,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,close_fds=True);log.close()
+     ident=proc(child.pid)
+-    state.update(status='RUNNER_DISPATCHED',runner_launched=True,runner=ident,argv=argv,bound_admission_sha256=H(bound.read_bytes()),source_after=after['sha256'],tree=tree,runner_log=str(D/'runner.log'),run_directory=str(out),dispatched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),grant_id=grant['grant_id'],metadata_attribution='Original cargo xtask ci; expected0 alone does not qualify its ten stages/counts/source/closure; focused Type proof remains separately attributed.')
++    state.update(status='RUNNER_DISPATCHED',runner_launched=True,runner=ident,argv=argv,bound_admission_sha256=H(bound.read_bytes()),source_after=after['sha256'],tree=tree,runner_log=str(D/'runner.log'),run_directory=str(out),dispatched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),grant_id=grant['grant_id'],metadata_attribution='Original cargo xtask ci; expected0 alone does not qualify its ten stages/counts/source/closure; the 13 named Guide regressions require actual attribution; historical Type proof remains separate.')
+     save('status.json',state);time.sleep(1)
+     observation={'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'boot_id':boot,'runner':proc(child.pid),'result_exists':(out/'result.json').exists()}
+     if (out/'result.json').exists():

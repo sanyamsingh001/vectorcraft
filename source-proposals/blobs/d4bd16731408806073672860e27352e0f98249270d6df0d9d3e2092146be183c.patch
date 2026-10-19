@@ -1,0 +1,808 @@
+diff --git a/crates/engine/src/cmd/path.rs b/crates/engine/src/cmd/path.rs
+index bf1dcc106a8351ffad22da670574917ace532887..d06f35533e6e9abca788c8419aee58fc06507f48 100644
+--- a/crates/engine/src/cmd/path.rs
++++ b/crates/engine/src/cmd/path.rs
+@@ -64,7 +64,7 @@ pub fn specs() -> Vec<CommandSpec> {
+             "Join",
+             ["Object", "Path"],
+             Some("Cmd+J"),
+-            "{ids?: [path, path] (default: the selected paths), ends?: [\"first\"|\"last\", \"first\"|\"last\"] (which end of each path to join, as the Pen joins them; default: the nearest pair)} join two open paths into one (the first keeps its id, selected), or close a single open path; without ids, direct-selected anchors lying on one another along a path merge into one anchor instead",
++            "{ids?: [path, path] (default: the selected paths), ends?: [\"first\"|\"last\", \"first\"|\"last\"] (explicit ids or ends use the first open subpaths; ids without ends use the nearest pair; with neither ids nor ends, exactly one selected open endpoint on each of two selected paths chooses the subpaths and ends, otherwise the nearest pair)} join two open paths into one (the first keeps its id, selected; unrelated subpaths stay on their original objects), or close a single open path; without ids or ends, exactly two picked endpoints on different open subpaths of one selected path join those contours and retain the others; without ids, direct-selected anchors lying on one another along a path merge into one anchor instead",
+             has_selection,
+             join
+         ),
+@@ -380,8 +380,63 @@ fn join(s: &mut Session, p: &Value) -> Result<Value> {
+     match ids.as_slice() {
+         [one] => {
+             let id = *one;
+-            s.edit("Join", |d, _| {
++            // Only an implicit Join uses exactly two picked endpoints on this same path.
++            let picked = {
++                let st = s.doc()?;
++                let pair = || {
++                    let picked = st.selection.anchors.get(&id)?;
++                    if picked.len() != 2 {
++                        return None;
++                    }
++                    let &(sa, ai) = picked.first()?;
++                    let &(sb, bi) = picked.last()?;
++                    if sa == sb {
++                        return None;
++                    }
++                    let path = st.doc.node(id)?.path_data()?;
++                    let a = path.subpaths.get(sa)?;
++                    let b = path.subpaths.get(sb)?;
++                    let endpoint = |sp: &SubPath, i: usize| !sp.closed && sp.anchors.len() > 1 && (i == 0 || i == sp.anchors.len() - 1);
++                    (endpoint(a, ai) && endpoint(b, bi)).then_some(((sa, ai == 0), (sb, bi == 0)))
++                };
++                if p.get("ids").is_none()
++                    && ends.is_none()
++                    && st.selection.objects == [id]
++                    && st.selection.anchors.len() == 1
++                    && st.selection.guides.is_empty()
++                    && st.selection.segments.values().all(|set| set.is_empty())
++                {
++                    pair()
++                } else {
++                    None
++                }
++            };
++            s.edit("Join", |d, sel| {
+                 let path = path_mut(d, id)?;
++                if let Some(((sa, first_a), (sb, first_b))) = picked {
++                    let mut x = path.subpaths.get(sa).cloned().ok_or_else(|| bad(C, "no such subpath"))?;
++                    let mut y = path.subpaths.get(sb).cloned().ok_or_else(|| bad(C, "no such subpath"))?;
++                    if first_a {
++                        x.reverse();
++                    }
++                    if !first_b {
++                        y.reverse();
++                    }
++                    if let (Some(xe), Some(ys)) = (x.anchors.last().map(|a| a.p), y.anchors.first().map(|a| a.p))
++                        && xe.distance(ys) < 1e-6
++                    {
++                        let first = y.anchors.remove(0);
++                        if let Some(l) = x.anchors.last_mut() {
++                            l.h_out = first.h_out;
++                        }
++                    }
++                    x.anchors.extend(y.anchors);
++                    *path.subpaths.get_mut(sa).ok_or_else(|| bad(C, "no such subpath"))? = x;
++                    // AnchorRefs are ordered: sa < sb, so removing sb keeps the joined slot.
++                    path.subpaths.remove(sb);
++                    sel.set([id]);
++                    return Ok(());
++                }
+                 let sp = path.subpaths.iter_mut().find(|s| !s.closed).ok_or_else(|| EngineError::Other("path is already closed".into()))?;
+                 // Merge coincident end points.
+                 if sp.anchors.len() > 2
+@@ -400,22 +455,56 @@ fn join(s: &mut Session, p: &Value) -> Result<Value> {
+             if a == b {
+                 return Err(bad(C, "join two different paths"));
+             }
++            // Only an implicit Join uses picked endpoints for the contours and ends. Explicit ids
++            // keep caller order and nearest ends unless ends are supplied; whole objects use nearest.
++            let picked = {
++                let st = s.doc()?;
++                let endpoint = |id| {
++                    let picked = st.selection.anchors.get(&id)?;
++                    if picked.len() != 1 {
++                        return None;
++                    }
++                    let &(si, ai) = picked.first()?;
++                    let sp = st.doc.node(id)?.path_data()?.subpaths.get(si)?;
++                    (!sp.closed && sp.anchors.len() > 1 && (ai == 0 || ai == sp.anchors.len() - 1)).then_some((si, ai == 0))
++                };
++                if p.get("ids").is_none()
++                    && ends.is_none()
++                    && ids.len() == 2
++                    && st.selection.objects.len() == 2
++                    && st.selection.contains(a)
++                    && st.selection.contains(b)
++                    && st.selection.guides.is_empty()
++                    && st.selection.segments.values().all(|set| set.is_empty())
++                {
++                    endpoint(a).zip(endpoint(b))
++                } else {
++                    None
++                }
++            };
+             s.edit("Join", |d, sel| {
+-                let pb = d.node(b).and_then(|n| n.path_data()).cloned().ok_or(EngineError::NoNode(b))?;
++                let mut pb = d.node(b).and_then(|n| n.path_data()).cloned().ok_or(EngineError::NoNode(b))?;
+                 let pa = path_mut(d, a)?;
+-                let (Some(sa), Some(sb)) = (pa.subpaths.iter().position(|s| !s.closed), pb.subpaths.iter().position(|s| !s.closed)) else {
+-                    return Err(EngineError::Other("join needs open paths".into()));
++                let (sa, sb) = match picked {
++                    Some(((sa, _), (sb, _))) => (sa, sb),
++                    None => {
++                        let (Some(sa), Some(sb)) = (pa.subpaths.iter().position(|s| !s.closed), pb.subpaths.iter().position(|s| !s.closed)) else {
++                            return Err(EngineError::Other("join needs open paths".into()));
++                        };
++                        (sa, sb)
++                    }
+                 };
+-                let mut x = pa.subpaths[sa].clone();
+-                let mut y = pb.subpaths[sb].clone();
++                let mut x = pa.subpaths.get(sa).cloned().ok_or_else(|| bad(C, "no such subpath"))?;
++                let mut y = pb.subpaths.get(sb).cloned().ok_or_else(|| bad(C, "no such subpath"))?;
+                 let (Some((xf, xl)), Some((yf, yl))) = (end_points(&x), end_points(&y)) else {
+                     return Err(EngineError::Other("join needs open paths".into()));
+                 };
+-                // The ends asked for, else the closest pair.
++                // Explicit ends take precedence over picks, then the existing closest pair.
+                 let cands =
+                     [(xl.distance(yf), false, false), (xl.distance(yl), false, true), (xf.distance(yf), true, false), (xf.distance(yl), true, true)];
+-                let (rx, ry) =
+-                    ends.unwrap_or_else(|| cands.into_iter().min_by(|p, q| p.0.total_cmp(&q.0)).map_or((false, false), |(_, rx, ry)| (rx, ry)));
++                let (rx, ry) = ends
++                    .or_else(|| picked.map(|((_, first_a), (_, first_b))| (first_a, !first_b)))
++                    .unwrap_or_else(|| cands.into_iter().min_by(|p, q| p.0.total_cmp(&q.0)).map_or((false, false), |(_, rx, ry)| (rx, ry)));
+                 if rx {
+                     x.reverse();
+                 }
+@@ -431,8 +520,15 @@ fn join(s: &mut Session, p: &Value) -> Result<Value> {
+                     }
+                 }
+                 x.anchors.extend(y.anchors);
+-                pa.subpaths[sa] = x;
+-                d.remove(b)?;
++                *pa.subpaths.get_mut(sa).ok_or_else(|| bad(C, "no such subpath"))? = x;
++                // Only the joined contour is consumed. Other contours keep B's identity and paint.
++                pb.subpaths.remove(sb);
++                if pb.subpaths.is_empty() {
++                    d.remove(b)?;
++                } else {
++                    d.node_mut(b).ok_or(EngineError::NoNode(b))?.pin_gradients();
++                    *path_mut(d, b)? = pb;
++                }
+                 sel.set([a]);
+                 Ok(())
+             })?;
+diff --git a/crates/engine/tests/join_regressions.rs b/crates/engine/tests/join_regressions.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..c269ec372e2c50cd9fe6ee2a0942cacb9cfdb3b1
+--- /dev/null
++++ b/crates/engine/tests/join_regressions.rs
+@@ -0,0 +1,407 @@
++#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
++//! Ordinary Join selection/preservation regressions, separate from Average and Join.
++//! Original finite geometry; artwork and selections are built through public commands.
++
++use serde_json::json;
++use std::sync::Arc;
++use vectorcraft_doc::{Document, NodeId, NodeKind, Selection};
++use vectorcraft_engine::{EngineError, HistoryEntry, Session};
++use vectorcraft_geom::{PathData, Point, SubPath};
++
++type Entries = Vec<(String, Arc<Document>, Arc<Selection>)>;
++
++fn entries(items: &[HistoryEntry]) -> Entries {
++    items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect()
++}
++
++struct Snapshot {
++    doc: Arc<Document>,
++    selection: Selection,
++    undo: Entries,
++    redo: Entries,
++    dirty: bool,
++}
++
++impl Snapshot {
++    fn of(s: &Session) -> Self {
++        let st = s.doc().unwrap();
++        Self {
++            doc: st.doc.clone(),
++            selection: st.selection.clone(),
++            undo: entries(&st.history.undo),
++            redo: entries(&st.history.redo),
++            dirty: st.is_dirty(),
++        }
++    }
++
++    fn assert_unchanged(&self, s: &Session) {
++        let st = s.doc().unwrap();
++        assert_eq!(st.doc, self.doc);
++        assert_eq!(st.selection, self.selection);
++        assert_eq!(entries(&st.history.undo), self.undo);
++        assert_eq!(entries(&st.history.redo), self.redo);
++        assert_eq!(st.is_dirty(), self.dirty);
++    }
++}
++
++fn session() -> Session {
++    let mut s = Session::new();
++    s.execute("file.new", &json!({"width": 600, "height": 400})).unwrap();
++    s
++}
++
++fn make(s: &mut Session, d: &str) -> NodeId {
++    NodeId(s.execute("path.create", &json!({"d": d})).unwrap()["id"].as_u64().unwrap())
++}
++
++fn path(s: &Session, id: NodeId) -> PathData {
++    s.doc().unwrap().doc.node(id).unwrap().path_data().unwrap().clone()
++}
++
++fn pair(s: &mut Session) -> (NodeId, NodeId) {
++    let a = make(s, "M0 0L100 0");
++    let b = make(s, "M110 0L200 0");
++    (a, b)
++}
++
++fn pick(s: &mut Session, a: NodeId, ai: usize, b: NodeId, bi: usize) {
++    s.execute("select.anchorsMany", &json!({"items":[{"id":a.0,"anchors":[[0,ai]]},{"id":b.0,"anchors":[[0,bi]]}]})).unwrap();
++    let sel = &s.doc().unwrap().selection;
++    assert_eq!(sel.objects, [a, b]);
++    assert_eq!(sel.anchors[&a], [(0, ai)].into());
++    assert_eq!(sel.anchors[&b], [(0, bi)].into());
++    assert!(sel.segments.is_empty());
++}
++
++// Only the expected-document clone is edited directly; fixture state uses commands.
++fn expected_path(doc: &mut Document, id: NodeId, value: PathData) {
++    let NodeKind::Path { path, .. } = &mut doc.node_mut(id).unwrap().kind else { panic!("fixture is a path") };
++    *path = value;
++}
++
++fn line_points(xs: &[f64]) -> PathData {
++    PathData::new(vec![SubPath::polyline(&xs.iter().map(|x| Point::new(*x, 0.0)).collect::<Vec<_>>(), false)])
++}
++
++fn assert_join_history(s: &mut Session, before: &Snapshot, kept: NodeId) {
++    let after = Snapshot::of(s);
++    let mut expected_selection = before.selection.clone();
++    expected_selection.set([kept]);
++    assert_eq!(after.selection, expected_selection, "joined path remains selected whole");
++    assert_eq!(after.undo.len(), before.undo.len() + 1, "Join is one edit");
++    assert_eq!(&after.undo[..before.undo.len()], before.undo.as_slice());
++    assert_eq!(after.undo.last().unwrap(), &("Join".into(), before.doc.clone(), Arc::new(before.selection.clone())));
++    assert!(after.redo.is_empty(), "successful Join replaces the old Redo branch");
++    assert!(after.dirty);
++
++    assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["undone"], "Join");
++    let undone = Snapshot::of(s);
++    assert_eq!(undone.doc, before.doc);
++    assert_eq!(undone.selection, before.selection);
++    assert_eq!(undone.undo, before.undo);
++    assert_eq!(undone.redo, vec![("Join".into(), after.doc.clone(), Arc::new(after.selection.clone()))]);
++    assert_eq!(undone.dirty, before.dirty);
++
++    assert_eq!(s.execute("edit.redo", &json!({})).unwrap()["redone"], "Join");
++    after.assert_unchanged(s);
++}
++
++/// Joining an open contour must not silently delete other artwork on its owner.
++/// Keeping B's closed contour under B preserves its identity/appearance. An unsupported
++/// multi-contour request may instead be rejected, but only before changing any state.
++#[test]
++fn ordinary_join_preserves_second_paths_closed_contour_or_rejects_atomically() {
++    let mut s = session();
++    let a = make(&mut s, "M0 0L10 0");
++    s.execute("paint.setStroke", &json!({"color":"#2468d8"})).unwrap();
++    let b = make(&mut s, "M12 0L20 0 M100 100L120 100L110 120Z");
++    s.execute("paint.setFill", &json!({"color":"#da5634"})).unwrap();
++    s.execute("paint.setStroke", &json!({"color":"#23854a"})).unwrap();
++    let unrelated = make(&mut s, "M300 200L330 210L315 240Z");
++    // A normal undone move leaves a Redo branch that rejection must retain exactly.
++    s.execute("object.move", &json!({"dx":3,"dy":7})).unwrap();
++    s.execute("edit.undo", &json!({})).unwrap();
++    s.execute("select.set", &json!({"ids":[a.0,b.0]})).unwrap();
++    let pb = path(&s, b);
++    assert_eq!(pb.subpaths.len(), 2);
++    assert!(!pb.subpaths[0].closed && pb.subpaths[1].closed);
++    assert_eq!(pb.subpaths[1].anchors.iter().map(|v| v.p).collect::<Vec<_>>(), [(100.0, 100.0), (120.0, 100.0), (110.0, 120.0)].map(Point::from));
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    assert_eq!(before.redo.len(), 1);
++    assert_ne!(before.doc.node(a).unwrap().appearance, before.doc.node(b).unwrap().appearance);
++
++    // Explicit ends isolate contour preservation from selected-endpoint inference.
++    match s.execute("path.join", &json!({"ends":["last","first"]})) {
++        Err(error) => {
++            assert!(matches!(error, EngineError::BadParams { .. } | EngineError::Other(_)), "JOIN_CONTOUR_SAFE_REJECTION: {error}");
++            before.assert_unchanged(&s);
++        }
++        Ok(_) => {
++            assert!(s.doc().unwrap().doc.node(b).is_some(), "JOIN_PRESERVE_UNRELATED_CLOSED_CONTOUR: B's closed contour was deleted");
++            let mut expected = before.doc.clone();
++            let d = Arc::make_mut(&mut expected);
++            expected_path(d, a, line_points(&[0.0, 10.0, 12.0, 20.0]));
++            expected_path(d, b, PathData::new(vec![pb.subpaths[1].clone()]));
++            assert_eq!(
++                s.doc().unwrap().doc,
++                expected,
++                "only the joined open contours may change; B's appearance/identity stays with its closed contour"
++            );
++            assert_eq!(s.doc().unwrap().doc.node(unrelated), before.doc.node(unrelated));
++            assert_join_history(&mut s, &before, a);
++        }
++    }
++}
++
++#[test]
++fn ordinary_join_uses_picked_far_endpoints_without_explicit_ends() {
++    let mut s = session();
++    let (a, b) = pair(&mut s);
++    pick(&mut s, a, 0, b, 1);
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    // This is the existing Connect Selected End Points command payload: no ids or ends.
++    s.execute("path.join", &json!({})).unwrap();
++    let expected_path_data = line_points(&[100.0, 0.0, 200.0, 110.0]);
++    assert_eq!(
++        path(&s, a),
++        expected_path_data,
++        "JOIN_PICKED_FAR_ENDPOINTS: the bridge must connect the selected 0 and 200, not the nearest 100 and 110"
++    );
++    let mut expected = before.doc.clone();
++    let d = Arc::make_mut(&mut expected);
++    expected_path(d, a, expected_path_data);
++    d.remove(b).unwrap();
++    assert_eq!(s.doc().unwrap().doc, expected);
++    assert_join_history(&mut s, &before, a);
++}
++
++#[test]
++fn ordinary_join_whole_object_selection_still_uses_nearest_pair() {
++    let mut s = session();
++    let (a, b) = pair(&mut s);
++    s.execute("select.set", &json!({"ids":[a.0,b.0]})).unwrap();
++    let selection = &s.doc().unwrap().selection;
++    assert_eq!(selection.objects, [a, b]);
++    assert!(selection.anchors.is_empty() && selection.segments.is_empty());
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    s.execute("path.join", &json!({})).unwrap();
++    let mut expected = before.doc.clone();
++    let d = Arc::make_mut(&mut expected);
++    expected_path(d, a, line_points(&[0.0, 100.0, 110.0, 200.0]));
++    d.remove(b).unwrap();
++    assert_eq!(s.doc().unwrap().doc, expected, "whole-object Join retains nearest-pair behavior");
++    assert_join_history(&mut s, &before, a);
++}
++
++#[test]
++fn ordinary_join_explicit_ends_override_picked_endpoints() {
++    let mut s = session();
++    let (a, b) = pair(&mut s);
++    pick(&mut s, a, 1, b, 0);
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    // Explicit ends retain precedence for command/Pen callers, even over a different picked pair.
++    s.execute("path.join", &json!({"ids":[a.0,b.0],"ends":["first","last"]})).unwrap();
++    let mut expected = before.doc.clone();
++    let d = Arc::make_mut(&mut expected);
++    expected_path(d, a, line_points(&[100.0, 0.0, 200.0, 110.0]));
++    d.remove(b).unwrap();
++    assert_eq!(s.doc().unwrap().doc, expected, "explicit endpoints retain precedence");
++    assert_join_history(&mut s, &before, a);
++}
++
++#[test]
++fn ordinary_join_selected_curve_contours_preserve_other_contours_and_handles() {
++    let mut s = session();
++    let a = make(&mut s, "M300 0L310 0 M0 20C20 30 80 40 100 50");
++    s.execute("paint.setStroke", &json!({"color":"#2468d8"})).unwrap();
++    let b = make(&mut s, "M400 100L420 100L410 120Z M500 0L510 0 M110 60C130 70 170 80 200 90");
++    s.execute("paint.setFill", &json!({"color":"#da5634"})).unwrap();
++    s.execute("paint.setStroke", &json!({"color":"#23854a"})).unwrap();
++    s.execute("select.anchorsMany", &json!({"items":[{"id":a.0,"anchors":[[1,0]]},{"id":b.0,"anchors":[[2,1]]}]})).unwrap();
++    let selection = &s.doc().unwrap().selection;
++    assert_eq!(selection.objects, [a, b]);
++    assert_eq!(selection.anchors[&a], [(1, 0)].into());
++    assert_eq!(selection.anchors[&b], [(2, 1)].into());
++    assert!(selection.segments.is_empty());
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    let (mut pa, mut pb) = (path(&s, a), path(&s, b));
++    assert_eq!((pa.subpaths.len(), pb.subpaths.len()), (2, 3));
++    assert_ne!(before.doc.node(a).unwrap().appearance, before.doc.node(b).unwrap().appearance);
++
++    // Independent ordered endpoints and handle coordinates, not the Join/reverse implementation.
++    let mut anchors = vec![pa.subpaths[1].anchors[1], pa.subpaths[1].anchors[0], pb.subpaths[2].anchors[1], pb.subpaths[2].anchors[0]];
++    assert_eq!(anchors.iter().map(|v| v.p).collect::<Vec<_>>(), [(100.0, 50.0), (0.0, 20.0), (200.0, 90.0), (110.0, 60.0)].map(Point::from));
++    for (anchor, (incoming, outgoing)) in anchors.iter_mut().zip([
++        ((100.0, 50.0), (80.0, 40.0)),
++        ((20.0, 30.0), (0.0, 20.0)),
++        ((200.0, 90.0), (170.0, 80.0)),
++        ((130.0, 70.0), (110.0, 60.0)),
++    ]) {
++        anchor.h_in = Point::from(incoming);
++        anchor.h_out = Point::from(outgoing);
++    }
++    pa.subpaths[1] = SubPath::new(anchors, false);
++    assert!(pb.subpaths.pop().is_some());
++    let mut expected = before.doc.clone();
++    let d = Arc::make_mut(&mut expected);
++    expected_path(d, a, pa);
++    expected_path(d, b, pb);
++
++    s.execute("path.join", &json!({})).unwrap();
++    assert_eq!(s.doc().unwrap().doc, expected, "selected contours join; other open/closed contours and their owner appearance remain exact");
++    assert_join_history(&mut s, &before, a);
++}
++
++#[test]
++fn ordinary_join_explicit_ids_ignore_unrelated_endpoint_selection() {
++    let mut s = session();
++    let (a, b) = pair(&mut s);
++    let c = make(&mut s, "M300 0L400 0");
++    let d = make(&mut s, "M410 0L500 0");
++    pick(&mut s, c, 0, d, 1);
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    let mut expected = before.doc.clone();
++    let doc = Arc::make_mut(&mut expected);
++    expected_path(doc, a, line_points(&[0.0, 100.0, 110.0, 200.0]));
++    doc.remove(b).unwrap();
++
++    s.execute("path.join", &json!({"ids":[a.0,b.0]})).unwrap();
++    assert_eq!(s.doc().unwrap().doc, expected, "explicit targets remain independent of another selected endpoint pair");
++    assert_join_history(&mut s, &before, a);
++}
++
++#[test]
++fn ordinary_join_selected_endpoint_orientations_use_the_picked_pair() {
++    for (ai, bi, xs) in [
++        (0, 0, [100.0, 0.0, 110.0, 200.0]),
++        (0, 1, [100.0, 0.0, 200.0, 110.0]),
++        (1, 0, [0.0, 100.0, 110.0, 200.0]),
++        (1, 1, [0.0, 100.0, 200.0, 110.0]),
++    ] {
++        let mut s = session();
++        let (a, b) = pair(&mut s);
++        pick(&mut s, a, ai, b, bi);
++        s.doc_mut().unwrap().mark_saved();
++        let before = Snapshot::of(&s);
++        let mut expected = before.doc.clone();
++        let d = Arc::make_mut(&mut expected);
++        expected_path(d, a, line_points(&xs));
++        d.remove(b).unwrap();
++        s.execute("path.join", &json!({})).unwrap();
++        assert_eq!(s.doc().unwrap().doc, expected, "picked endpoint indices {ai}, {bi}");
++        assert_join_history(&mut s, &before, a);
++    }
++}
++
++#[test]
++fn ordinary_join_explicit_ids_ignore_same_target_picks_and_keep_caller_order() {
++    for reverse_ids in [false, true] {
++        let mut s = session();
++        let (a, b) = pair(&mut s);
++        // These same-target far picks must not change an explicit ids-only call.
++        pick(&mut s, a, 0, b, 1);
++        s.doc_mut().unwrap().mark_saved();
++        let before = Snapshot::of(&s);
++        let (kept, consumed, xs) = if reverse_ids { (b, a, [200.0, 110.0, 100.0, 0.0]) } else { (a, b, [0.0, 100.0, 110.0, 200.0]) };
++        let mut expected = before.doc.clone();
++        let d = Arc::make_mut(&mut expected);
++        expected_path(d, kept, line_points(&xs));
++        d.remove(consumed).unwrap();
++
++        s.execute("path.join", &json!({"ids":[kept.0,consumed.0]})).unwrap();
++        assert_eq!(
++            s.doc().unwrap().doc,
++            expected,
++            "JOIN_EXPLICIT_IDS_NEAREST: same-target picks must not override caller order or nearest endpoints ({reverse_ids})"
++        );
++        assert_join_history(&mut s, &before, kept);
++    }
++}
++
++/// Consuming B's open contour must not recolor the closed artwork retained under B.
++#[test]
++fn ordinary_join_preserves_retained_contour_gradient_pixels() {
++    use vectorcraft_color::Paint;
++    use vectorcraft_geom::Affine;
++    use vectorcraft_render::{RenderOptions, Renderer};
++
++    let mut s = Session::new();
++    s.execute("file.new", &json!({"width": 600, "height": 400, "colorMode": "rgb"})).unwrap();
++    let a = make(&mut s, "M0 0L10 0");
++    s.execute("paint.setStroke", &json!({"color": "#2468d8"})).unwrap();
++    let b = make(&mut s, "M12 0L20 0 M100 100L120 100L110 120Z");
++    // Original four-stop artwork: a red plateau, a transition, then a blue plateau.
++    // Flat colors around the sample avoid interpolation-rounding and edge-AA oracles.
++    s.execute(
++        "paint.setFill",
++        &json!({"gradient": {"kind": "linear", "angle": 0, "stops": [
++            {"offset": 0.0, "color": "#ff0000"},
++            {"offset": 0.6, "color": "#ff0000"},
++            {"offset": 0.8, "color": "#0000ff"},
++            {"offset": 1.0, "color": "#0000ff"}
++        ]}}),
++    )
++    .unwrap();
++    s.execute("paint.setStroke", &json!({"none": true})).unwrap();
++    let unrelated = make(&mut s, "M300 200L330 210L315 240Z");
++    s.execute("paint.setFill", &json!({"color": "#23854a"})).unwrap();
++    s.execute("object.move", &json!({"dx": 3, "dy": 7})).unwrap();
++    s.execute("edit.undo", &json!({})).unwrap();
++    s.execute("select.set", &json!({"ids": [a.0, b.0]})).unwrap();
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    assert_eq!(before.redo.len(), 1, "JOIN_GRADIENT_SETUP_HISTORY");
++    assert_eq!(before.selection.objects, [a, b], "JOIN_GRADIENT_SETUP_SELECTION");
++    let Paint::Gradient(initial_gradient) = before.doc.node(b).unwrap().appearance.fill_paint() else {
++        panic!("JOIN_GRADIENT_SETUP_PAINT: B must have a gradient fill")
++    };
++    assert!(initial_gradient.geom.is_none(), "JOIN_GRADIENT_SETUP_PAINT: fresh bounds-fitted fill");
++    let retained = PathData::new(vec![SubPath::polyline(&[(100.0, 100.0), (120.0, 100.0), (110.0, 120.0)].map(Point::from), true)]);
++    let pb = path(&s, b);
++    assert_eq!(pb.subpaths.len(), 2, "JOIN_GRADIENT_SETUP_CONTOURS");
++    assert_eq!(pb.subpaths[1], retained.subpaths[0], "JOIN_GRADIENT_SETUP_TRIANGLE");
++
++    // Public CPU renderer, identity world-to-pixel mapping, fresh caches each time.
++    // Pixel (110,110) is wholly inside the unchanged triangle, away from its edges.
++    let pixel = |s: &Session| Renderer::new().render(&s.doc().unwrap().doc, 160, 160, Affine::IDENTITY, &RenderOptions::default()).pixel(110, 110);
++    let original_pixel = pixel(&s);
++    assert_eq!(original_pixel, [0, 0, 255, 255], "JOIN_GRADIENT_SETUP_PIXEL: original blue interior");
++    eprintln!("JOIN_GRADIENT_SETUP_READY");
++
++    // Ordinary whole-object Join: no explicit ids/ends or direct document mutation.
++    s.execute("path.join", &json!({})).expect("JOIN_GRADIENT_COMMAND: ordinary Join must succeed");
++    eprintln!("JOIN_GRADIENT_COMMAND_COMPLETED");
++    assert!(s.doc().unwrap().doc.node(b).is_some(), "JOIN_GRADIENT_B_MISSING: retained contour owner was deleted");
++    assert_eq!(path(&s, b), retained, "JOIN_GRADIENT_B_GEOMETRY: retained triangle changed");
++    assert_eq!(path(&s, a), line_points(&[0.0, 10.0, 12.0, 20.0]), "JOIN_GRADIENT_A_GEOMETRY");
++    eprintln!("JOIN_GRADIENT_B_RETAINED");
++
++    let mut expected = before.doc.clone();
++    let d = Arc::make_mut(&mut expected);
++    expected_path(d, a, line_points(&[0.0, 10.0, 12.0, 20.0]));
++    expected_path(d, b, retained);
++    // Allow only gradient placement storage to change: rendered color is the oracle for
++    // that representation. All other paint, identity, ownership and document fields stay exact.
++    let Paint::Gradient(actual_gradient) = s.doc().unwrap().doc.node(b).unwrap().appearance.fill_paint() else {
++        panic!("JOIN_GRADIENT_PAINT_KIND: B lost its gradient")
++    };
++    let Paint::Gradient(expected_gradient) = &mut d.node_mut(b).unwrap().appearance.fill_mut().unwrap().paint else {
++        panic!("JOIN_GRADIENT_EXPECTED_PAINT: fixture lost its gradient")
++    };
++    expected_gradient.geom = actual_gradient.geom;
++    assert_eq!(s.doc().unwrap().doc, expected, "JOIN_GRADIENT_DOCUMENT: unrelated fields changed");
++    assert_eq!(s.doc().unwrap().doc.node(unrelated), before.doc.node(unrelated), "JOIN_GRADIENT_UNRELATED_ART");
++    eprintln!("JOIN_GRADIENT_STRUCTURE_PRESERVED");
++
++    assert_eq!(pixel(&s), [0, 0, 255, 255], "JOIN_GRADIENT_RECOLOR: retained B interior must remain the original blue");
++    eprintln!("JOIN_GRADIENT_PIXEL_PRESERVED");
++    assert_join_history(&mut s, &before, a);
++    assert_eq!(pixel(&s), original_pixel, "JOIN_GRADIENT_REDO_PIXEL: Redo must restore the same blue interior");
++    eprintln!("JOIN_GRADIENT_HISTORY_PRESERVED");
++}
+diff --git a/crates/engine/tests/join_same_object_regressions.rs b/crates/engine/tests/join_same_object_regressions.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..344e71029f3d890144fb93e0263c92fdb888a794
+--- /dev/null
++++ b/crates/engine/tests/join_same_object_regressions.rs
+@@ -0,0 +1,228 @@
++#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
++//! Same-object ordinary Join: original finite geometry, constructed through commands.
++//! This isolates the post-deletion shape without depending on the Anchor Delete repair.
++
++use serde_json::json;
++use std::sync::Arc;
++use vectorcraft_doc::{Document, NodeId, NodeKind, Selection};
++use vectorcraft_engine::{HistoryEntry, Session};
++use vectorcraft_geom::{PathData, Point, SubPath};
++
++type Entries = Vec<(String, Arc<Document>, Arc<Selection>)>;
++
++fn entries(items: &[HistoryEntry]) -> Entries {
++    items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect()
++}
++
++struct Snapshot {
++    doc: Arc<Document>,
++    selection: Selection,
++    undo: Entries,
++    redo: Entries,
++    dirty: bool,
++}
++
++impl Snapshot {
++    fn of(s: &Session) -> Self {
++        let st = s.doc().unwrap();
++        Self {
++            doc: st.doc.clone(),
++            selection: st.selection.clone(),
++            undo: entries(&st.history.undo),
++            redo: entries(&st.history.redo),
++            dirty: st.is_dirty(),
++        }
++    }
++
++    fn assert_same(&self, s: &Session) {
++        let actual = Self::of(s);
++        assert_eq!(actual.doc, self.doc);
++        assert_eq!(actual.selection, self.selection);
++        assert_eq!(actual.undo, self.undo);
++        assert_eq!(actual.redo, self.redo);
++        assert_eq!(actual.dirty, self.dirty);
++    }
++}
++
++fn make(s: &mut Session, d: &str) -> NodeId {
++    NodeId(s.execute("path.create", &json!({"d": d})).unwrap()["id"].as_u64().unwrap())
++}
++
++fn fixture(d: &str) -> (Session, NodeId) {
++    let mut s = Session::new();
++    s.execute("file.new", &json!({"width": 200, "height": 120})).unwrap();
++    let id = make(&mut s, d);
++    s.execute("paint.setStroke", &json!({"color": "#2468d8"})).unwrap();
++    make(&mut s, "M140 70L170 70L155 100Z");
++    s.execute("paint.setFill", &json!({"color": "#da5634"})).unwrap();
++    // A normal undone edit leaves a real Redo branch for Join to replace.
++    s.execute("object.move", &json!({"dx": 3, "dy": 7})).unwrap();
++    s.execute("edit.undo", &json!({})).unwrap();
++    (s, id)
++}
++
++fn path(s: &Session, id: NodeId) -> PathData {
++    s.doc().unwrap().doc.node(id).unwrap().path_data().unwrap().clone()
++}
++
++fn pick(s: &mut Session, id: NodeId, anchors: &[(usize, usize)]) {
++    s.execute("select.anchorsMany", &json!({"items": [{"id": id.0, "anchors": anchors}]})).unwrap();
++    let sel = &s.doc().unwrap().selection;
++    assert_eq!(sel.objects, [id]);
++    assert_eq!(sel.anchors.len(), 1);
++    assert_eq!(sel.anchors[&id].iter().copied().collect::<Vec<_>>(), anchors.to_vec());
++    assert!(sel.segments.is_empty() && sel.guides.is_empty());
++    s.doc_mut().unwrap().mark_saved();
++}
++
++// Only the independent expected-document clone is modified directly.
++fn expected_document(before: &Snapshot, id: NodeId, joined: PathData) -> Arc<Document> {
++    let mut expected = before.doc.clone();
++    let NodeKind::Path { path, .. } = &mut Arc::make_mut(&mut expected).node_mut(id).unwrap().kind else { panic!("fixture is a path") };
++    *path = joined;
++    expected
++}
++
++fn assert_art_and_history(s: &mut Session, id: NodeId, before: &Snapshot, expected: Arc<Document>) {
++    let after = Snapshot::of(s);
++    assert_eq!(after.doc, expected, "only the target path geometry may change; identity, appearance and unrelated artwork stay exact");
++    assert_eq!(after.selection.objects, [id]);
++    // Do not prescribe a new post-Join fine-grained anchor-selection policy.
++    assert_eq!(before.redo.len(), 1);
++    assert!(!before.dirty);
++    assert_eq!(after.undo.len(), before.undo.len() + 1, "Join is one history edit");
++    assert_eq!(&after.undo[..before.undo.len()], before.undo.as_slice());
++    assert_eq!(after.undo.last().unwrap(), &("Join".into(), before.doc.clone(), Arc::new(before.selection.clone())));
++    assert!(after.redo.is_empty(), "Join replaces the prior Redo branch");
++    assert!(after.dirty);
++
++    assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["undone"], "Join");
++    let undone = Snapshot::of(s);
++    assert_eq!(undone.doc, before.doc);
++    assert_eq!(undone.selection, before.selection);
++    assert_eq!(undone.undo, before.undo);
++    assert_eq!(undone.redo, vec![("Join".into(), after.doc.clone(), Arc::new(after.selection.clone()))]);
++    assert_eq!(undone.dirty, before.dirty);
++
++    assert_eq!(s.execute("edit.redo", &json!({})).unwrap()["redone"], "Join");
++    after.assert_same(s);
++}
++
++#[test]
++fn ordinary_join_selected_gap_endpoints_in_one_object_reconnects_open_subpaths() {
++    let (mut s, id) = fixture("M20 40L40 20 M80 20L100 40");
++    pick(&mut s, id, &[(0, 1), (1, 0)]);
++    let original = path(&s, id);
++    assert_eq!(original.subpaths.len(), 2);
++    assert!(original.subpaths.iter().all(|sp| !sp.closed && sp.anchors.len() == 2));
++    let before = Snapshot::of(&s);
++    let points = [(20.0, 40.0), (40.0, 20.0), (80.0, 20.0), (100.0, 40.0)].map(Point::from);
++    let joined = PathData::new(vec![SubPath::polyline(&points, false)]);
++    let expected = expected_document(&before, id, joined.clone());
++
++    s.execute("path.join", &json!({})).unwrap();
++    let actual = path(&s, id);
++    assert_eq!(actual.subpaths.len(), 1, "JOIN_SINGLE_OBJECT_GAP_ENDPOINTS: connect the selected gap, not close the first contour");
++    assert!(!actual.subpaths[0].closed, "JOIN_SINGLE_OBJECT_GAP_OPEN: the bridge must remain open");
++    assert_eq!(actual, joined, "JOIN_SINGLE_OBJECT_GAP_GEOMETRY: preserve A-B-D-E and bridge B to D without restoring the deleted center");
++    assert_art_and_history(&mut s, id, &before, expected);
++}
++
++#[test]
++fn ordinary_join_selected_ends_of_single_contour_still_closes() {
++    let (mut s, id) = fixture("M20 40L40 20L80 40");
++    pick(&mut s, id, &[(0, 0), (0, 2)]);
++    let mut closed = path(&s, id);
++    assert_eq!(closed.subpaths.len(), 1);
++    assert!(!closed.subpaths[0].closed);
++    assert_eq!(closed.subpaths[0].anchors.len(), 3);
++    let before = Snapshot::of(&s);
++    closed.subpaths[0].closed = true;
++    let expected = expected_document(&before, id, closed.clone());
++
++    s.execute("path.join", &json!({})).unwrap();
++    assert_eq!(path(&s, id), closed, "JOIN_SINGLE_CONTOUR_CLOSE_CONTROL: retain ordinary closure and all anchors");
++    assert_art_and_history(&mut s, id, &before, expected);
++}
++
++#[test]
++fn ordinary_join_same_object_reversed_curves_preserve_other_contours_and_history() {
++    // Every row states its own vertex order and incoming/outgoing handles. Neither
++    // the production reversal helper nor another row computes the expected geometry.
++    let cases = [
++        (
++            "last-first",
++            1,
++            0,
++            [
++                ((20.0, 40.0), (20.0, 40.0), (30.0, 10.0)),
++                ((60.0, 40.0), (50.0, 60.0), (60.0, 40.0)),
++                ((100.0, 80.0), (100.0, 80.0), (110.0, 50.0)),
++                ((140.0, 80.0), (130.0, 100.0), (140.0, 80.0)),
++            ],
++        ),
++        (
++            "first-first",
++            0,
++            0,
++            [
++                ((60.0, 40.0), (60.0, 40.0), (50.0, 60.0)),
++                ((20.0, 40.0), (30.0, 10.0), (20.0, 40.0)),
++                ((100.0, 80.0), (100.0, 80.0), (110.0, 50.0)),
++                ((140.0, 80.0), (130.0, 100.0), (140.0, 80.0)),
++            ],
++        ),
++        (
++            "last-last",
++            1,
++            1,
++            [
++                ((20.0, 40.0), (20.0, 40.0), (30.0, 10.0)),
++                ((60.0, 40.0), (50.0, 60.0), (60.0, 40.0)),
++                ((140.0, 80.0), (140.0, 80.0), (130.0, 100.0)),
++                ((100.0, 80.0), (110.0, 50.0), (100.0, 80.0)),
++            ],
++        ),
++        (
++            "first-last",
++            0,
++            1,
++            [
++                ((60.0, 40.0), (60.0, 40.0), (50.0, 60.0)),
++                ((20.0, 40.0), (30.0, 10.0), (20.0, 40.0)),
++                ((140.0, 80.0), (140.0, 80.0), (130.0, 100.0)),
++                ((100.0, 80.0), (110.0, 50.0), (100.0, 80.0)),
++            ],
++        ),
++    ];
++    for (orientation, a_end, b_end, geometry) in cases {
++        let (mut s, id) = fixture("M5 5L15 5L10 15Z M20 40C30 10 50 60 60 40 M160 10L180 10 M100 80C110 50 130 100 140 80");
++        pick(&mut s, id, &[(1, a_end), (3, b_end)]);
++        let original = path(&s, id);
++        assert_eq!(original.subpaths.len(), 4);
++        assert!(original.subpaths[0].closed && !original.subpaths[2].closed);
++        assert!(original.subpaths.iter().skip(1).all(|sp| !sp.closed && sp.anchors.len() == 2));
++        assert_eq!(original.subpaths[1].anchors[0].h_out, Point::new(30.0, 10.0));
++        assert_eq!(original.subpaths[1].anchors[1].h_in, Point::new(50.0, 60.0));
++        assert_eq!(original.subpaths[3].anchors[0].h_out, Point::new(110.0, 50.0));
++        assert_eq!(original.subpaths[3].anchors[1].h_in, Point::new(130.0, 100.0));
++        let before = Snapshot::of(&s);
++
++        let points = geometry.map(|(position, _, _)| Point::from(position));
++        let mut joined = SubPath::polyline(&points, false);
++        for (anchor, (_, incoming, outgoing)) in joined.anchors.iter_mut().zip(geometry) {
++            anchor.h_in = Point::from(incoming);
++            anchor.h_out = Point::from(outgoing);
++        }
++        let expected_path = PathData::new(vec![original.subpaths[0].clone(), joined, original.subpaths[2].clone()]);
++        let expected = expected_document(&before, id, expected_path.clone());
++
++        s.execute("path.join", &json!({})).unwrap();
++        assert_eq!(
++            path(&s, id),
++            expected_path,
++            "JOIN_SINGLE_OBJECT_REVERSED_CURVES: {orientation}: preserve the explicit curve/bridge geometry and every unjoined contour"
++        );
++        assert_art_and_history(&mut s, id, &before, expected);
++    }
++}

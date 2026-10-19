@@ -1,0 +1,55 @@
+--- a/crates/engine/src/cmd/distortcmds.rs
++++ b/crates/engine/src/cmd/distortcmds.rs
+@@ -1352,6 +1352,16 @@
+             st.saved_doc = e.doc.clone();
+         }
+     }
++    if let Some(g) = &mut st.undo_group {
++        for e in &mut g.saved_redo {
++            let saved = Arc::ptr_eq(&e.doc, &st.saved_doc);
++            clear(&mut e.doc);
++            e.doc.drop_lookup_cache();
++            if saved {
++                st.saved_doc = e.doc.clone();
++            }
++        }
++    }
+     if let Some(it) = &mut st.interaction {
+         clear(&mut it.doc);
+     }
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -296,6 +296,8 @@
+ pub struct UndoGroup {
+     /// The document before the group's first edit, as the undo step that edit recorded keeps it.
+     first: Option<Arc<Document>>,
++    /// The Redo branch replaced by the recorded step, kept until commit or cancellation.
++    saved_redo: Vec<HistoryEntry>,
+     /// The journal's length when the group began: a cancelled group drops the entries after it.
+     journal: usize,
+     /// The undo step's name; else the first edit's.
+@@ -611,6 +613,7 @@
+                 return;
+             }
+             g.first = Some(doc.clone());
++            g.saved_redo = std::mem::take(&mut self.history.redo);
+             if let Some(l) = &g.label {
+                 label = l.clone();
+             }
+@@ -1965,7 +1968,7 @@
+         if let Some(st) = self.active_mut()
+             && st.undo_group.is_none()
+         {
+-            st.undo_group = Some(UndoGroup { first: None, journal, label });
++            st.undo_group = Some(UndoGroup { first: None, saved_redo: vec![], journal, label });
+         }
+     }
+ 
+@@ -1983,6 +1986,7 @@
+             {
+                 st.doc = e.doc;
+                 st.selection = Arc::unwrap_or_clone(e.selection);
++                st.history.redo = g.saved_redo;
+                 if self.menu.guides_locked {
+                     deselect_guides(&st.doc, &mut st.selection);
+                 }

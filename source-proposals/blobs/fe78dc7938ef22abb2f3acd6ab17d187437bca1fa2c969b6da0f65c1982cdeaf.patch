@@ -1,0 +1,116 @@
+--- accepted797/config
++++ wrapped-publication/config
+@@ -12,9 +12,9 @@
+   "expected_exits": [
+     0
+   ],
+-  "expected_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
+-  "name": "r82-text-cluster-caret-797-ci-01",
++  "expected_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++  "name": "r82-pr3004-wrap-publishable-ci-01",
+   "phase": "ci",
+-  "tree": "7abbe28c9a942c9e81f28f196a78308290228b42",
++  "tree": "06dff1aef861a800cee2b07da30146c974b03d80",
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }
+--- accepted797/admission
++++ wrapped-publication/admission
+@@ -1,25 +1,25 @@
+ {
+   "cases": {
+     "ci": {
+-      "canonical_source_digest": "7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002",
++      "canonical_source_digest": "7af22e42af5aec9b25a9def5576c2c5888b07dabf90d9368863d2eac2971591b",
+       "config": {
+-        "bytes": 468,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/ci-binding-01/ci-config.json",
+-        "sha256": "a7183923dc434307a66537a5eb45f0e8d2cc655effb2186aec4a36b13bf8f957"
++        "bytes": 469,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/ci-binding-01/ci-config.json",
++        "sha256": "70f5d29299942040af113e5f4cdff207d7f6d08ea140c988f37f738f9b2c8f24"
+       },
+-      "expected_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
++      "expected_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+       "source_manifest": {
+         "bytes": 193557,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/runtime-source-manifest.json",
+-        "sha256": "9dc1f122e048c73e905a4c874d16d24cbddd594ed07f88bb969b07d316f444d5"
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/format-correction-01/runtime-source-manifest.json",
++        "sha256": "69375e20daacb4feae402dbfb00b50983d1716d644b836b3c522ab24f11e3ffa"
+       },
+-      "tree": "7abbe28c9a942c9e81f28f196a78308290228b42"
++      "tree": "06dff1aef861a800cee2b07da30146c974b03d80"
+     }
+   },
+   "current_production_source": {
+-    "bytes": 4824,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/result.json",
+-    "sha256": "aca58a0d3df43af74cf423c6a8ef7b8c83d3240e39a6776ed0b95f3a7fcf6996"
++    "bytes": 2291,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/correction-proposal-02/receipt.json",
++    "sha256": "a82c4cce27f5a696e603f30b5ece5b3418d3e0e1208b63d1d349206b233733d6"
+   },
+   "equivalent_clippy_correction": {
+     "patch": {
+@@ -61,14 +61,24 @@
+     "sha256": "97c01f80d25b1f6f45a2bbea802a6689f04acb22862c9485f8080fd18b5792fc"
+   },
+   "outer_environment_binding": {
+-    "bytes": 11311,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/ci-binding-01/output-environment.json",
+-    "sha256": "35a710f80b0f13eae84ce0e793d4957b2310d32c215d0f462b95c69fb0710498"
++    "bytes": 11315,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/ci-binding-01/output-environment.json",
++    "sha256": "17d28590db89c5f0ad1014b3d6fdfdedbd6229ea351165bef6922a7861daa5b1"
+   },
+   "owner_review": {
+     "bytes": 743,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-ci-8bc-transition-01/ci-owner-review.json",
+     "sha256": "6cc4460dff0c2e4db5dcbe6e237757eb7db35b55b77d16242874717f9ad7fc57"
++  },
++  "publication_materialization": {
++    "bytes": 6059,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/result.json",
++    "sha256": "6823bd3e1d5a39fe5a8e18d19c057f46fccfeaf3f4ae5f905a932dea5607ae68"
++  },
++  "publication_policy_review": {
++    "bytes": 1011,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/forwarded-publication-policy-review.txt",
++    "sha256": "261abc4478026ce56699d05a4cef96c683db5c22c16651045abebbc2132f52fd"
+   },
+   "resources": {
+     "address_space_limit_bytes": null,
+@@ -88,22 +98,22 @@
+     "terminate_grace_seconds": 10
+   },
+   "runner_sha256": "3236aeb0c94f50bc001291a7a00f78afed82eedd51ac118cf086505b0758960b",
+-  "runtime_admission_required": "Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual 28-path 73f-to-797 transition and original CI. No automatic launch.",
++  "runtime_admission_required": "Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual one-file closed-positive to public-policy source transition and original CI. No automatic launch.",
+   "semantic_acceptance": {
+-    "bytes": 3124,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/ci-binding-01/ci-acceptance-contract.json",
+-    "sha256": "87c2c4fb037ffe3a4dea5455719edd3d1f82e70f809286830823cd32b001ae58"
++    "bytes": 2371,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/ci-binding-01/ci-acceptance-contract.json",
++    "sha256": "d7585b861b1cc45344c4ec0c54a5299ab640db69a42c4cd9e2258df0dd23ee4f"
+   },
+   "separate_private_positive_evidence": {
+-    "bytes": 17580,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/independent-terminal-audit-01-e8p3ezod/receipt.json",
+-    "sha256": "8f1c7813e0a4c8892305bfe6ce1330f652dc83cd028e67a9d4f81c8075aa7373"
++    "bytes": 15238,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/independent-terminal-review-01/receipt.json",
++    "sha256": "dff840527257ebafef573076ec1d16acbc88f1d0fbcd3ca00bb9f18c6d92267c"
+   },
+-  "source_binding_note": "One original cargo xtask ci command on pinned797 four-path text publication source with ten-stage semantics; the 26 upstream paths are retained. Actual stages/counts/source/closure require terminal qualification; private73f one-test proof and rendered UI remain separate. Historical Guide/11-test metadata is not current membership.",
++  "source_binding_note": "One original cargo xtask ci on published b6e58 plus the accepted wrapped fallback correction and same-scenario public-policy regression. The aggregate PR remains four paths; correction relative to b6e58 is two paths. Actual stages/counts/source/closure require terminal qualification; private wrapped paired proof and prior797 rendered UI remain separate.",
+   "source_materialization": {
+-    "bytes": 3440,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/result.json",
+-    "sha256": "29de3a2b9275c4824e517ad9eb8ac1d6b953f79a40ec64ba4cecf50bebd34c1f"
++    "bytes": 3404,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-publishable-b6e58-01/format-correction-01/result.json",
++    "sha256": "121c475368c0d5807eb1a62847c96a6204b84ee0c53511448cb6d4671fef712f"
+   },
+   "status": "UNBOUND",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated",

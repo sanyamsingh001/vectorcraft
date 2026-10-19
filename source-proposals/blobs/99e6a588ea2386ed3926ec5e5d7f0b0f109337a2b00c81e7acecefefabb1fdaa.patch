@@ -1,0 +1,27 @@
+--- accepted-r80/src/main.rs
++++ empty-selection/src/main.rs
+@@ -78,13 +78,21 @@
+ }
+ 
+ fn main() -> Result<(), Box<dyn std::error::Error>> {
+-    let source: Value = serde_json::from_str(include_str!("../source.json"))?;
+-    assert_eq!(source["status"], "BOUND_TO_FINAL_NONINSTRUMENTED_SOURCE", "preparation has no final source binding");
++    let source_text = include_str!("../source.json");
++    assert!(!source_text.contains("UNBOUND"), "parent must bind actual validation, CI, bootstrap and lock receipts");
++    let source: Value = serde_json::from_str(source_text)?;
++    assert_eq!(source["status"], "BOUND_TO_CURRENT_SOURCE_WITH_ACTUAL_RECEIPTS", "preparation has no actual receipt binding");
+     let hash = |v: &Value, n| v.as_str().is_some_and(|s| s.len() == n && s.bytes().all(|b| b.is_ascii_hexdigit()));
+     assert!(hash(&source["candidate_tree"], 40));
+     assert!(hash(&source["source_sha256"], 64));
+     assert!(hash(&source["resolved_capture_lock_sha256"], 64));
+-    assert_eq!(source["base"], "b12a52f7249e0aa73f030587e05ed9ce0c73ab67");
++    assert_eq!(source["base"], "3f33e854d4d41431bb9db6bef70be4ca2b6b70e4");
++    assert_eq!(source["candidate_tree"], "1aa27b1f39a8d17c739a4e1df9fd7c674229017e");
++    assert_eq!(source["source_sha256"], "51d2615abe5058028b4ca5b4461d0b5de0e9d1ba005a420058038b1a754fd611");
++    for receipt in ["focused_result", "full_ci_result", "bootstrap_result", "lock_audit"] {
++        assert!(hash(&source["actual_prerequisites"][receipt]["sha256"], 64), "receipt hash: {receipt}");
++        assert!(source["actual_prerequisites"][receipt]["path"].as_str().is_some_and(|p| !p.is_empty()), "receipt path: {receipt}");
++    }
+     let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("screens");
+     std::fs::create_dir(&directory)?;
+ 

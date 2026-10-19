@@ -1,0 +1,160 @@
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-devanagari-diagnostic-01/diagnostic-dispatch.py
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/baseline-dispatch.py
+@@ -3,19 +3,20 @@
+ R=Path('/mnt/downloads/dev/artcraft/vectorcraft')
+ A=R/'.git/codex/r82/consolidation-20261016'
+ V=A
+-D=A/'text-devanagari-diagnostic-01/dispatch-01'
++D=A/'text-mixed-direction-caret-baseline-e6ae-01/dispatch-01'
+ E=D/'export-copy'
+ W=R/'.git/codex/worktrees/r82-pr1919-validation06b-consolidated'
+ T=R/'.git/codex/targets/r82-pr1919-validation06b-consolidated'
+-P=A/'text-devanagari-diagnostic-01'
++P=A/'text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01'
+ G=Path(sys.argv[1])
+ H=lambda b:hashlib.sha256(b).hexdigest()
+-BASE='fdac986bb49b3e3a9ddd3cda4e88661a6f0aa50c'
++BASE='e6aec0664cf8ebc86677cb17f46be42b511208a7'
+ ROOT_BASE='e6aec0664cf8ebc86677cb17f46be42b511208a7'
+ OLD_BASE='fdac986bb49b3e3a9ddd3cda4e88661a6f0aa50c'
+ GUIDE='66b7a03bcf5ef3a8a4922e21c9a317cabeebe47ecc871c2fb039d4fed63f3753'
+ state={'status':'PREFLIGHT','started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'samples':[],'source_transition_started':False,'runner_launched':False}
+ locks=[]
++owned=False
+ env=os.environ.copy()
+ for k in ['GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_OBJECT_DIRECTORY','GIT_ALTERNATE_OBJECT_DIRECTORIES']:
+     env.pop(k,None)
+@@ -59,30 +60,54 @@
+     assert all(x['pids_events']==event for x in state['samples']),'pids.events changed during admission'
+     return out
+ try:
++    assert sys.flags.optimize==0 and os.environ.get('PYTHONOPTIMIZE')=='0'
++    assert len(sys.argv)==4,'Usage: dispatcher GRANT SHA256 BYTES'
+     gb=G.read_bytes();assert len(gb)==int(sys.argv[3]) and H(gb)==sys.argv[2]
+     grant=json.loads(gb);expired()
+-    assert grant['authorized'] and grant['owner']=='/root/vector' and grant['slot']==2 and grant['one_attempt']
++    assert grant['authorized'] and grant['owner']=='/root/vector' and grant['slot'] in (1,2) and grant['one_attempt']
++    assert not D.exists(),'Prior dispatch namespace exists; reconcile before retry'
++    D.mkdir();owned=True
+     save('coordinator-grant.json',grant)
++    release=pin(grant['predecessor_release'])
+     boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip();state['boot_id']=boot
+     ready=json.loads(pin(grant['ready']).read_text())
+     transition=json.loads(pin(grant['source_transition']).read_text())
+     assert grant['source_transition']==ready['transition']
++    assert transition['before_head']==OLD_BASE and transition['after_head']==BASE
+     ub=pin(ready['admission']);admission=json.loads(ub.read_text());assert admission['status']=='UNBOUND'
+     runner=pin(ready['runner_unchanged'])
+     assert admission['runner_sha256']==grant['runner_sha256']==ready['runner_unchanged']['sha256']=='2faba37df44851611e1f56f4a0ea77c09f65d09e584296173f4c04e31c3b2584'
+     case=admission['cases']['baseline'];configpath=pin(case['config']);config=json.loads(configpath.read_text());manifest=json.loads(pin(case['source_manifest']).read_text())
+     assert case['canonical_source_digest']==grant['source_after']==ready['source_compact_sha256']
+     assert config['commands']==grant['commands'] and config['expected_exits']==[101] and config['phase']=='baseline'
++    assert config['commands']==[['cargo','test','--locked','--offline','-p','vectorcraft-tools','--lib','text::tests::type_arrows_keep_devanagari_clusters_with_an_rtl_suffix','--','--exact','--nocapture','--test-threads=1']]
+     for role in ['owner_review','independent_review','inherited_environment']:pin(admission[role])
+     assert admission['resources']==grant['resources']==transition['resource_limits']
+-    out=Path(transition['run_output']);bound=P/'admission.bound.json';fontdir=Path(transition['loaded_font_directory'])
+-    assert not out.exists() and not bound.exists() and not (P/'runtime').exists()
++    assert transition['output_environment_binding']==ready['output_environment_binding']==admission['outer_environment_binding']
++    ep=pin(transition['output_environment_binding']);environment=json.loads(ep.read_text())
++    for entry in environment['toolchain_inputs'].values():pin(entry)
++    for entry in environment['version_reads']:pin(entry)
++    pin(environment['existing_cache']);pin(transition['cache_input_binding']);pin(transition['last_owned_runtime_closure']);pin(transition['assertion_contract'])
++    assert environment['outer_environment_required']==transition['outer_environment_required']
++    env.update(transition['outer_environment_required'])
++    effective={**env,**json.loads(pin(admission['inherited_environment']).read_text())['environment']}
++    effective.update(CARGO_TARGET_DIR=str(T),CARGO_BUILD_JOBS='1',RUST_TEST_THREADS=str(admission['resources']['rust_test_threads']),RAYON_NUM_THREADS=str(admission['resources']['rayon_num_threads']),PYTHONOPTIMIZE='0')
++    out=Path(transition['run_output']);bound=Path(transition['launch_argv'][-1])
++    for key,leaf in [('XDG_CACHE_HOME','cache'),('XDG_CONFIG_HOME','config'),('XDG_DATA_HOME','data'),('XDG_RUNTIME_DIR','rt')]:effective[key]=str(out/'environment'/leaf)
++    for key,value in environment['effective_known_runner_environment'].items():assert effective[key]==value,('Effective environment changed',key)
++    for key in ['CARGO_HOME','RUSTUP_HOME','TMPDIR','TMP','TEMP','XDG_CACHE_HOME','XDG_CONFIG_HOME','XDG_DATA_HOME','XDG_RUNTIME_DIR','CARGO_TARGET_DIR']:
++        assert Path(effective[key]).is_relative_to('/mnt/downloads/dev/artcraft'),key
++    assert shutil.which('cargo',path=env['PATH'])==environment['toolchain_inputs']['cargo']['path']
++    assert shutil.which('rustc',path=env['PATH'])==environment['toolchain_inputs']['rustc']['path']
++    save('effective-output-environment.json',{'outer_required':transition['outer_environment_required'],'effective_known_runner_environment':environment['effective_known_runner_environment'],'environment_receipt':transition['output_environment_binding'],'HOME_changed':False,'no_later_PATH_reset':True})
++    assert not out.exists() and not bound.exists()
+     assert grant['argv']==transition['launch_argv'] and grant['argv'][2]==str(runner)
+     rootidx=(R/'.git/index').read_bytes();assert H(rootidx)==transition['root_guard']['root_index']
+     assert git(R,'rev-parse','HEAD').decode().strip()==ROOT_BASE and git(R,'status','--porcelain=v1','-z','--untracked-files=no')==b''
+     refs=H(git(R,'show-ref'));assert refs==transition['root_guard']['refs']
+     ip=Path(git(W,'rev-parse','--path-format=absolute','--git-path','index').decode().strip());wi=ip.read_bytes()
+     assert H(wi)==transition['before_index_sha256'] and git(W,'rev-parse','HEAD').decode().strip()==OLD_BASE
++    assert git(W,'rev-parse','--abbrev-ref','HEAD').decode().strip()=='HEAD'
+     before=snapshot();accepted=json.loads(pin(transition['before_manifest']).read_text());assert before==accepted and len(before['files'])==1761
+     assert (T.stat().st_dev,T.stat().st_ino)==(66310,865301590)
+     owned=[]
+@@ -104,38 +129,53 @@
+         sample()
+         if i<2:time.sleep(1)
+     changes=sorted(k for k in set(before['files'])|set(manifest['files']) if before['files'].get(k)!=manifest['files'].get(k))
+-    assert changes==['crates/text/src/tests_devanagari.rs'] and len(manifest['files'])==1761
+-    entry=transition['changed_paths'][0];assert entry['path']==changes[0]
+-    incoming=pin(entry['source']).read_bytes();assert H(incoming)==entry['after_sha256']==manifest['files'][changes[0]]
+-    assert before['files'][changes[0]]==entry['before_sha256']
++    entries=transition['changed_paths']
++    assert [e['path'] for e in entries]==changes and len(changes)==246 and len(manifest['files'])==1778
++    added=set(manifest['files'])-set(before['files']);removed=set(before['files'])-set(manifest['files'])
++    assert len(added)==18 and len(removed)==1 and len(changes)-len(added)-len(removed)==227
++    incoming={}
++    for entry in entries:
++        rel=entry['path'];assert not Path(rel).is_absolute() and '..' not in Path(rel).parts
++        assert before['files'].get(rel)==entry['before_sha256'] and manifest['files'].get(rel)==entry['after_sha256']
++        if entry['after_sha256'] is None:
++            assert entry['source'] is None and rel in removed
++        else:
++            donor=Path(entry['source']);assert donor==Path(transition['isolated_source_worktree'])/rel
++            incoming[rel]=donor.read_bytes();assert H(incoming[rel])==entry['after_sha256']
+     assert snapshot()==before and ip.read_bytes()==wi and (R/'.git/index').read_bytes()==rootidx
+     assert Path('/proc/sys/kernel/random/boot_id').read_text().strip()==boot
+     expired();sample()
+-    save('source-before.json',before);(D/'preserved-fdac-index').write_bytes(wi)
+-    oldfile=D/'preserved-fdac-files'/changes[0];oldfile.parent.mkdir(parents=True,exist_ok=True);oldfile.write_bytes((W/changes[0]).read_bytes())
++    save('source-before.json',before);(D/'preserved-before-index').write_bytes(wi)
++    save('preserved-absent-paths.json',sorted(added))
++    for rel in changes:
++        if rel in before['files']:
++            oldfile=D/'preserved-before-files'/rel;oldfile.parent.mkdir(parents=True,exist_ok=True);oldfile.write_bytes((W/rel).read_bytes())
+     state['source_transition_started']=True;save('status.json',state)
+-    (W/changes[0]).write_bytes(incoming);git(W,'add','--',changes[0]);tree=git(W,'write-tree').decode().strip()
++    for rel in sorted(removed):(W/rel).unlink()
++    for rel,data in incoming.items():
++        (W/rel).parent.mkdir(parents=True,exist_ok=True);(W/rel).write_bytes(data)
++    git(W,'add','--',*changes);tree=git(W,'write-tree').decode().strip()
+     assert tree==case['tree']==transition['after_tree']
++    git(W,'update-ref','--no-deref','HEAD',BASE,OLD_BASE)
+     after=snapshot();assert after==manifest
+     assert git(W,'diff','--name-only')==b'' and not git(W,'ls-files','--others','--exclude-standard','-z')
+     assert (R/'.git/index').read_bytes()==rootidx and git(R,'rev-parse','HEAD').decode().strip()==ROOT_BASE and H(git(R,'show-ref'))==refs
+     save('source-after-transition.json',after)
+-    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1761,'after_entries':1761,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot})
++    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1761,'after_entries':1778,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':18,'modified':227,'removed':1},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
+     expired();sample();assert Path('/proc/sys/kernel/random/boot_id').read_text().strip()==boot
+     admission['status']='ROOT_ADMITTED';admission['resources']['status']='ROOT_ADMITTED'
+-    admission['coordinator_grant']={'path':str(G),'raw_sha256':H(gb),'grant_id':grant['grant_id'],'slot':2,'launch_expires_utc':grant['launch_only_expires_at'],'allowed_phases':['baseline'],'test_count':1}
+-    admission['admission_evidence']={'path':str(D/'status.json'),'source_transition':str(D/'transition.json'),'boot_id':boot}
++    admission['coordinator_grant']={'path':str(G),'raw_sha256':H(gb),'grant_id':grant['grant_id'],'slot':grant['slot'],'launch_expires_utc':grant['launch_only_expires_at'],'allowed_phases':['baseline'],'test_count':1}
++    admission['admission_evidence']={'path':str(D/'status.json'),'source_transition':str(D/'transition.json'),'boot_id':boot,'effective_environment':str(D/'effective-output-environment.json')}
+     with bound.open('x') as f:json.dump(admission,f,indent=2);f.write('\n')
+     save('admission.bound.json',admission)
+-    fontdir.mkdir(parents=True,exist_ok=False)
+-    env.update(transition['outer_environment_required']);env['PATH']='/usr/bin:/bin'
++    assert env['PATH']==transition['outer_environment_required']['PATH']
+     for h in reversed(locks):h.close()
+     locks=[]
+     expired()
+     log=(D/'runner.log').open('xb');argv=grant['argv']
+     child=subprocess.Popen(argv,cwd=R,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,close_fds=True);log.close()
+     ident=proc(child.pid)
+-    state.update(status='RUNNER_DISPATCHED',runner_launched=True,runner=ident,argv=argv,bound_admission_sha256=H(bound.read_bytes()),source_after=after['sha256'],tree=tree,runner_log=str(D/'runner.log'),run_directory=str(out),dispatched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),grant_id=grant['grant_id'],metadata_attribution='One exact Devanagari diagnostic; historical11-test runner label superseded; expected101 is not semantic acceptance.')
++    state.update(status='RUNNER_DISPATCHED',runner_launched=True,runner=ident,argv=argv,bound_admission_sha256=H(bound.read_bytes()),source_after=after['sha256'],tree=tree,runner_log=str(D/'runner.log'),run_directory=str(out),dispatched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),grant_id=grant['grant_id'],metadata_attribution='One exact mixed-direction Type baseline; expected101 alone is not semantic acceptance; original marker boundaries control.')
+     save('status.json',state);time.sleep(1)
+     observation={'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'boot_id':boot,'runner':proc(child.pid),'result_exists':(out/'result.json').exists()}
+     if (out/'result.json').exists():
+@@ -144,6 +184,7 @@
+     print(json.dumps({'status':state['status'],'runner':ident,'boot_id':boot,'source':after['sha256'],'tree':tree,'samples':state['samples'],'first_observation':observation}),flush=True)
+ except BaseException as exc:
+     state.update(status='DISPATCH_REFUSED_OR_FAILED',error=repr(exc),traceback=traceback.format_exc(),ended_at=datetime.datetime.now(datetime.timezone.utc).isoformat())
+-    save('status.json',state);print(json.dumps(state),flush=True);sys.exit(1)
++    if owned:save('status.json',state)
++    print(json.dumps(state),flush=True);sys.exit(1)
+ finally:
+     for h in reversed(locks):h.close()

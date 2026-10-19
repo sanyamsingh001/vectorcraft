@@ -1,0 +1,139 @@
+diff --git a/crates/ui-egui/src/tests_scrub.rs b/crates/ui-egui/src/tests_scrub.rs
+index fa00aeee4f2b130c69ca33a35d991711c2639f46..ef59b0cb3cc9e320343e619d9a16c975f0ca9145 100644
+--- a/crates/ui-egui/src/tests_scrub.rs
++++ b/crates/ui-egui/src/tests_scrub.rs
+@@ -280,3 +280,134 @@ fn scrubbing_w_in_the_app_is_one_undo_step() {
+     drag_w(&mut app, &ctx, 40.0, false);
+     assert!((width(&app) - 100.0).abs() < 1e-6, "off: {}", width(&app));
+ }
++
++/// Cancelling a live Properties scrub must preserve the edit already waiting in Redo.
++#[test]
++fn escape_cancelled_properties_width_scrub_preserves_redo() {
++    let (mut app, ctx) = app_with_rect();
++    // Use the Properties W label, not the control bar's copy of the transform fields.
++    app.ui.control_bar = false;
++    app.ui.dock = true;
++    app.ui.dock_collapsed = false;
++    app.ui.dock_tab = crate::state::DockTab::Properties;
++    app.ui.open_panel = None;
++    let entries = |history: &[vectorcraft_engine::HistoryEntry]| {
++        history.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone(), e.bytes)).collect::<Vec<_>>()
++    };
++    let mut w = None;
++    for _ in 0..4 {
++        w = app_frame(&mut app, &ctx, vec![], "W:");
++    }
++    assert!(w.expect("the Properties W label is shown").center().x > 800.0);
++    assert!((width(&app) - 100.0).abs() < 1e-6);
++    app.session.doc_mut().unwrap().mark_saved();
++    let original_doc = app.session.doc().unwrap().doc.clone();
++    let original_selection = app.session.doc().unwrap().selection.clone();
++    assert_eq!(original_selection.objects.len(), 1);
++    let original_undo = entries(&app.session.doc().unwrap().history.undo);
++    assert!(app.session.doc().unwrap().history.redo.is_empty());
++    let original_journal_len = app.session.journal.len();
++
++    // A real released scrub is a single committed edit, which Undo places in Redo.
++    drag_w(&mut app, &ctx, 40.0, false);
++    assert!((width(&app) - 120.0).abs() < 1e-6);
++    let st = app.session.doc().unwrap();
++    assert_ne!(st.doc, original_doc);
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(st.history.undo.len(), original_undo.len() + 1);
++    assert!(st.history.redo.is_empty());
++    assert!(st.is_dirty());
++    assert!(app.session.journal.len() > original_journal_len);
++    let committed_doc = st.doc.clone();
++    let committed_undo = entries(&st.history.undo);
++    println!("SCRUB_REDO_SETUP_COMMITTED");
++    app.run("edit.undo", json!({})).unwrap();
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, original_doc);
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(entries(&st.history.undo), original_undo);
++    assert_eq!(st.history.redo.len(), 1);
++    assert_eq!(st.history.redo[0].doc, committed_doc);
++    assert_eq!(*st.history.redo[0].selection, original_selection);
++    assert!(!st.is_dirty());
++    println!("SCRUB_REDO_SETUP_UNDONE");
++
++    // Repeat the existing drag_w event route, stopping before Escape to prove a live edit.
++    for _ in 0..4 {
++        w = app_frame(&mut app, &ctx, vec![], "W:");
++    }
++    let at = w.expect("the Properties W label remains shown").center();
++    assert!(at.x > 800.0);
++    let st = app.session.doc().unwrap();
++    let before_doc = st.doc.clone();
++    let before_selection = st.selection.clone();
++    let before_undo = entries(&st.history.undo);
++    let before_redo = entries(&st.history.redo);
++    let before_limits = (st.history.limit, st.history.byte_budget);
++    let before_dirty = st.is_dirty();
++    let before_journal = app.session.journal.clone();
++    assert_eq!(before_redo.len(), 1);
++    let button = |pos, pressed| Event::PointerButton { pos, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
++    app_frame(&mut app, &ctx, vec![Event::PointerMoved(at)], "");
++    app_frame(&mut app, &ctx, vec![button(at, true)], "");
++    for i in 1..=4 {
++        app_frame(&mut app, &ctx, vec![Event::PointerMoved(at + vec2(10.0 * i as f32, 0.0))], "");
++    }
++    assert!(ctx.input(|i| i.pointer.button_down(PointerButton::Primary)));
++    assert_eq!(scrub::phase(&ctx), scrub::Phase::Dragging);
++    assert!((width(&app) - 120.0).abs() < 1e-6);
++    let st = app.session.doc().unwrap();
++    assert_ne!(st.doc, before_doc);
++    assert_eq!(st.selection, before_selection);
++    assert_eq!(st.history.undo.len(), before_undo.len() + 1);
++    assert!(st.is_dirty());
++    assert!(app.session.journal.len() > before_journal.len());
++    println!("SCRUB_REDO_LIVE_CHANGE_BEFORE_ESCAPE");
++
++    let escape = |pressed| Event::Key { key: Key::Escape, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE };
++    app_frame(&mut app, &ctx, vec![escape(true)], "");
++    app_frame(&mut app, &ctx, vec![button(at + vec2(40.0, 0.0), false)], "");
++    app_frame(&mut app, &ctx, vec![escape(false)], "");
++    app_frame(&mut app, &ctx, vec![], "");
++    assert_eq!(scrub::phase(&ctx), scrub::Phase::Idle);
++    assert!(!ctx.input(|i| i.pointer.button_down(PointerButton::Primary)));
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, before_doc, "Escape restores the full document");
++    assert_eq!(st.selection, before_selection, "Escape restores the exact selection");
++    assert_eq!(entries(&st.history.undo), before_undo, "Escape restores all Undo entries");
++    assert_eq!((st.history.limit, st.history.byte_budget), before_limits);
++    assert_eq!(app.session.journal, before_journal, "Escape restores the full command journal");
++    assert_eq!(st.is_dirty(), before_dirty, "Escape restores the saved state");
++    assert!(!st.is_dirty());
++    // Revision may increase on rollback; it is intentionally not a restoration oracle.
++    println!("SCRUB_REDO_CANCEL_STATE_RESTORED");
++    assert_eq!(entries(&st.history.redo), before_redo, "SCRUB_CANCEL_PRESERVES_REDO");
++
++    app.run("edit.redo", json!({})).unwrap();
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, committed_doc, "Redo replays the original committed scrub");
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(entries(&st.history.undo), committed_undo);
++    assert!(st.history.redo.is_empty());
++    assert!(st.is_dirty());
++    println!("SCRUB_REDO_ORIGINAL_REPLAYED");
++
++    // A subsequent released edit still replaces the Redo branch; only cancel preserves it.
++    app.run("edit.undo", json!({})).unwrap();
++    assert_eq!(app.session.doc().unwrap().doc, original_doc);
++    assert_eq!(app.session.doc().unwrap().history.redo.len(), 1);
++    drag_w(&mut app, &ctx, 80.0, false);
++    assert!((width(&app) - 140.0).abs() < 1e-6);
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(st.history.undo.len(), original_undo.len() + 1);
++    assert!(st.history.redo.is_empty(), "a released new scrub still invalidates Redo");
++    assert!(st.is_dirty());
++    app.run("edit.undo", json!({})).unwrap();
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, original_doc);
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(entries(&st.history.undo), original_undo);
++    assert!(!st.is_dirty());
++    println!("SCRUB_CANCEL_REDO_DIAGNOSTIC_PASSED");
++}

@@ -1,0 +1,239 @@
+--- original-initial-publication/publication-action.py
++++ existing-PR3004-update/publication-action.py
+@@ -3,23 +3,25 @@
+ if sys.flags.optimize:raise RuntimeError('Assertions must remain enabled')
+ R=Path('/mnt/downloads/dev/artcraft/vectorcraft')
+ A=R/'.git/codex/r82/consolidation-20261016'
+-W=R/'.git/codex/worktrees/r82-text-caret-publication797-01'
+-N=R/'.git/worktrees/r82-text-caret-publication797-01'
+-P=A/'text-cluster-caret-publishable-797-01'
+-S=[R/'.git/codex/worktrees/r82-text-cluster-caret-797-publishable-01']
++W=R/'.git/codex/worktrees/r82-pr3004-wrap-publication-b6e58-01'
++N=R/'.git/worktrees/r82-pr3004-wrap-publication-b6e58-01'
++P=A/'text-wrap-fallback-publishable-b6e58-01'
++ROOT='797e899c56957d292fe6140b4af18366d3cf0eb2'
++TRACKING='refs/remotes/sanyamsingh001/codex/r82-type-grapheme-boundaries'
+ O=P/'publication-action-01'
+ H=R/'.git/codex/review-artifacts/pr-feedback-r60/leibniz/publish_r60_proposal.py'
+ HPIN='ccf9dea97d78bbd3125d866c19385af0a4f1c3721a5b0a62d3213a4aab27eb0d'
+-BASE='797e899c56957d292fe6140b4af18366d3cf0eb2';TREE='7abbe28c9a942c9e81f28f196a78308290228b42'
++BASE='b6e58adbb2863e9672ab93fc4b18f1635831d3d8';TREE='06dff1aef861a800cee2b07da30146c974b03d80'
+ EXPECTED_MAIN='a466625c8987550635cda951ebf36e08e1e80a56'
+-OLD='';BRANCH='codex/r82-type-grapheme-boundaries';REF='refs/heads/'+BRANCH
++OLD=BASE;BRANCH='codex/r82-type-grapheme-boundaries';REF='refs/heads/'+BRANCH
+ INDEX='04fbbddc2207b434912ecda888569aef1ee76d484404200d2284c1dcb85dc185'
+-QUAL='c4093e05f8d3fdcbc6cfca34ac6f823881f82c9856d79f1978dde1911ddff7d2'
+-SOURCE='7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002'
+-FILES={'crates/text/src/lib.rs':'ba2e6340bbe4a3180bddfd5d532eda39d34f7eb586ddd252c9f1aba04f902c7c','crates/text/src/tests_devanagari.rs':'7abc64f6712380a73540f8ecbb4e582a772c38230c8982c12e3517a90737ac88','crates/tools/src/text.rs':'c137876ec463ccd03a81d4eaea65c163ad745e28116ee08b3df128fb62c481c6','crates/tools/src/text_tests.rs':'2e6f81876f5a7a51d555ddf84834a5f448afca4b3d67af566c0e113a7b693711'}
++QUAL='928abba86a3ffe6addad31622e7e76d5fd9c35d81d98e72716641e7eeb8e2c36'
++SOURCE='7af22e42af5aec9b25a9def5576c2c5888b07dabf90d9368863d2eac2971591b'
++FILES={'crates/text/src/lib.rs':'289782f35e9c1b9cd705e66f4069396fa79232648b4636fdad3eb7625f178f5a','crates/text/src/tests_devanagari.rs':'7abc64f6712380a73540f8ecbb4e582a772c38230c8982c12e3517a90737ac88','crates/tools/src/text.rs':'c137876ec463ccd03a81d4eaea65c163ad745e28116ee08b3df128fb62c481c6','crates/tools/src/text_tests.rs':'466a0ed42c39d9011d01dcfc0dc9697de4f1ffac285b452a5434b7f6b11ffc7e'}
+ UP='/repos/storytold/vectorcraft';FORK='/repos/sanyamsingh001/vectorcraft';URL='https://github.com/sanyamsingh001/vectorcraft.git'
+ NAME='sanyamsingh001';EMAIL='314051937+sanyamsingh001@users.noreply.github.com'
+-MESSAGE='fix: keep Type arrows on grapheme boundaries\n\nCo-authored-by: Codex <noreply@openai.com>\n'
++MESSAGE='fix: keep wrapped Type fallback on grapheme boundaries\n\nCo-authored-by: Codex <noreply@openai.com>\n'
++PR=3004;THREAD=4309525469
+ def sha(b):return hashlib.sha256(b).hexdigest()
+ if len(sys.argv)!=2 or sys.argv[1]=='UNBOUND':raise RuntimeError('Publication bindings are UNBOUND')
+ B=json.loads(Path(sys.argv[1]).read_text())
+@@ -28,17 +30,20 @@
+ if B['qualification']['sha256']!=QUAL or sha(Path(B['qualification']['path']).read_bytes())!=QUAL:raise RuntimeError('Qualified CI receipt mismatch')
+ if not B['visual']['accepted'] or len(B['visual']['scenes'])!=1 or not all(x['name'] and x['observation'] for x in B['visual']['scenes']):raise RuntimeError('Actual original one-scene visual acceptance missing')
+ if sha(Path(B['visual']['receipt']).read_bytes())!=B['visual']['sha256']:raise RuntimeError('Visual acceptance receipt mismatch')
+-for field in ['title','body']:
++for field in ['title','body','reply']:
+  text=B[field].replace('{{COMMIT}}','COMMIT_BOUND_AFTER_CREATION')
+  if not text.strip() or any(x in text for x in ['{{','}}','/mnt/','/home/']):raise RuntimeError('Incomplete or private publication text')
+ if B['base_proof_mode'] not in ['fresh-negotiate','receipt']:raise RuntimeError('Destination base proof mode unset')
+ if sha(H.read_bytes())!=HPIN:raise RuntimeError('Pinned helper changed')
+-for field in ('preflight','source_manifest','render_qualification','draft_receipt'):
++for field in ('preflight','source_manifest','render_qualification','draft_receipt','prior_tracking_reconciliation','latest_remote_snapshot'):
+  ref=B[field]
+- if sha(Path(ref['path']).read_bytes())!=ref['sha256']:raise RuntimeError('Pinned '+field+' changed')
++ raw=Path(ref['path']).read_bytes()
++ if len(raw)!=ref['bytes'] or sha(raw)!=ref['sha256']:raise RuntimeError('Pinned '+field+' changed')
+ manifest=json.loads(Path(B['source_manifest']['path']).read_bytes())
+ if manifest['head']!=BASE or manifest['sha256']!=SOURCE or len(manifest['files'])!=1785:raise RuntimeError('Wrong qualified source manifest')
+-owned=[];token='';seq=0;calls=0;phase='preflight';new=None;push_attempted=False;create_attempted=False;remote=None;pr_number=None
++if B['pr_number']!=PR or B['reply_to']!=THREAD or B['route']['git_push_url']!=URL or B['route']['pr_api']!=UP+'/pulls/'+str(PR) or B['route']['owned_ref_api']!=FORK+'/git/ref/heads/'+BRANCH:raise RuntimeError('Exact update route mismatch')
++if not B['managed_suffix'] or not B['body'].endswith(B['managed_suffix']) or not B['body_before'].endswith(B['managed_suffix']):raise RuntimeError('Managed suffix not preserved')
++owned=[];token='';seq=0;calls=0;phase='preflight';new=None;push_attempted=False;patch_attempted=False;reply_attempted=False;remote=None;pr_number=PR
+ def clean(b):return b.replace(token.encode(),b'[REDACTED]') if token else b
+ def save(name,value):
+  b=value if isinstance(value,bytes) else (json.dumps(value,indent=2,sort_keys=True)+'\n').encode()
+@@ -54,15 +59,14 @@
+  save(stem+'.stdout',cp.stdout);save(stem+'.stderr',cp.stderr);save(stem+'.json',{'argv':cmd,'exit':cp.returncode})
+  if cp.returncode not in ok:raise RuntimeError(stem+' exit '+str(cp.returncode))
+  return cp.stdout
+-def api(method,path,obj=None,etag=None,allow404=False):
++def api(method,path,obj=None,allow404=False):
+  global calls
+- if calls>=18:raise RuntimeError('Bounded API budget exhausted')
++ if calls>=32:raise RuntimeError('Bounded API budget exhausted')
+  calls+=1;stem='api-%02d'%calls
+  data=None if obj is None else json.dumps(obj,ensure_ascii=False).encode()
+  if data is not None:save(stem+'.request.json',data)
+  headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'vectorcraft-r82-reviewed-publication'}
+  if data is not None:headers['Content-Type']='application/json'
+- if etag:headers['If-Match']=etag
+  request=urllib.request.Request('https://api.github.com'+path,data=data,headers=headers,method=method)
+  try:
+   with remote.opener.open(request,timeout=60) as response:raw=response.read();code=response.status;tag=response.headers.get('ETag')
+@@ -77,14 +81,34 @@
+  return value,tag
+ def optional_file(p):return sha(p.read_bytes()) if p.is_file() else None
+ def protected():
+- source={str(p):{'head':git(p,'rev-parse','HEAD').decode().strip(),'files':{f:sha((p/f).read_bytes()) for f in FILES},'source_digest':sha(json.dumps({f:sha((p/f).read_bytes()) for f in manifest['files']},sort_keys=True,separators=(',',':')).encode())} for p in S}
+- return {'head':git(R,'rev-parse','HEAD').decode().strip(),'branch':git(R,'symbolic-ref','--short','HEAD').decode().strip(),'index':sha((R/'.git/index').read_bytes()),'tracked':git(R,'status','--porcelain=v1','-z','--untracked-files=no').hex(),'refs':git(R,'for-each-ref','--format=%(refname) %(objectname)').decode(),'FETCH_HEAD':optional_file(R/'.git/FETCH_HEAD'),'shallow':optional_file(R/'.git/shallow'),'sources':source,'candidate_ordinary_index':sha((R/'.git/worktrees/r82-text-cluster-caret-797-publishable-01/index').read_bytes()),'candidate_private_index':sha((P/'candidate.index').read_bytes())}
++ source={}
++ for item in B['protected_sources']:
++  p=Path(item['path']);index=Path(item['index_path'])
++  source[str(p)]={'head':git(p,'rev-parse','HEAD').decode().strip(),'index':sha(index.read_bytes()),'source_digest':sha(json.dumps({f:sha((p/f).read_bytes()) for f in manifest['files']},sort_keys=True,separators=(',',':')).encode())}
++ t=Path(B['target']['path']).stat()
++ return {'head':git(R,'rev-parse','HEAD').decode().strip(),'branch':git(R,'symbolic-ref','--short','HEAD').decode().strip(),'index':sha((R/'.git/index').read_bytes()),'tracked':git(R,'status','--porcelain=v1','-z','--untracked-files=no').hex(),'refs':git(R,'for-each-ref','--format=%(refname) %(objectname)').decode(),'FETCH_HEAD':optional_file(R/'.git/FETCH_HEAD'),'shallow':optional_file(R/'.git/shallow'),'sources':source,'private_indices':{v['path']:sha(Path(v['path']).read_bytes()) for v in B['protected_indices']},'target_identity':{'device':t.st_dev,'inode':t.st_ino}}
++def refs_map(snapshot):
++ return dict(row.split(' ',1) for row in snapshot['refs'].splitlines())
++def preserved_after_push(before,after):
++ b=refs_map(before);a=refs_map(after)
++ if b.get(TRACKING)!=OLD or a.get(TRACKING)!=new:raise RuntimeError('Expected owned tracking-ref movement missing')
++ del b[TRACKING];del a[TRACKING]
++ if a!=b or {k:v for k,v in before.items() if k!='refs'}!={k:v for k,v in after.items() if k!='refs'}:raise RuntimeError('Protected state changed outside expected owned tracking ref')
+ def check_pr(pr,head):
+- if pr['state']!='open' or pr['head']['sha']!=head or pr['head']['ref']!=BRANCH or pr['head']['repo']['full_name']!='sanyamsingh001/vectorcraft' or pr['base']['repo']['id']!=1398097510 or pr['base']['ref']!='main':raise RuntimeError('PR route/head guard failed')
++ if pr['number']!=PR or pr['state']!='open' or pr['head']['sha']!=head or pr['head']['ref']!=BRANCH or pr['head']['repo']['full_name']!='sanyamsingh001/vectorcraft' or pr['base']['repo']['id']!=1398097510 or pr['base']['ref']!='main':raise RuntimeError('PR route/head guard failed')
+ def heads():
+  rows,_=api('GET',UP+'/pulls?'+urllib.parse.urlencode({'state':'all','head':NAME+':'+BRANCH,'base':'main','per_page':100}))
+  if len(rows)>=100:raise RuntimeError('Exact-head PR query incomplete')
+  return rows
++def comments():
++ rows,_=api('GET',UP+'/pulls/'+str(PR)+'/comments?per_page=100')
++ if len(rows)>=100:raise RuntimeError('Inline-reply inventory incomplete')
++ return rows
++def owned_replies(rows):
++ return [r for r in rows if r.get('in_reply_to_id')==THREAD and r.get('user',{}).get('login')==NAME]
++def guarded_existing(pr,head):
++ check_pr(pr,head)
++ if pr['title']!=B['title'] or (pr.get('body') or '')!=B['body_before']:raise RuntimeError('Existing PR text changed; preserve without overwrite')
+ try:
+  for p in (O,):p.mkdir();owned.append(p)
+  save('bindings.json',B)
+@@ -101,17 +125,23 @@
+  upstream,_=api('GET',UP);fork,_=api('GET',FORK)
+  if upstream['id']!=1398097510 or upstream['full_name']!='storytold/vectorcraft' or fork['full_name']!='sanyamsingh001/vectorcraft' or fork['owner']['login']!=NAME or not fork['fork'] or fork['parent']['id']!=upstream['id']:raise RuntimeError('Repository destination identity mismatch')
+  main,_=api('GET',UP+'/git/ref/heads/main')
+- ref,_=api('GET',FORK+'/git/ref/heads/'+BRANCH,allow404=True)
+- if main['object']['sha']!=EXPECTED_MAIN or ref is not None:raise RuntimeError('Fresh current-main/new-ref guard failed')
+- if heads():raise RuntimeError('Existing focused PR requires reconciliation before publication')
+- for query in ['repo:storytold/vectorcraft is:pr author:'+NAME+' "'+B['title']+'" in:title','repo:storytold/vectorcraft is:pr author:'+NAME+' "caret_horizontal_cluster" in:body']:
+-  found,_=api('GET','/search/issues?'+urllib.parse.urlencode({'q':query,'per_page':100}))
+-  if found.get('incomplete_results') or found['total_count']!=len(found['items']) or found['items']:raise RuntimeError('Targeted PR dedup requires reconciliation')
++ ref,_=api('GET',FORK+'/git/ref/heads/'+BRANCH)
++ if main['object']['sha']!=EXPECTED_MAIN or ref['object']['sha']!=OLD:raise RuntimeError('Fresh current-main/exact existing-head guard failed')
++ rows=heads()
++ if len(rows)!=1 or rows[0]['number']!=PR:raise RuntimeError('Exact existing PR dedup failed')
++ current,_=api('GET',UP+'/pulls/'+str(PR));guarded_existing(current,OLD)
++ thread,_=api('GET',UP+'/pulls/comments/'+str(THREAD))
++ if thread['id']!=THREAD or thread['pull_request_url']!='https://api.github.com'+UP+'/pulls/'+str(PR) or thread['path']!='crates/text/src/lib.rs':raise RuntimeError('Exact inline feedback route mismatch')
++ if owned_replies(comments()):raise RuntimeError('Existing owned reply requires reconciliation; no duplicate POST')
+  if git(R,'for-each-ref','--format=%(refname)','refs/heads/'+BRANCH).strip():raise RuntimeError('Local intended branch appeared')
+  before=protected();save('protected-before.json',before)
+- if before['head']!=BASE or before['branch']!='main' or before['index']!=INDEX or before['tracked'] or any(v['head']!=BASE or v['files']!=FILES or v['source_digest']!=SOURCE for v in before['sources'].values()) or before['candidate_ordinary_index']!='9651f7d3bbec066d148e85eb0729cb158eef4545d24a67bfa1f449b5897b917d' or before['candidate_private_index']!='89c266f652c038a8b687d628e449cb41feefe9a69998b397343608ed347cd7b0':raise RuntimeError('Protected source/root guard failed')
++ if before['head']!=ROOT or before['branch']!='main' or before['index']!=INDEX or before['tracked'] or before['target_identity']!={'device':66310,'inode':865301590}:raise RuntimeError('Protected root/target guard failed')
++ for item in B['protected_sources']:
++  if before['sources'][item['path']]!={'head':item['head'],'index':item['index_sha256'],'source_digest':item['source_sha256']}:raise RuntimeError('Protected source/index guard failed')
++ if any(before['private_indices'][v['path']]!=v['sha256'] for v in B['protected_indices']):raise RuntimeError('Protected private index changed')
++ if refs_map(before).get(TRACKING)!=OLD or sha(before['refs'].encode())!=B['protected_refs_sha256']:raise RuntimeError('Protected ref inventory changed')
+  if Path(git(W,'rev-parse','--path-format=absolute','--git-path','index').decode().strip()).resolve()!=N/'index' or (W/'.git').read_text().strip()!='gitdir: '+str(N):raise RuntimeError('Publication private-index/gitdir identity changed')
+- if git(W,'symbolic-ref','-q','HEAD',ok=(0,1)).strip() or git(W,'rev-parse','HEAD').decode().strip()!=BASE or git(W,'write-tree').decode().strip()!=TREE:raise RuntimeError('Detached candidate/index mismatch')
++ if git(W,'symbolic-ref','-q','HEAD',ok=(0,1)).strip() or git(W,'rev-parse','HEAD').decode().strip()!=BASE or git(W,'write-tree').decode().strip()!=TREE or sha((N/'index').read_bytes())!=B['publication_index_sha256']:raise RuntimeError('Detached candidate/index mismatch')
+  git(W,'diff','--quiet')
+  if {f:sha((W/f).read_bytes()) for f in FILES}!=FILES or {f:sha((W/f).read_bytes()) for f in manifest['files']}!=manifest['files']:raise RuntimeError('Publication source bytes changed')
+  if git(W,'config','--show-origin','--get','core.hooksPath',ok=(0,1)).strip():raise RuntimeError('Hook path changed since owner inspection')
+@@ -140,6 +170,8 @@
+  if len(checked)!=len(ids) or any(' missing' in x or len(x.split())!=3 for x in checked):raise RuntimeError('Outgoing object availability failed')
+  save('outgoing-object-census.json',{'new':new,'proven_base':BASE,'object_count':len(ids),'objects':checked})
+  if protected()!=before:raise RuntimeError('Pre-push preservation check failed')
++ fresh_ref,_=api('GET',FORK+'/git/ref/heads/'+BRANCH)
++ if fresh_ref['object']['sha']!=OLD:raise RuntimeError('Exact branch lease changed before push')
+  phase='lease_push';push_attempted=True
+  git(W,'-c','push.negotiate=true','push','--porcelain','--force-with-lease='+REF+':'+OLD,URL,new+':'+REF,timeout=180)
+  phase='independent_pushed_head_readback'
+@@ -149,18 +181,23 @@
+  save('qualified-pushed-head.json',{'commit':new,'tree':TREE,'base':BASE,'owned_ref':REF,'fork':URL})
+  body=B['body']
+  if any(x in body for x in ['UNBOUND','PENDING','{{','}}','/mnt/','/home/']):raise RuntimeError('Unbound/private final text')
+- rows=heads()
+- if rows:
+-  if len(rows)!=1:raise RuntimeError('Multiple exact-head PRs')
+-  created=rows[0];check_pr(created,new)
+-  if created['title']!=B['title'] or (created.get('body') or '')!=body:raise RuntimeError('Existing PR metadata differs; preserve without overwrite')
+-  save('existing-pull-reused.json',created)
+- else:
+-  phase='create_pull';create_attempted=True
+-  created,_=api('POST',UP+'/pulls',{'title':B['title'],'body':body,'head':NAME+':'+BRANCH,'base':'main','draft':False})
+-  check_pr(created,new)
+-  save('created-pull.json',created)
+- pr_number=created['number'];save('pull-identity.json',{'number':pr_number,'url':created['html_url'],'head':new})
++ current,_=api('GET',UP+'/pulls/'+str(PR));guarded_existing(current,new)
++ if owned_replies(comments()):raise RuntimeError('Owned reply appeared; no duplicate or overwrite')
++ phase='update_pull';patch_attempted=True
++ updated,_=api('PATCH',UP+'/pulls/'+str(PR),{'title':B['title'],'body':body})
++ check_pr(updated,new)
++ if updated['title']!=B['title'] or updated['body']!=body:raise RuntimeError('PR update response differs')
++ save('updated-pull.json',updated)
++ # Recheck the exact reply thread immediately before the only permitted POST.
++ if owned_replies(comments()):raise RuntimeError('Owned reply appeared before POST')
++ phase='reply_inline';reply_attempted=True
++ reply,_=api('POST',UP+'/pulls/'+str(PR)+'/comments/'+str(THREAD)+'/replies',{'body':B['reply']})
++ if reply.get('in_reply_to_id')!=THREAD or reply['user']['login']!=NAME or reply['body']!=B['reply']:raise RuntimeError('Inline reply response differs')
++ save('posted-reply.json',reply)
++ read_reply,_=api('GET',UP+'/pulls/comments/'+str(reply['id']))
++ if read_reply.get('in_reply_to_id')!=THREAD or read_reply['user']['login']!=NAME or read_reply['body']!=B['reply']:raise RuntimeError('Independent inline reply readback differs')
++ save('qualified-inline-reply.json',read_reply)
++ save('pull-identity.json',{'number':PR,'url':updated['html_url'],'head':new})
+  phase='independent_metadata_readback'
+  final,_=api('GET',UP+'/pulls/'+str(pr_number));check_pr(final,new)
+  final_ref,_=api('GET',FORK+'/git/ref/heads/'+BRANCH)
+@@ -168,22 +205,32 @@
+  checks,_=api('GET',UP+'/commits/'+new+'/check-runs?per_page=100')
+  statuses,_=api('GET',UP+'/commits/'+new+'/statuses?per_page=100')
+  if final_ref['object']['sha']!=new or final['title']!=B['title'] or final['body']!=body:raise RuntimeError('Independent metadata readback mismatch')
+- after=protected();save('protected-after.json',after)
+- if after!=before:raise RuntimeError('Protected root/source/ref preservation failed')
+- save('result.json',{'status':'PUBLISHED_AND_READ_BACK','at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'new_commit':new,'tree':TREE,'base':BASE,'main_after':main_after['object']['sha'],'pull_number':pr_number,'pull_url':final['html_url'],'api_calls':calls,'root_source_refs_preserved':True,'hosted_check_runs':checks,'hosted_statuses':statuses,'mergeable':final.get('mergeable'),'mergeable_state':final.get('mergeable_state'),'review_resolution_claimed':False,'current_main_runtime_claimed':False})
++ remote_files,_=api('GET',UP+'/pulls/'+str(PR)+'/files?per_page=100')
++ if len(remote_files)>=100 or sorted(v['filename'] for v in remote_files)!=sorted(FILES) or final['changed_files']!=len(FILES):raise RuntimeError('Remote aggregate file scope differs')
++ for v in remote_files:
++  if v['status']!='modified' or v['sha']!=git(W,'rev-parse',TREE+':'+v['filename']).decode().strip():raise RuntimeError('Remote aggregate blob identity differs')
++ commits,_=api('GET',UP+'/pulls/'+str(PR)+'/commits?per_page=100')
++ if [c['sha'] for c in commits]!=[BASE,new] or [p['sha'] for p in commits[-1]['parents']]!=[BASE]:raise RuntimeError('Remote PR commit/parent chain differs')
++ save('qualified-remote-aggregate.json',{'files':remote_files,'commits':commits,'tree':TREE,'parent':BASE})
++ after=protected();save('protected-after.json',after);preserved_after_push(before,after)
++ save('result.json',{'status':'UPDATED_AND_READ_BACK','at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'new_commit':new,'tree':TREE,'base':BASE,'main_after':main_after['object']['sha'],'pull_number':pr_number,'pull_url':final['html_url'],'api_calls':calls,'protected_state_preserved_except_expected_owned_tracking_movement':True,'tracking_ref':TRACKING,'tracking_before':OLD,'tracking_after':new,'reply_id':reply['id'],'hosted_check_runs':checks,'hosted_statuses':statuses,'mergeable':final.get('mergeable'),'mergeable_state':final.get('mergeable_state'),'review_resolution_claimed':False,'current_main_runtime_claimed':False})
+  save('manifest.json',{p.name:{'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())} for p in O.iterdir() if p.is_file()})
+- print(json.dumps({'status':'PUBLISHED_AND_READ_BACK','new_commit':new,'pull_number':pr_number,'pull_url':final['html_url'],'private':str(O),'result_sha256':sha((O/'result.json').read_bytes()),'manifest_sha256':sha((O/'manifest.json').read_bytes())},indent=2))
++ print(json.dumps({'status':'UPDATED_AND_READ_BACK','new_commit':new,'pull_number':pr_number,'pull_url':final['html_url'],'private':str(O),'result_sha256':sha((O/'result.json').read_bytes()),'manifest_sha256':sha((O/'manifest.json').read_bytes())},indent=2))
+ except BaseException as exc:
+- failure={'status':'STOPPED_PRESERVE_NO_REPLAY','phase':phase,'error':type(exc).__name__+': '+str(exc),'new_commit':new,'push_attempted':push_attempted,'create_attempted':create_attempted,'pull_number':pr_number}
++ failure={'status':'STOPPED_PRESERVE_NO_REPLAY','phase':phase,'error':type(exc).__name__+': '+str(exc),'new_commit':new,'push_attempted':push_attempted,'patch_attempted':patch_attempted,'reply_attempted':reply_attempted,'pull_number':pr_number}
+  if owned:
+   if push_attempted and remote is not None:
+    try:failure['destination_readback']=api('GET',FORK+'/git/ref/heads/'+BRANCH,allow404=True)[0]
+    except BaseException as read_error:failure['readback_error']=type(read_error).__name__+': '+str(read_error)
+-  if create_attempted and remote is not None:
+-    try:
+-     rows=heads();failure['ambiguous_create_head_readback']=rows
+-     failure['qualified_existing_prs']=[{'number':p['number'],'url':p['html_url'],'head':p['head']['sha']} for p in rows if p['head']['sha']==new and p['head']['repo']['full_name']=='sanyamsingh001/vectorcraft' and p['head']['ref']==BRANCH and p['base']['repo']['id']==1398097510 and p['base']['ref']=='main']
+-    except BaseException as read_error:failure['create_readback_error']=type(read_error).__name__+': '+str(read_error)
++  if push_attempted and new and remote is not None:
++   try:failure['commit_readback']=api('GET',FORK+'/git/commits/'+new)[0]
++   except BaseException as read_error:failure['commit_readback_error']=type(read_error).__name__+': '+str(read_error)
++  if patch_attempted and remote is not None:
++   try:failure['ambiguous_patch_pr_readback']=api('GET',UP+'/pulls/'+str(PR))[0]
++   except BaseException as read_error:failure['patch_readback_error']=type(read_error).__name__+': '+str(read_error)
++  if reply_attempted and remote is not None:
++   try:failure['ambiguous_reply_readback']=owned_replies(comments())
++   except BaseException as read_error:failure['reply_readback_error']=type(read_error).__name__+': '+str(read_error)
+   save('failure.json',failure)
+  print(clean(json.dumps(failure,indent=2).encode()).decode())
+  raise SystemExit(1)

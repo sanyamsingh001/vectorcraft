@@ -1,0 +1,29 @@
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/baseline-dispatch.py
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/baseline-dispatch-v2.py
+@@ -16,7 +16,7 @@
+ GUIDE='66b7a03bcf5ef3a8a4922e21c9a317cabeebe47ecc871c2fb039d4fed63f3753'
+ state={'status':'PREFLIGHT','started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'samples':[],'source_transition_started':False,'runner_launched':False}
+ locks=[]
+-owned=False
++namespace_owned=False
+ env=os.environ.copy()
+ for k in ['GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_OBJECT_DIRECTORY','GIT_ALTERNATE_OBJECT_DIRECTORIES']:
+     env.pop(k,None)
+@@ -66,7 +66,7 @@
+     grant=json.loads(gb);expired()
+     assert grant['authorized'] and grant['owner']=='/root/vector' and grant['slot'] in (1,2) and grant['one_attempt']
+     assert not D.exists(),'Prior dispatch namespace exists; reconcile before retry'
+-    D.mkdir();owned=True
++    D.mkdir();namespace_owned=True
+     save('coordinator-grant.json',grant)
+     release=pin(grant['predecessor_release'])
+     boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip();state['boot_id']=boot
+@@ -184,7 +184,7 @@
+     print(json.dumps({'status':state['status'],'runner':ident,'boot_id':boot,'source':after['sha256'],'tree':tree,'samples':state['samples'],'first_observation':observation}),flush=True)
+ except BaseException as exc:
+     state.update(status='DISPATCH_REFUSED_OR_FAILED',error=repr(exc),traceback=traceback.format_exc(),ended_at=datetime.datetime.now(datetime.timezone.utc).isoformat())
+-    if owned:save('status.json',state)
++    if namespace_owned:save('status.json',state)
+     print(json.dumps(state),flush=True);sys.exit(1)
+ finally:
+     for h in reversed(locks):h.close()

@@ -1,0 +1,124 @@
+--- a/crates/ui-egui/src/panels/layers.rs
++++ b/crates/ui-egui/src/panels/layers.rs
+@@ -44,7 +44,7 @@
+ use egui::{Color32, Sense, Stroke, StrokeKind, Ui, vec2};
+ use serde::{Deserialize, Serialize};
+ use serde_json::{Value, json};
+-use vectorcraft_doc::{Document, LiveShape, Node, NodeId, NodeKind};
++use vectorcraft_doc::{Document, LiveShape, Node, NodeId, NodeKind, Selection};
+ use vectorcraft_engine::OpenRows;
+ 
+ use crate::theme::Tokens;
+@@ -113,8 +113,13 @@
+ }
+ 
+ /// A drag down the eye or lock column: every row it passes takes `value`.
+-#[derive(Clone, Debug, Default)]
++#[derive(Clone, Debug)]
+ struct ColumnDrag {
++    /// The widget and document whose live preview this drag owns.
++    zone: egui::Id,
++    uid: u64,
++    /// Each interaction has a fresh selection snapshot, even if its document is unchanged.
++    interaction: Option<Weak<Selection>>,
+     /// The eye column (visibility), else the lock column.
+     eye: bool,
+     value: bool,
+@@ -486,6 +491,8 @@
+ /// Everything one frame of the panel reads.
+ struct View<'a> {
+     doc: &'a Arc<Document>,
++    uid: u64,
++    column_cancelled: bool,
+     /// Where the row thumbnails come from.
+     thumbs: ThumbSource<'a>,
+     sel: HashSet<NodeId>,
+@@ -516,7 +523,37 @@
+     toggle: Vec<(NodeId, bool)>,
+ }
+ 
++/// Retire a cancelled column before reading the document or collecting more row changes.
++fn cancel_column_drag(app: &mut VectorcraftApp, ui: &Ui) -> bool {
++    let Some(c) = ui.data(|d| d.get_temp::<ColumnDrag>(key("column"))) else { return false };
++    let owned = app.session.active().is_some_and(|st| {
++        st.uid == c.uid
++            && c.interaction
++                .as_ref()
++                .is_some_and(|owner| st.interaction.as_ref().is_some_and(|it| Weak::ptr_eq(owner, &Arc::downgrade(&it.selection))))
++    });
++    // egui stops the drag before other UI can consume Escape. A tool may also have already
++    // cancelled the interaction: neither case may leave a column to re-preview on motion/Up.
++    let stopped_held = ui.ctx().drag_stopped_id() == Some(c.zone) && ui.input(|i| i.pointer.primary_down());
++    let escape = owned && ui.input_mut(|i| i.consume_key(i.modifiers, egui::Key::Escape));
++    if owned && !escape && !stopped_held {
++        return false;
++    }
++    if owned {
++        if let Err(e) = app.session.cancel_interaction() {
++            app.status(e.to_string());
++        }
++        app.sync_views();
++    }
++    ui.data_mut(|d| d.remove::<ColumnDrag>(key("column")));
++    if app.session.active().is_some_and(|st| st.uid == c.uid) && ui.ctx().is_being_dragged(c.zone) {
++        ui.ctx().stop_dragging();
++    }
++    true
++}
++
+ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
++    let column_cancelled = cancel_column_drag(app, ui);
+     let t = Tokens::get(ui.ctx());
+     let Some(st) = app.session.active() else { return };
+     // A rename belongs to the document it started in (node ids are per document): drop it when
+@@ -581,6 +618,8 @@
+     let list = rows_of_doc(ui, st, &app.ui.layers_panel, &query, &app.ui.layers_filter);
+     let view = View {
+         doc: &doc,
++        uid: st.uid,
++        column_cancelled,
+         thumbs: ThumbSource::of(app, st, &doc),
+         sel: st.selection.objects.iter().copied().collect(),
+         guides: st.selection.guides.clone(),
+@@ -644,12 +683,21 @@
+         }
+     }
+     let changed = out.column.is_some();
+-    let column = out.column.take().unwrap_or_else(|| view.column.clone());
+-    if let Some(c) = column.as_ref().filter(|_| changed || released) {
++    let mut column = out.column.take().unwrap_or_else(|| view.column.clone());
++    // Pending Typing can settle in live_run; a fresh column must not borrow other interactions.
++    if column.as_ref().is_some_and(|c| c.interaction.is_none())
++        && app.session.active().and_then(|st| st.interaction.as_ref()).is_some_and(|it| it.label != "Typing" || it.preview.is_none())
++    {
++        column = None;
++    }
++    if let Some(c) = column.as_mut().filter(|_| changed || released) {
+         let (prop, label) = if c.eye { ("visible", "Visibility") } else { ("locked", "Lock") };
+         let phase = if released { Live::Released } else { Live::Dragging };
+         let params = json!({"ids": c.ids, prop: c.value});
+         super::live_run(app, label, "layer.setProps", params, phase);
++        if c.interaction.is_none() {
++            c.interaction = app.session.active().and_then(|st| st.interaction.as_ref()).map(|it| Arc::downgrade(&it.selection));
++        }
+     }
+     ui.data_mut(|d| match column.filter(|_| !released) {
+         Some(c) => {
+@@ -1129,11 +1177,15 @@
+     } else if lr.clicked() {
+         out.actions.push(("layer.setProps".into(), json!({"ids": [n.id.0], "locked": !n.locked})));
+     }
++    // A cached drag_started response must not restart a column cancelled earlier this frame.
++    if view.column_cancelled {
++        return;
++    }
+     // Dragging down a column gives every row it passes this row's new state.
+     if er.drag_started() {
+-        out.column = Some(Some(ColumnDrag { eye: true, value: !n.visible, ids: vec![n.id.0] }));
++        out.column = Some(Some(ColumnDrag { zone: er.id, uid: view.uid, interaction: None, eye: true, value: !n.visible, ids: vec![n.id.0] }));
+     } else if lr.drag_started() {
+-        out.column = Some(Some(ColumnDrag { eye: false, value: !n.locked, ids: vec![n.id.0] }));
++        out.column = Some(Some(ColumnDrag { zone: lr.id, uid: view.uid, interaction: None, eye: false, value: !n.locked, ids: vec![n.id.0] }));
+     } else if let Some(c) = out.column.clone().unwrap_or_else(|| view.column.clone())
+         && !c.ids.contains(&n.id.0)
+         && ui.input(|i| i.pointer.primary_down() && i.pointer.interact_pos().is_some_and(|p| p.y >= r.top() && p.y < r.bottom()))

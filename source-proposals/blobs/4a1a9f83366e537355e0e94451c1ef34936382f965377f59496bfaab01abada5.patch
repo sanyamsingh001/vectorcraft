@@ -1,0 +1,21 @@
+--- pr3004.body.remote88
++++ pr3004.body.corrected-draft
+@@ -1,13 +1,13 @@
+ When text contains an RTL run, Type uses visual caret stops for Left/Right. A font can expose multiple shaping clusters inside one Unicode grapheme; in `हिन्दी שלום`, this can stop the caret at byte 12 instead of moving from byte 6 to byte 18. Filter visual stops by the text's grapheme boundaries before applying the existing directional ordering and distance logic.
+ 
+-Add `caret_horizontal_cluster` for Type's two arrow callers while preserving the raw `caret_horizontal` API, same-x RTL ordering, soft-wrap tie exclusion, and line fallback. Separate raw shaping-cluster coverage from editing boundaries in the Hindi test, and add an actual Type-key regression with a plain-LTR control and an RTL suffix. The regression uses the existing installed-font order and explicit skip policy.
++Add `caret_horizontal_cluster` for Type's two arrow callers while preserving the raw `caret_horizontal` API, same-x RTL ordering and soft-wrap tie exclusion. When a wrapped-line fallback lands inside a grapheme, preserve no-op and valid results, then normalize the invalid fallback in the source line's logical direction (`right != line.rtl`). Separate raw shaping-cluster coverage from editing boundaries in the Hindi test, and cover plain-LTR, mixed-direction and wrapped text through actual Type-key dispatch. Publication regressions retain the installed-family/coverage checks and explicit missing-font skip policy.
+ 
+-Validation on pinned base `797e899c56957d292fe6140b4af18366d3cf0eb2`:
++Validation of the correction over published head `b6e58adbb2863e9672ab93fc4b18f1635831d3d8` (qualified source tree `06dff1aef861a800cee2b07da30146c974b03d80`):
+ 
+-- Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,229 passed, 0 failed, 12 ignored across 143 summaries; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.
++- Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,230 passed, 0 failed, 12 ignored; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.
+ - Captured CI success does not establish that every font-dependent assertion ran: allowed font/capability returns can report success.
+-- A separate private 73f causal pair reached the mixed-direction Right failure (12 instead of 18) before the correction and passed both original cases afterward. That proof is limited to its recorded font/input prerequisites and is not transferred to this 797 publication fixture.
+-- Rendered application verification: the original 1280×960 VectorcraftApp/egui_kittest/wgpu scene passed real double-click entry and Right/Left caret movement 6 → 18 → 6, matching production caret paint and the specified document/selection/history checks. Owner, independent reviewer and coordinator inspected the original PNG without a scoped visual blocker. This is one headless scene, not physical-keyboard, OS-window or accessibility validation.
++- A separate private wrapped-text causal pair reached the intended Right failure (12 instead of 18) before the fallback correction; the positive reached Right 18 and Left 6. That proof retains its recorded font, shaping and wrapped-line prerequisites; it is separate from the publication-policy regression and rendered scene.
++- Current rendered application verification: the original single-line 1280×960 VectorcraftApp/egui_kittest/wgpu scene passed real double-click entry and Right/Left movement 6 → 18 → 6, with production caret paint and the specified document/selection/history checks. Owner, independent reviewer and coordinator inspected the actual current PNG without a scoped visual blocker. This single-line scene does not demonstrate wrapped-line fallback behavior, physical-keyboard/OS-window operation or accessibility. The screenshot remains a private local artifact; no reviewer-accessible image attachment or URL has been posted.
+ 
+ 
+ <!-- This is an auto-generated comment: release notes by coderabbit.ai -->

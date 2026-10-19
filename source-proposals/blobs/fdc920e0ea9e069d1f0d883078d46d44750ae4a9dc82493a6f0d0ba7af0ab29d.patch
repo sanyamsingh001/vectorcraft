@@ -1,0 +1,36 @@
+--- publication-draft-01/body.md
++++ publication-draft-02/body.md
+@@ -7,4 +7,4 @@
+ - Original `cargo xtask ci`: all 10 stages passed. Workspace: 8,229 passed, 0 failed, 12 ignored across 143 summaries; separate no-bundled-fonts check: 1 passed; 23 Wasm packages checked.
+ - Captured CI success does not establish that every font-dependent assertion ran: allowed font/capability returns can report success.
+ - A separate private 73f causal pair reached the mixed-direction Right failure (12 instead of 18) before the correction and passed both original cases afterward. That proof is limited to its recorded font/input prerequisites and is not transferred to this 797 publication fixture.
+-- [ ] Complete and inspect the original one-scene 1280×960 production-app egui_kittest/wgpu render. Its recipe is ready but unrun. Metadata/bootstrap and resolved dependency-edge qualification establish readiness only, not UI evidence.
++- Rendered application verification: the original 1280×960 VectorcraftApp/egui_kittest/wgpu scene passed real double-click entry and Right/Left caret movement 6 → 18 → 6, matching production caret paint and the specified document/selection/history checks. Owner, independent reviewer and coordinator inspected the original PNG without a scoped visual blocker. This is one headless scene, not physical-keyboard, OS-window or accessibility validation.
+--- publication-draft-01/reviewer-context.md
++++ publication-draft-02/reviewer-context.md
+@@ -19,9 +19,11 @@
+ - Font-dependent assertion non-skip is unknown from captured successful output and the allowed capability returns. Do not describe that output as proof that the current publication regression exercised a particular installed face.
+ - The private 73f pair used the original exact 4,051-byte diagnostic in both variants. Its plain हिन्दी control completed; the baseline mixed हिन्दी שלום case reached the intended first Right assertion with 12 instead of 18, so its later mixed Left assertion was not credited. The positive completed both original cases. That diagnostic's raw-prefix spans [(0, 6), (6, 6), (12, 6)], actual RTL-route prerequisite, and selected/used Hindi face equality constrain its coverage. The recorded TYPE_ARROW_FONT identity belongs to that run; this draft does not generalize it to other fonts or the 797 publication run.
+ - Keep the original failed raw-cluster oracle and private before/after sources as historical evidence. Their assertions and files are not altered by this draft.
+-- The current original one-scene 1280×960 production VectorcraftApp/egui_kittest/wgpu workflow is ready but unrun. It uses real app Right/Left events, actual Type state and caret paint, plus document/object-selection/history checks. Executable/result/PNG evidence and original image inspection remain pending. No physical-keyboard, OS-window, accessibility, or backend guarantee is claimed.
++- The original one-scene 1280×960 production VectorcraftApp/egui_kittest/wgpu runtime02 completed with exit 0. Real double-click entry reached text 2; real Right/Left events moved collapsed selection 6 -> 18 -> 6, with actual production caret segments and the seven specified persistent fields unchanged. Whole before/right-render snapshots differ only in the four text-selection tool options; left persistence is established by the sequential successful assertions, not a separate final full saved snapshot. Owner, independent reviewer and coordinator inspected the original PNG without a scoped visual blocker. The pointer overlaps the text, so exact caret bytes/history rely on fields and assertions. No physical-keyboard, OS-window, accessibility, general responsive or backend guarantee is claimed.
++- Failed runtime01 stopped at double-click entry and remains preserved. The private runtime02 scene adds only the established with_step_dt(0.03) frame interval; no production change, assertion weakening, extra scene or metadata/bootstrap replay occurred. The successful normal executable and raw dep-info/fingerprints are archived separately from test/Wasm artifacts. The audit retained its original absolute-path parser mismatch and resolved the actual crate-relative source spellings in a separate correction.
++- This render used Noto Sans Devanagari Regular 2.007, face 0, 243520 bytes; selected/used face identity is compared within this run. It does not establish historical font-byte identity or remove the full-CI font-skip uncertainty.
+ - The completed metadata bootstrap and normalized lock audit are readiness evidence: 477 common identities unchanged, zero added/rebound common edges, 87 removed edges, 120 packages pruned, and only the capture root added. They are not UI evidence or normal-library/test/Wasm artifact equivalence.
+-- Validation applies to pinned 797 only. The reported current-main 0f615 workflow delta has static appraisal only; no current-main CI or render is claimed.
++- Validation applies to pinned 797 only. Subsequent accepted source appraisals through a466625c8987550635cda951ebf36e08e1e80a56 found no demonstrated supersession and retained the original scene, with recorded integration obligations for upstream additions. Those appraisals are static only; no whole-current-main CI or render equivalence is claimed. Fresh upstream/owned-ref and aggregate publication-diff checks remain part of publication.
+ 
+ Existing evidence pointers (under /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016):
+ 
+@@ -31,3 +33,11 @@
+ - text-mixed-direction-caret-positive-73f-01/independent-terminal-audit-01-e8p3ezod/receipt.json — private positive, both original completion markers.
+ - text-ui-render-binding-797-01/capture-source-binding-receipt.json — current capture data readiness and remaining root/runtime/image inputs.
+ - text-ui-render-797-bootstrap-launch-01/resolved-edge-audit.json — actual normalized dependency-edge qualification.
++
++Completed render evidence:
++
++- text-ui-render-797-capture-launch-02/terminal-closure-01/receipt.json — all 14 original source/process/lock checks.
++- text-ui-render-797-capture-launch-02/independent-terminal-review-01/dep-info-spelling-correction.json — final scoped semantic/image/artifact acceptance; original failed audit remains preserved.
++- text-ui-render-797-capture-launch-02/independent-terminal-review-01/artifact-archive.json — exact normal executable and raw dep-info/fingerprint provenance.
++- text-ui-render-source-797-01/runtime-02/screens/type-arrow-fields.json — actual state and production paint.
++- text-ui-render-source-797-01/runtime-02/screens/type-mixed-direction-right-cluster.png — original 1280×960 PNG.

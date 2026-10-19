@@ -1,0 +1,58 @@
+diff --git a/crates/text/src/lib.rs b/crates/text/src/lib.rs
+index 286fc0e1747ac449c3f611b5c6f17e856e242a1b..f7701b3a16c941d30913f38a79e379c0066a9483 100644
+--- a/crates/text/src/lib.rs
++++ b/crates/text/src/lib.rs
+@@ -484,6 +484,23 @@ pub fn selection_quads(layout: &TextLayout, a: usize, b: usize) -> Vec<[Point; 4
+ /// Going right, the caret takes them in increasing order on left-to-right glyphs and in
+ /// decreasing order on right-to-left glyphs; going left, it takes them in the reverse order.
+ pub fn caret_horizontal(layout: &TextLayout, byte: usize, right: bool) -> usize {
++    caret_horizontal_filtered(layout, byte, right, |_| true)
++}
++
++/// Like [`caret_horizontal`], but exclude glyph stops and line edges inside a grapheme of `text`.
++pub fn caret_horizontal_cluster(layout: &TextLayout, text: &str, byte: usize, right: bool) -> usize {
++    use unicode_segmentation::GraphemeCursor;
++    let valid = |b| text.is_char_boundary(b) && GraphemeCursor::new(b, text.len(), true).is_boundary(text, 0).unwrap_or(false);
++    let to = caret_horizontal_filtered(layout, byte, right, valid);
++    if to == byte || valid(to) {
++        return to;
++    }
++    // Wrapping can split a grapheme; normalize only the fallback in its logical direction.
++    let Some(line) = layout.lines.get(layout.line_of(byte)) else { return byte };
++    if right != line.rtl { edit::next_cluster(text, to) } else { edit::prev_cluster(text, to) }
++}
++
++fn caret_horizontal_filtered(layout: &TextLayout, byte: usize, right: bool, valid: impl Fn(usize) -> bool) -> usize {
+     let li = layout.line_of(byte);
+     let Some(line) = layout.lines.get(li) else { return byte };
+     let glyphs = layout.glyphs.get(line.glyph_start..line.glyph_end).unwrap_or_default();
+@@ -500,6 +517,7 @@ pub fn caret_horizontal(layout: &TextLayout, byte: usize, right: bool) -> usize
+     stops.dedup();
+     stops
+         .into_iter()
++        .filter(|&b| valid(b))
+         .filter_map(|b| {
+             // Both the distance and the place among stops at one x are counted in the step's direction.
+             let (bx, bo) = stop(b);
+diff --git a/crates/tools/src/text.rs b/crates/tools/src/text.rs
+index 7918193cdde112905bebbd264323953322297996..db0e6e3f3a5f32aad6c908ad08c8df6d1793f553 100644
+--- a/crates/tools/src/text.rs
++++ b/crates/tools/src/text.rs
+@@ -633,7 +633,7 @@ impl Tool for TypeTool {
+                     edit::prev_word(&text, self.caret)
+                 } else {
+                     if lay.glyphs.iter().any(|g| g.rtl) {
+-                        vectorcraft_text::caret_horizontal(&lay, self.caret, false)
++                        vectorcraft_text::caret_horizontal_cluster(&lay, &text, self.caret, false)
+                     } else {
+                         edit::prev_cluster(&text, self.caret)
+                     }
+@@ -653,7 +653,7 @@ impl Tool for TypeTool {
+                     edit::next_word(&text, self.caret)
+                 } else {
+                     if lay.glyphs.iter().any(|g| g.rtl) {
+-                        vectorcraft_text::caret_horizontal(&lay, self.caret, true)
++                        vectorcraft_text::caret_horizontal_cluster(&lay, &text, self.caret, true)
+                     } else {
+                         edit::next_cluster(&text, self.caret)
+                     }

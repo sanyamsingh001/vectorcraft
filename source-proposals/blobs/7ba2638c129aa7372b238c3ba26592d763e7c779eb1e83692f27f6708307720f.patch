@@ -1,0 +1,600 @@
+diff --git a/crates/engine/src/cmd/edit.rs b/crates/engine/src/cmd/edit.rs
+index 89946fb0..2c0eff9f 100644
+--- a/crates/engine/src/cmd/edit.rs
++++ b/crates/engine/src/cmd/edit.rs
+@@ -324,9 +324,22 @@ pub(crate) fn selected_roots(s: &Session) -> Result<Vec<NodeId>> {
+     Ok(roots_of(&st.doc, st.selection.in_paint_order(&st.doc)))
+ }
+ 
++/// [`selected_roots`] for the commands that move or reshape the art (Move, Transform, Rotate…): in
++/// an isolated compound path its paths are objects of their own, so the hole of a ring moves
++/// without the ring. Paint and the rest still go to the compound path, which holds the paint.
++pub(crate) fn selected_roots_to_transform(s: &Session) -> Result<Vec<NodeId>> {
++    let st = s.doc()?;
++    Ok(roots_within(&st.doc, st.selection.in_paint_order(&st.doc), st.isolation))
++}
++
+ /// The top-level objects among `ids` (in paint order): compound-path members stand for their
+ /// compound, and ids whose ancestor is also listed, and layers, are dropped.
+ pub(crate) fn roots_of(doc: &Document, ids: Vec<NodeId>) -> Vec<NodeId> {
++    roots_within(doc, ids, None)
++}
++
++/// [`roots_of`], less the swap for the members of `isolation` when it is a compound path.
++fn roots_within(doc: &Document, ids: Vec<NodeId>, isolation: Option<NodeId>) -> Vec<NodeId> {
+     // Every id's place in the tree, found in one walk (a lookup per id is a walk per id).
+     let paths = doc.index_paths(ids.iter().copied());
+     // A compound-path member acts as its compound (compounds are one object).
+@@ -336,7 +349,7 @@ pub(crate) fn roots_of(doc: &Document, ids: Vec<NodeId>) -> Vec<NodeId> {
+             let path = paths.get(&id);
+             let parent = path.and_then(|p| p.split_last()).map(|(_, up)| up).filter(|up| !up.is_empty());
+             match parent.and_then(|up| doc.node_at(up).map(|n| (up, n))) {
+-                Some((up, n)) if matches!(n.kind, vectorcraft_doc::NodeKind::Compound { .. }) => (n.id, Some(up.to_vec())),
++                Some((up, n)) if matches!(n.kind, vectorcraft_doc::NodeKind::Compound { .. }) && Some(n.id) != isolation => (n.id, Some(up.to_vec())),
+                 _ => (id, path.cloned()),
+             }
+         })
+diff --git a/crates/engine/src/cmd/object.rs b/crates/engine/src/cmd/object.rs
+index 8620ce98..bbd15915 100644
+--- a/crates/engine/src/cmd/object.rs
++++ b/crates/engine/src/cmd/object.rs
+@@ -11,7 +11,7 @@ use vectorcraft_doc::{Appearance, Document, Knockout, LiveCorners, LiveShape, No
+ use vectorcraft_geom::shapes::CornerKind;
+ use vectorcraft_geom::{Affine, FillRule, PathData, Point, Rect, Vec2};
+ 
+-use super::edit::{duplicate_in, outermost, selected_roots};
++use super::edit::{duplicate_in, outermost, selected_roots, selected_roots_to_transform};
+ use super::opacitymask::percent;
+ use super::*;
+ use crate::{EngineError, LastTransform};
+@@ -252,7 +252,7 @@ pub fn specs() -> Vec<CommandSpec> {
+             "Distribute",
+             ["Window", "Align"],
+             None,
+-            "{horizontal?: \"left\"|\"center\"|\"right\", vertical?: \"top\"|\"center\"|\"bottom\", to?: \"selection\"|\"artboard\"|\"key\" (default: the selection; \"key\" distributes as \"selection\" does; not used with anchor points selected), artboard?: index (0-based; with to: \"artboard\", the artboard to distribute across; the app passes the active one; default: as object.align's), bounds?: \"preview\"|\"geometric\" (default: the Use Preview Bounds preference; preview bounds take in strokes), patterns?: bool (Transform Patterns: pattern fills and strokes transform with the art; default: prefs transformPatternTiles)} space the objects' left edges, centers or right edges (top edges, centers or bottom edges) evenly, in their order on that line: the first and last objects stay put, and fewer than three objects don't move; with to: \"artboard\", the first one's left (top) edge goes to the artboard's left (top) edge, the last one's right (bottom) edge goes to the artboard's right (bottom) edge, and two objects are enough. With anchor points selected (Direct Selection), the points are spaced evenly between the first and the last along the axis instead (#1636)",
++            "{horizontal?: \"left\"|\"center\"|\"right\", vertical?: \"top\"|\"center\"|\"bottom\", spacing?: pt (used with a key object, select.key: the key object stays put and the lines are placed this far apart, outward from its line, in their order on that line; 0 puts them all on its line; not used without a key object or with anchor points selected), to?: \"selection\"|\"artboard\"|\"key\" (default: the selection; \"key\" distributes as \"selection\" does; not used with anchor points selected, or with spacing and a key object), artboard?: index (0-based; with to: \"artboard\", the artboard to distribute across; the app passes the active one; default: as object.align's), bounds?: \"preview\"|\"geometric\" (default: the Use Preview Bounds preference; preview bounds take in strokes), patterns?: bool (Transform Patterns: pattern fills and strokes transform with the art; default: prefs transformPatternTiles)} space the objects' left edges, centers or right edges (top edges, centers or bottom edges) in their order on that line: without spacing and a key object they are spaced evenly, the first and last objects stay put, and fewer than three objects don't move; with spacing and a key object, see spacing (two objects are enough); with to: \"artboard\", the first one's left (top) edge goes to the artboard's left (top) edge, the last one's right (bottom) edge goes to the artboard's right (bottom) edge, and two objects are enough. With anchor points selected (Direct Selection), the points are spaced evenly between the first and the last along the axis instead (#1636)",
+             can_distribute,
+             distribute
+         ),
+@@ -493,14 +493,14 @@ fn transform(s: &mut Session, p: &Value) -> Result<Value> {
+     let m = matrix_param(p, "matrix").ok_or_else(|| bad("object.transform", "missing matrix [a,b,c,d,e,f]"))?;
+     let (ids, anchors) = match ids_param(p, "ids") {
+         Some(v) => (outermost(&s.doc()?.doc, v), false),
+-        None => (selected_roots(s)?, bool_or(p, "anchors", false)),
++        None => (selected_roots_to_transform(s)?, bool_or(p, "anchors", false)),
+     };
+     apply_transform(s, "Transform", ids, m, p, anchors)
+ }
+ 
+ fn move_cmd(s: &mut Session, p: &Value) -> Result<Value> {
+     check_numbers(p, &["dx", "dy"], "object.move")?;
+-    let ids = selected_roots(s)?;
++    let ids = selected_roots_to_transform(s)?;
+     apply_transform(s, "Move", ids, Affine::translate((f64_or(p, "dx", 0.0), f64_or(p, "dy", 0.0))), p, true)
+ }
+ 
+@@ -524,7 +524,7 @@ fn nudge(s: &mut Session, p: &Value) -> Result<Value> {
+         }
+         return super::docmenu::guide_move(s, &json!({ "dx": dx, "dy": dy, "copy": copy }));
+     }
+-    let ids = selected_roots(s)?;
++    let ids = selected_roots_to_transform(s)?;
+     apply_transform(s, "Move", ids, Affine::translate((dx, dy)), p, true)
+ }
+ 
+@@ -534,7 +534,7 @@ fn about(o: Point, a: Affine) -> Affine {
+ 
+ fn rotate(s: &mut Session, p: &Value) -> Result<Value> {
+     check_numbers(p, &["angle"], "object.rotate")?;
+-    let ids = selected_roots(s)?;
++    let ids = selected_roots_to_transform(s)?;
+     let o = origin_of(s, p, &ids)?;
+     let mut angle = f64_or(p, "angle", 0.0);
+     if bool_or(p, "absolute", false) {
+@@ -547,7 +547,7 @@ fn rotate(s: &mut Session, p: &Value) -> Result<Value> {
+ 
+ fn scale(s: &mut Session, p: &Value) -> Result<Value> {
+     check_numbers(p, &["sy"], "object.scale")?;
+-    let ids = selected_roots(s)?;
++    let ids = selected_roots_to_transform(s)?;
+     let o = origin_of(s, p, &ids)?;
+     let sx = f64_req(p, "sx", "object.scale")? / 100.0;
+     let sy = f64_or(p, "sy", sx * 100.0) / 100.0;
+@@ -558,7 +558,7 @@ fn scale(s: &mut Session, p: &Value) -> Result<Value> {
+ }
+ 
+ fn reflect(s: &mut Session, p: &Value) -> Result<Value> {
+-    let ids = selected_roots(s)?;
++    let ids = selected_roots_to_transform(s)?;
+     let o = origin_of(s, p, &ids)?;
+     let m = match p.get("axis") {
+         Some(Value::String(a)) if a == "horizontal" => Affine::scale_non_uniform(1.0, -1.0),
+@@ -578,7 +578,7 @@ fn reflect(s: &mut Session, p: &Value) -> Result<Value> {
+ 
+ fn shear(s: &mut Session, p: &Value) -> Result<Value> {
+     check_numbers(p, &["angle"], "object.shear")?;
+-    let ids = selected_roots(s)?;
++    let ids = selected_roots_to_transform(s)?;
+     let o = origin_of(s, p, &ids)?;
+     let t = f64_or(p, "angle", 0.0).clamp(-89.0, 89.0).to_radians().tan();
+     let vertical = choice(p, "object.shear", "axis", &["horizontal", "vertical"])? == Some("vertical");
+@@ -602,7 +602,7 @@ fn transform_again(s: &mut Session, p: &Value) -> Result<Value> {
+     };
+     match last {
+         LastTransform::Matrix(m, options) => {
+-            let ids = selected_roots(s)?;
++            let ids = selected_roots_to_transform(s)?;
+             apply_transform(s, "Transform Again", ids, m, &merge(options), true)
+         }
+         LastTransform::Each(params) => super::menucmds::transform_each_again(s, &merge(params)),
+@@ -1232,6 +1232,15 @@ fn direction<'a>(p: &'a Value, cmd: &str) -> Result<(Option<&'a str>, Option<&'a
+     Ok((choice(p, cmd, "horizontal", &["left", "center", "right"])?, choice(p, cmd, "vertical", &["top", "center", "bottom"])?))
+ }
+ 
++/// `spacing` of `object.distribute` and `object.distributeSpacing`: a finite number, or `None`
++/// when it is missing or null. Any other value is an error.
++fn spacing(p: &Value, cmd: &str) -> Result<Option<f64>> {
++    p.get("spacing")
++        .filter(|v| !v.is_null())
++        .map(|v| v.as_f64().filter(|g| g.is_finite()).ok_or_else(|| bad(cmd, "`spacing` must be a number")))
++        .transpose()
++}
++
+ /// `ids` with their bounds (`preview`: visual bounds).
+ fn items_bounds(d: &Document, ids: &[NodeId], preview: bool) -> Vec<(NodeId, Rect)> {
+     ids.iter().filter_map(|id| Some((*id, d.bounds_of(&[*id], preview)?))).collect()
+@@ -1294,8 +1303,8 @@ fn distribute_to(s: &Session, p: &Value, ids: &[NodeId], preview: bool, cmd: &st
+ }
+ 
+ /// Returns the selected root (one of `ids`) that is the key object or contains it, such as the
+-/// compound path or selected group the key is in. Align to the key object and Distribute Spacing
+-/// with a spacing keep it in place.
++/// compound path or selected group the key is in. Align to the key object, and Distribute and
++/// Distribute Spacing with a spacing, keep it in place.
+ fn key_root(s: &Session, ids: &[NodeId]) -> Option<NodeId> {
+     let st = s.doc().ok()?;
+     let ancestry = st.doc.ancestry(st.selection.key?)?;
+@@ -1439,6 +1448,7 @@ fn distribute(s: &mut Session, p: &Value) -> Result<Value> {
+     let ids = selected_roots(s)?;
+     let preview = preview_bounds(s, p, "object.distribute")?;
+     let board = distribute_to(s, p, &ids, preview, "object.distribute")?;
++    let spacing = spacing(p, "object.distribute")?;
+     // Anchor points selected with Direct Selection are distributed themselves, as Align aligns them.
+     if !s.doc()?.selection.anchors.is_empty() {
+         return match direction(p, "object.distribute")? {
+@@ -1468,8 +1478,14 @@ fn distribute(s: &mut Session, p: &Value) -> Result<Value> {
+     };
+     items.sort_by(|a, b| key(&a.1, horiz).total_cmp(&key(&b.1, horiz)));
+     let n = items.len();
+-    // Two objects are enough on an artboard: they go to its edges.
+-    if n < 2 || (n < 3 && board.is_none()) {
++    // With a spacing, the key object (or the compound path or selected group it is in) stays where
++    // it is, and the lines are placed `spacing` apart, outward from its line, in their order.
++    // Without a key object the spacing is not used. `from_key` is the key's index in `items` and
++    // the spacing.
++    let from_key = spacing.zip(key_root(s, &ids)).and_then(|(g, k)| Some((items.iter().position(|(id, _)| *id == k)?, g)));
++    // Two objects are enough on an artboard, where they go to its edges, and when they are spaced
++    // from a key object.
++    if n < 2 || (n < 3 && board.is_none() && from_key.is_none()) {
+         return ok();
+     }
+     let (first_box, last_box) = (&items[0].1, &items[n - 1].1);
+@@ -1486,7 +1502,10 @@ fn distribute(s: &mut Session, p: &Value) -> Result<Value> {
+         .iter()
+         .enumerate()
+         .map(|(i, (id, r))| {
+-            let target = first + (last - first) * i as f64 / (n - 1) as f64;
++            let target = match from_key {
++                Some((k, g)) => key(&items[k].1, horiz) + g * (i as f64 - k as f64),
++                None => first + (last - first) * i as f64 / (n - 1) as f64,
++            };
+             let delta = target - key(r, horiz);
+             (*id, if horiz { Vec2::new(delta, 0.0) } else { Vec2::new(0.0, delta) })
+         })
+@@ -1499,11 +1518,7 @@ fn distribute_spacing(s: &mut Session, p: &Value) -> Result<Value> {
+     let horiz = choice(p, "object.distributeSpacing", "axis", &["horizontal", "vertical"])? != Some("vertical");
+     let preview = preview_bounds(s, p, "object.distributeSpacing")?;
+     let board = distribute_to(s, p, &ids, preview, "object.distributeSpacing")?;
+-    let spacing = p
+-        .get("spacing")
+-        .filter(|v| !v.is_null())
+-        .map(|v| v.as_f64().filter(|g| g.is_finite()).ok_or_else(|| bad("object.distributeSpacing", "`spacing` must be a number")))
+-        .transpose()?;
++    let spacing = spacing(p, "object.distributeSpacing")?;
+     if !s.doc()?.selection.anchors.is_empty() {
+         return distribute_anchors(s, "Distribute Spacing", horiz, spacing);
+     }
+diff --git a/crates/engine/src/lib.rs b/crates/engine/src/lib.rs
+index 293aa6ef..ced1ccef 100644
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -300,6 +300,9 @@ pub struct DocState {
+     /// What Select → Reselect repeats: the last selection command, its params and the objects
+     /// selected when it ran (a Same command's reference objects).
+     pub last_selection_cmd: Option<(String, Value, Vec<NodeId>)>,
++    /// The saved selection last recalled (`select.recall`), which Select → Update Selection
++    /// changes. It is not saved with the file, and a recall is not an undo step.
++    pub recalled_selection: RecalledSelection,
+     /// Process-unique id of this open document (tab indices shift when tabs close).
+     pub uid: u64,
+     /// View Opacity Mask (Alt-click the mask thumbnail): the masked object whose mask the canvas
+@@ -387,6 +390,57 @@ impl OpenRows {
+     }
+ }
+ 
++/// The saved selection last recalled, which Select → Update Selection changes. The Select commands
++/// give each saved selection an id for the session and keep the ids for every version of the
++/// document's saved selections they make or read, so the recalled one is found again after Edit
++/// Selection…, Undo and Redo. A version that nothing holds any more (neither the document nor its
++/// undo history) is dropped the next time a version is added.
++#[derive(Clone, Debug, Default)]
++pub struct RecalledSelection {
++    /// The recalled saved selection's id.
++    id: Option<u64>,
++    /// Each version of the saved selections (identified by its allocation), with the id of each saved
++    /// selection in it.
++    versions: Vec<(std::sync::Weak<Vec<vectorcraft_doc::SavedSelection>>, Vec<u64>)>,
++    /// The last id given.
++    last: u64,
++}
++
++impl RecalledSelection {
++    /// The ids of `list`'s saved selections; a version not met before gets new ones.
++    pub(crate) fn ids(&mut self, list: &vectorcraft_doc::Shared<Vec<vectorcraft_doc::SavedSelection>>) -> Vec<u64> {
++        let version = vectorcraft_doc::Shared::downgrade(list);
++        if let Some((_, ids)) = self.versions.iter().find(|(v, _)| v.ptr_eq(&version)) {
++            return ids.clone();
++        }
++        let ids: Vec<u64> = (0..list.len()).map(|_| self.new_id()).collect();
++        self.remember(list, ids.clone());
++        ids
++    }
++    /// An id no saved selection has had.
++    pub(crate) fn new_id(&mut self) -> u64 {
++        self.last += 1;
++        self.last
++    }
++    /// Keep `ids` as those of `list`'s saved selections, dropping versions nothing holds any more.
++    pub(crate) fn remember(&mut self, list: &vectorcraft_doc::Shared<Vec<vectorcraft_doc::SavedSelection>>, ids: Vec<u64>) {
++        let version = vectorcraft_doc::Shared::downgrade(list);
++        self.versions.retain(|(v, _)| v.strong_count() > 0 && !v.ptr_eq(&version));
++        self.versions.push((version, ids));
++    }
++    /// Recall the saved selection at `index` in `list`.
++    pub(crate) fn recall(&mut self, list: &vectorcraft_doc::Shared<Vec<vectorcraft_doc::SavedSelection>>, index: usize) {
++        self.id = self.ids(list).get(index).copied();
++    }
++    /// Where the recalled saved selection is in `list`, if `list` holds it.
++    pub fn index_in(&self, list: &vectorcraft_doc::Shared<Vec<vectorcraft_doc::SavedSelection>>) -> Option<usize> {
++        let id = self.id?;
++        let version = vectorcraft_doc::Shared::downgrade(list);
++        let (_, ids) = self.versions.iter().find(|(v, _)| v.ptr_eq(&version))?;
++        ids.iter().position(|&x| x == id).filter(|&i| i < list.len())
++    }
++}
++
+ impl DocState {
+     pub fn new(mut doc: Document, path: Option<String>) -> Self {
+         let active_layer = doc.default_layer();
+@@ -411,6 +465,7 @@ impl DocState {
+             undo_group: None,
+             last_transform: None,
+             last_selection_cmd: None,
++            recalled_selection: RecalledSelection::default(),
+             uid: NEXT_DOC_UID.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+             mask_view: None,
+             transparency_grid: false,
+@@ -563,16 +618,17 @@ pub const ON_ACTIVE_ARTBOARD: [&str; 7] = [
+     "select.allOnArtboard",
+ ];
+ 
+-/// The commands that resize the active artboard, which the app passes as their `index`: Fit to
+-/// Artwork Bounds and Fit to Selected Art (Object › Artboards). A `command.batch` given `artboard`
+-/// passes it on, as `index`, to each of their steps that names none.
++/// The commands that resize the artboards the app passes (Object › Artboards): the app passes the
++/// selected artboards to Fit to Artwork Bounds as its `indices`, and the active artboard to Fit to
++/// Selected Art as its `index`. A `command.batch` given `artboard` passes it on, as `index`, to
++/// each of their steps that names none.
+ pub const FIT_ACTIVE_ARTBOARD: [&str; 2] = ["artboard.fitToArt", "artboard.fitToSelection"];
+ 
+ /// `(command, param)` pairs the journal records only so a replay reproduces the original run
+-/// (dates from the clock: `cmd::clock_date`; the active artboard the app passes to the
++/// (dates from the clock: `cmd::clock_date`; the artboards the app passes to the
+ /// [`ON_ACTIVE_ARTBOARD`] and [`FIT_ACTIVE_ARTBOARD`] commands and to a batch); an action leaves
+ /// them out ([`Session::journal_for_action`]).
+-const REPLAY_ONLY: [(&str, &str); 13] = [
++const REPLAY_ONLY: [(&str, &str); 14] = [
+     ("file.new", "created"),
+     ("document.save", "modified"),
+     ("file.saveAs", "modified"),
+@@ -583,6 +639,7 @@ const REPLAY_ONLY: [(&str, &str); 13] = [
+     ("object.distribute", "artboard"),
+     ("object.distributeSpacing", "artboard"),
+     ("artboard.fitToArt", "index"),
++    ("artboard.fitToArt", "indices"),
+     ("artboard.fitToSelection", "index"),
+     ("select.allOnArtboard", "artboard"),
+     ("command.batch", "artboard"),
+@@ -746,6 +803,9 @@ pub struct Prefs {
+     pub ui_brightness: String,
+     /// User Interface › Accent Color: the colour of what is on, chosen or focused.
+     pub ui_accent: String,
++    /// User Interface › Color Scheme: "modern" (with the accent above) or "classic" (neutral
++    /// greys and a blue accent).
++    pub ui_color_scheme: String,
+     pub canvas_color: String,
+     pub auto_collapse_icon_panels: bool,
+     /// User Interface › Show Tool Group Labels: the toolbar's group names (Select, Shapes, Draw…);
+@@ -844,6 +904,10 @@ pub struct Prefs {
+     /// not a Preferences dialog field: resetting the preferences keeps it; `pdf.preset.*` edit it.
+     #[serde(skip_serializing_if = "Vec::is_empty")]
+     pub pdf_presets: Vec<vectorcraft_pdf::PdfPreset>,
++    /// File → Export for Screens: the user's batch export presets (`document.exportPresets.*`;
++    /// the built-in ones aren't stored). A local library, not a Preferences dialog field.
++    #[serde(skip_serializing_if = "Vec::is_empty")]
++    pub screen_export_presets: Vec<cmd::fileio::ScreenExportPreset>,
+     // File Handling (continued)
+     /// Where Save as Template and New from Template start ("" = `Documents/VectorCraft Templates`).
+     pub templates_folder: String,
+@@ -979,6 +1043,7 @@ impl Default for Prefs {
+             scratch_secondary: s("None"),
+             ui_brightness: s("mediumDark"),
+             ui_accent: s("coral"),
++            ui_color_scheme: s("modern"),
+             canvas_color: s("matchUi"),
+             auto_collapse_icon_panels: false,
+             tool_group_labels: false,
+@@ -1028,6 +1093,7 @@ impl Default for Prefs {
+             new_doc_presets: vec![],
+             recent_new_docs: vec![],
+             pdf_presets: vec![],
++            screen_export_presets: vec![],
+             templates_folder: String::new(),
+             append_converted: true,
+             use_compression: false,
+@@ -1955,6 +2021,8 @@ mod tests_objexpand;
+ #[cfg(test)]
+ mod tests_opacitymask;
+ #[cfg(test)]
++mod tests_outlineobject;
++#[cfg(test)]
+ mod tests_outlinestroke;
+ #[cfg(test)]
+ mod tests_overprint;
+diff --git a/crates/ui-egui/src/lib.rs b/crates/ui-egui/src/lib.rs
+index 95af996a..b6c58414 100644
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -300,6 +300,8 @@ pub struct CanvasCache {
+     pub selection_box: Option<((u64, u64, bool), Option<vectorcraft_doc::OrientedBox>)>,
+     /// [`VectorcraftApp::selection_bounds`] for (document uid, revision).
+     pub selection_bounds: Option<((u64, u64), Option<vectorcraft_geom::Rect>)>,
++    /// [`VectorcraftApp::content_bounds`] for (document uid, revision).
++    pub content_bounds: Option<((u64, u64), Option<vectorcraft_geom::Rect>)>,
+     /// The tools' cursors as OS cursor bitmaps.
+     pub cursors: cursors::Images,
+ }
+@@ -497,6 +499,7 @@ impl VectorcraftApp {
+                 hidden_chars: Default::default(),
+                 selection_box: None,
+                 selection_bounds: None,
++                content_bounds: None,
+                 cursors: Default::default(),
+             },
+             perf: Perf::default(),
+@@ -634,9 +637,11 @@ impl VectorcraftApp {
+             guides: self.ui.view.guides,
+             snap_to_grid: self.ui.view.snap_to_grid,
+             snap_to_pixel: self.ui.view.snap_to_pixel,
+-            show_bbox: self.ui.view.bounding_box,
++            // View › Hide Edges: the canvas draws neither the bounding box (with the type widget)
++            // nor the Live Corners widgets, and the tools do not answer the pointer on them.
++            show_bbox: self.ui.view.bounding_box && self.ui.view.edges,
+             snap_to_point: self.ui.view.snap_to_point,
+-            corner_widgets: self.ui.view.corner_widgets,
++            corner_widgets: self.ui.view.corner_widgets && self.ui.view.edges,
+             screen: self.screen_frame(),
+         }
+     }
+@@ -687,15 +692,21 @@ impl VectorcraftApp {
+         {
+             p.insert("artboard".into(), serde_json::json!(panels::artboards::selected(self, n)));
+         }
+-        // Object › Artboards › Fit to Artwork Bounds and Fit to Selected Art resize the active
+-        // artboard, which the app passes as their `index`.
++        // Object › Artboards › Fit to Artwork Bounds resizes the selected artboards (the Artboard
++        // tool's, else the active one), which the app passes as its `indices`, and Fit to Selected
++        // Art resizes the active artboard, which the app passes as its `index`.
+         if vectorcraft_engine::FIT_ACTIVE_ARTBOARD.contains(&id)
+             && params.get("index").is_none()
++            && params.get("indices").is_none()
+             && self.view().is_some()
+             && let Some(n) = self.session.active().map(|d| d.doc.artboards.len())
+             && let Some(p) = params.as_object_mut()
+         {
+-            p.insert("index".into(), serde_json::json!(panels::artboards::selected(self, n)));
++            if id == "artboard.fitToArt" {
++                p.insert("indices".into(), serde_json::json!(panels::artboards::picked(self, n)));
++            } else {
++                p.insert("index".into(), serde_json::json!(panels::artboards::selected(self, n)));
++            }
+         }
+         if id.starts_with("edit.paste") {
+             if let Err(e) = self.adopt_system_clipboard() {
+@@ -1049,6 +1060,22 @@ impl VectorcraftApp {
+         self.canvas.selection_bounds = Some((key, b));
+         b
+     }
++
++    /// The art and the artboards together, the span of the canvas's scroll bars: measured once
++    /// per revision, as the canvas reads it every frame.
++    pub fn content_bounds(&mut self) -> Option<vectorcraft_geom::Rect> {
++        let st = self.session.active()?;
++        let key = (st.uid, st.revision);
++        if let Some((k, b)) = self.canvas.content_bounds
++            && k == key
++        {
++            return b;
++        }
++        let boards = st.doc.artboards.iter().map(|a| a.rect).reduce(|r, a| r.union(a));
++        let b = vectorcraft_geom::union_opt(st.doc.art_bounds(), boards);
++        self.canvas.content_bounds = Some((key, b));
++        b
++    }
+ }
+ 
+ /// eframe isn't a dependency of this crate (the host owns the event loop); these entry points are
+diff --git a/crates/ui-egui/src/panels/properties.rs b/crates/ui-egui/src/panels/properties.rs
+index 9bc1985c..3a39b47d 100644
+--- a/crates/ui-egui/src/panels/properties.rs
++++ b/crates/ui-egui/src/panels/properties.rs
+@@ -436,14 +436,14 @@ pub fn transform_section(app: &mut VectorcraftApp, ui: &mut Ui) {
+             ui.data_mut(|d| d.insert_temp(egui::Id::new("refpt"), i));
+         }
+         ui.add_space(6.0);
+-        let link = app.session.prefs.constrain_proportions;
++        let link = super::transform::proportional(app, ui);
+         egui::Grid::new("xf-grid").num_columns(4).spacing([4.0, 6.0]).min_col_width(0.0).show(ui, |ui| {
+             dim_label(ui, "X:");
+             if let Some(v) = widgets::num_field(ui, "tx", Some(rp.x - origin.x), units, fw) {
+                 app.run("object.setBounds", json!({"x": v + origin.x, "reference": refi, "copy": copy})).ok();
+             }
+             dim_label(ui, "W:");
+-            if let Some(v) = widgets::num_field(ui, "tw", Some(b.width()), units, fw) {
++            if let Some(v) = widgets::size_field(ui, "tw", Some(b.width()), units, fw) {
+                 app.run("object.setBounds", json!({"width": v, "reference": refi, "proportional": link, "copy": copy})).ok();
+             }
+             ui.end_row();
+@@ -452,7 +452,7 @@ pub fn transform_section(app: &mut VectorcraftApp, ui: &mut Ui) {
+                 app.run("object.setBounds", json!({"y": v + origin.y, "reference": refi, "copy": copy})).ok();
+             }
+             dim_label(ui, "H:");
+-            if let Some(v) = widgets::num_field(ui, "th", Some(b.height()), units, fw) {
++            if let Some(v) = widgets::size_field(ui, "th", Some(b.height()), units, fw) {
+                 app.run("object.setBounds", json!({"height": v, "reference": refi, "proportional": link, "copy": copy})).ok();
+             }
+             ui.end_row();
+diff --git a/crates/ui-egui/src/panels/transform.rs b/crates/ui-egui/src/panels/transform.rs
+index 35a0c13d..029b0a45 100644
+--- a/crates/ui-egui/src/panels/transform.rs
++++ b/crates/ui-egui/src/panels/transform.rs
+@@ -55,7 +55,7 @@ fn artboard_fields(app: &mut VectorcraftApp, ui: &mut Ui, index: usize, r: Rect)
+     let units = app.session.general_unit();
+     let origin = app.ruler_origin();
+     let refi: usize = ui.data(|d| d.get_temp(egui::Id::new("refpt"))).unwrap_or(4);
+-    let link = app.session.prefs.constrain_proportions;
++    let link = proportional(app, ui);
+     let rp = vectorcraft_geom::reference_point(r, refi);
+     let set = |app: &mut VectorcraftApp, x, y, w, h| {
+         let n = artboard_rect(r, refi, x, y, w, h, link);
+@@ -77,7 +77,7 @@ fn artboard_fields(app: &mut VectorcraftApp, ui: &mut Ui, index: usize, r: Rect)
+                 set(app, Some(v + origin.x), None, None, None);
+             }
+             widgets::dim_label(ui, "W:");
+-            if let Some(v) = widgets::num_field(ui, "xfp-ab-w", Some(r.width()), units, 80.0) {
++            if let Some(v) = widgets::size_field(ui, "xfp-ab-w", Some(r.width()), units, 80.0) {
+                 set(app, None, None, Some(v), None);
+             }
+             ui.end_row();
+@@ -86,7 +86,7 @@ fn artboard_fields(app: &mut VectorcraftApp, ui: &mut Ui, index: usize, r: Rect)
+                 set(app, None, Some(v + origin.y), None, None);
+             }
+             widgets::dim_label(ui, "H:");
+-            if let Some(v) = widgets::num_field(ui, "xfp-ab-h", Some(r.height()), units, 80.0) {
++            if let Some(v) = widgets::size_field(ui, "xfp-ab-h", Some(r.height()), units, 80.0) {
+                 set(app, None, None, None, Some(v));
+             }
+             ui.end_row();
+@@ -149,7 +149,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+     let bx = app.selection_box();
+     let bounds = bx.map(|b| b.rect);
+     let refi: usize = ui.data(|d| d.get_temp(egui::Id::new("refpt"))).unwrap_or(4);
+-    let link = app.session.prefs.constrain_proportions;
++    let link = proportional(app, ui);
+     let copy = alt_enter_copies(app, ui);
+     let has = bounds.is_some();
+     let rp = bx.map(|b| b.reference_point(refi));
+@@ -165,7 +165,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+                     app.run("object.setBounds", json!({"x": v + origin.x, "reference": refi, "copy": copy})).ok();
+                 }
+                 widgets::dim_label(ui, "W:");
+-                if let Some(v) = widgets::num_field(ui, "xfp-w", bounds.map(|b| b.width()), units, 80.0) {
++                if let Some(v) = widgets::size_field(ui, "xfp-w", bounds.map(|b| b.width()), units, 80.0) {
+                     app.run("object.setBounds", json!({"width": v, "reference": refi, "proportional": link, "copy": copy})).ok();
+                 }
+                 ui.end_row();
+@@ -174,7 +174,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+                     app.run("object.setBounds", json!({"y": v + origin.y, "reference": refi, "copy": copy})).ok();
+                 }
+                 widgets::dim_label(ui, "H:");
+-                if let Some(v) = widgets::num_field(ui, "xfp-h", bounds.map(|b| b.height()), units, 80.0) {
++                if let Some(v) = widgets::size_field(ui, "xfp-h", bounds.map(|b| b.height()), units, 80.0) {
+                     app.run("object.setBounds", json!({"height": v, "reference": refi, "proportional": link, "copy": copy})).ok();
+                 }
+                 ui.end_row();
+@@ -348,6 +348,13 @@ pub fn alt_enter_copies(app: &VectorcraftApp, ui: &Ui) -> bool {
+     widgets::enter_modifiers(ui).is_some_and(|m| m.alt) && app.session.active().is_some_and(|st| st.selection.anchors.is_empty())
+ }
+ 
++/// The `proportional` param of the W and H fields of the Transform panel (the artboard's too), the
++/// Properties panel's Transform section and the Control bar: the Constrain Width and Height
++/// Proportions link, or true when Ctrl/Cmd+Enter applied the value.
++pub fn proportional(app: &VectorcraftApp, ui: &Ui) -> bool {
++    app.session.prefs.constrain_proportions || widgets::enter_modifiers(ui).is_some_and(|m| m.command)
++}
++
+ /// Toggle a boolean preference (through `prefs.set`, as agents do).
+ pub fn set_pref(app: &mut VectorcraftApp, key: &str, on: bool) {
+     if let Err(e) = app.run("prefs.set", json!({ "key": key, "value": on })) {
+diff --git a/crates/ui-egui/src/widgets.rs b/crates/ui-egui/src/widgets.rs
+index 4ed3caa6..945c2c3d 100644
+--- a/crates/ui-egui/src/widgets.rs
++++ b/crates/ui-egui/src/widgets.rs
+@@ -317,6 +317,25 @@ pub(crate) fn enter_modifiers(ui: &Ui) -> Option<egui::Modifiers> {
+     })
+ }
+ 
++/// A [`num_field`] for a width or height (Transform panel, Properties panel, Control bar): Ctrl/Cmd+Enter
++/// also commits it and ends its editing, as Enter does, and [`enter_modifiers`] reports Command.
++pub fn size_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, value: Option<f64>, unit: Unit, width: f32) -> Option<f64> {
++    use egui::{Event, Key};
++    // The text box does not end its editing on an Enter with Ctrl/Cmd: a plain Enter goes in right
++    // after it, so the box first takes the text typed before it in this frame.
++    let field = ui.id().with(&id);
++    if ui.memory(|m| m.has_focus(field)) {
++        ui.input_mut(|i| {
++            let cmd_enter = |e: &Event| matches!(e, Event::Key { key: Key::Enter, pressed: true, modifiers, .. } if modifiers.command);
++            if let Some(at) = i.events.iter().position(cmd_enter) {
++                let enter = Event::Key { key: Key::Enter, physical_key: None, pressed: true, repeat: false, modifiers: egui::Modifiers::NONE };
++                i.events.insert(at + 1, enter);
++            }
++        });
++    }
++    num_field(ui, id, value, unit, width)
++}
++
+ /// Select all of `text` in text field `id`.
+ fn select_all(ui: &Ui, id: egui::Id, text: &str) {
+     let mut st = egui::TextEdit::load_state(ui.ctx(), id).unwrap_or_default();
+@@ -861,6 +880,12 @@ pub fn menu_room(floor: f32, top: f32) -> f32 {
+     (floor - top - BOTTOM_GAP).max(MIN_HEIGHT)
+ }
+ 
++/// The scroll bar of a menu's list: slim, in a column of its own beside the items, so it never
++/// covers what sits at their right end (shortcuts, submenu arrows, a font's favourite star).
++pub fn list_scroll_style() -> egui::style::ScrollStyle {
++    egui::style::ScrollStyle { bar_width: 6.0, bar_inner_margin: 2.0, ..egui::style::ScrollStyle::solid() }
++}
++
+ /// The body of a menu or popup list: as tall as its items up to the bottom bars of the window, and
+ /// scrolling only past that, so long menus (Window, Effect, a panel's menu) stay reachable on
+ /// small windows. Its scroll bar has a column of its own, so it never covers the shortcuts or the
+@@ -869,7 +894,7 @@ pub fn menu_scroll<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> R
+     let floor = ui.ctx().data(|d| d.get_temp::<f32>(egui::Id::new("menu_floor"))).unwrap_or_else(|| ui.ctx().content_rect().bottom());
+     let room = menu_room(floor, ui.next_widget_position().y);
+     ui.scope(|ui| {
+-        ui.spacing_mut().scroll = egui::style::ScrollStyle { bar_width: 6.0, bar_inner_margin: 2.0, ..egui::style::ScrollStyle::solid() };
++        ui.spacing_mut().scroll = list_scroll_style();
+         // The minimum lets the list grow past a popup's default 400 pt size; it still shrinks to
+         // its items when they need less.
+         egui::ScrollArea::vertical().max_height(room).min_scrolled_height(room).show(ui, add_contents).inner

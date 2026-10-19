@@ -1,0 +1,15 @@
+--- a466/ci-config.json
++++ 320b/ci-config.json
+@@ -12,9 +12,9 @@
+   "expected_exits": [
+     0
+   ],
+-  "expected_head": "a466625c8987550635cda951ebf36e08e1e80a56",
+-  "name": "r82-pr1919-maina466-typef196-ci-01",
++  "expected_head": "320bffb8adede9eeff0efcd22145fe5a3128bf6e",
++  "name": "r82-pr1919-main320b-typef196-ci-01",
+   "phase": "ci",
+-  "tree": "9f7a5d09419f9b451c38aaf2a2bf9e63a13e921e",
++  "tree": "e2ccdaf3c6a13a59c87b78498ef63d2a0c5c4e36",
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }

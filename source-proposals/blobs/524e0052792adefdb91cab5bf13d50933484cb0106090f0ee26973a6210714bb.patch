@@ -1,0 +1,15 @@
+--- a/crates/ui-egui/src/panels/layers.rs
++++ b/crates/ui-egui/src/panels/layers.rs
+@@ -652,8 +652,10 @@
+     let released = ui.input(|i| i.pointer.any_released());
+     let changed = out.column.is_some();
+     let mut column = out.column.take().unwrap_or_else(|| view.column.clone());
+-    // A newly started column must not borrow another control's live interaction.
+-    if column.as_ref().is_some_and(|c| c.interaction.is_none()) && app.session.in_interaction() {
++    // Pending Typing can settle in live_run; a fresh column must not borrow other interactions.
++    if column.as_ref().is_some_and(|c| c.interaction.is_none())
++        && app.session.active().and_then(|st| st.interaction.as_ref()).is_some_and(|it| it.label != "Typing" || it.preview.is_none())
++    {
+         column = None;
+     }
+     if let Some(c) = column.as_mut().filter(|_| changed || released) {

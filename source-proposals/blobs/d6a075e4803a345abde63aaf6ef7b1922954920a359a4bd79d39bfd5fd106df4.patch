@@ -1,0 +1,13 @@
+--- a/crates/ui-egui/src/shortcuts.rs
++++ b/crates/ui-egui/src/shortcuts.rs
+@@ -258,6 +258,10 @@
+             return;
+         }
+         if ctx.input(|i| i.key_pressed(Key::Escape)) {
++            // Let the open popup handle Escape when the dialog is rendered later this frame.
++            if app.ui.dialog.is_some() && egui::Popup::is_any_open(ctx) {
++                return;
++            }
+             crate::dialogs::cancel(app);
+             app.ui.palette_open = false;
+         }

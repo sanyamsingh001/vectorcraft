@@ -1,0 +1,1616 @@
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/baseline-config.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/baseline-config.json
+@@ -8,7 +8,7 @@
+       "-p",
+       "vectorcraft-tools",
+       "--lib",
+-      "text::tests::type_arrows_keep_devanagari_clusters_with_an_rtl_suffix",
++      "text::tests::type_arrows_keep_devanagari_clusters_across_wrapped_lines",
+       "--",
+       "--exact",
+       "--nocapture",
+@@ -21,9 +21,9 @@
+   "expected_exits": [
+     101
+   ],
+-  "expected_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
+-  "name": "r82-text-mixed-direction-73f-before-01",
++  "expected_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++  "name": "r82-pr3004-wrap-baseline-b6e58-01",
+   "phase": "baseline",
+-  "tree": "8a75d2f86bfbb31f39fa83b13f52ab76255ab27a",
++  "tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985",
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/admission.UNBOUND.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/admission.UNBOUND.json
+@@ -1,19 +1,24 @@
+ {
++  "assertion_contract": {
++    "bytes": 2401,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/assertion-contract.json",
++    "sha256": "130259cfb951b4b106fda1f20e4897fd8a9853b0e3d8533e7d9402a873ad1fb5"
++  },
+   "cases": {
+     "baseline": {
+-      "canonical_source_digest": "ddd18b9fd1dd76160f4edf5d66a6221635c08765b0c5a31817e20c41cd36ddcd",
++      "canonical_source_digest": "0ed326a67cc21ee6f9d0144d480bee63295e5ab82d71d2765d5d940927da2499",
+       "config": {
+-        "bytes": 714,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/baseline-config.json",
+-        "sha256": "db86f5c36e4dde4cde0295776245ac26fe7a3a59318673a08ade11c2962d3b24"
++        "bytes": 711,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/baseline-config.json",
++        "sha256": "1d2ac7df5950d0414f0ce91454e2e376ab83471da29ae66b991f976ce4c38f98"
+       },
+-      "expected_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
++      "expected_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+       "source_manifest": {
+         "bytes": 193557,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runtime-source-manifest.json",
+-        "sha256": "015a9fff310867e2c45e113051ec2c9c9d42e74f1539f40bff3feb9cd0ee9223"
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/runtime-source-manifest.json",
++        "sha256": "04d3a47253ef756639edea3b5beb466d4fbdcedddccd2f96cfbfd9701c85ee93"
+       },
+-      "tree": "8a75d2f86bfbb31f39fa83b13f52ab76255ab27a"
++      "tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985"
+     }
+   },
+   "independent_review": {
+@@ -25,9 +30,9 @@
+     "sha256": "97c01f80d25b1f6f45a2bbea802a6689f04acb22862c9485f8080fd18b5792fc"
+   },
+   "outer_environment_binding": {
+-    "bytes": 11570,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/output-environment.json",
+-    "sha256": "4072f7f0f96d403c765b537501b2c34f7bd6adcddf3e156619fa32e6827c451c"
++    "bytes": 12145,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json",
++    "sha256": "598adc782d8170fd30c06fde4f996bc6dd2e3ea3cc518944bbe1d5c1d75966d4"
+   },
+   "owner_review": {
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/owner-review-v1.json",
+@@ -51,12 +56,12 @@
+     "terminate_grace_seconds": 10
+   },
+   "runner_sha256": "2faba37df44851611e1f56f4a0ea77c09f65d09e584296173f4c04e31c3b2584",
+-  "runtime_admission_required": "Fresh root grant and existing resource/process/lock/source guards before the explicit closed corrected-e6 to73f baseline transition. No transition or run performed.",
+-  "source_binding_note": "One unchanged private Type diagnostic on73f, containing plain-LTR and mixed-direction cases. The unchanged runner's historical11-test NOT_EVALUATED sentence is provenance only; actual named-test membership and earliest assertion control acceptance.",
++  "runtime_admission_required": "Fresh root grant plus the existing process/resource/source/lock controls before the closed797 execution to published-b6e58 one-test transition. This binding performs no transition or run.",
++  "source_binding_note": "Exactly one accepted wrapped Type test. Historical runner11-test metadata is provenance only; TYPE_WRAP_PRE_ASSERT_READY and the first actual Right assertion control applicability.",
+   "source_materialization": {
+-    "bytes": 3181,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/result.json",
+-    "sha256": "a2e968ebf9727b56f286ca3d2127850dbd9518f6efaea910006e66f539eda1f2"
++    "bytes": 4105,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/result.json",
++    "sha256": "802c9c45daaf3f8895534b16e272fcf124805da7f48e902c6399aef79fb07f0e"
+   },
+   "status": "UNBOUND",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated",
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/output-environment.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json
+@@ -11,6 +11,16 @@
+     "sha256": "3b94c37c1b57ce671d5fa2e4b12d83372f21da79a21d6a0ae74fac50cd9ad9f3"
+   },
+   "at": "2026-10-18T07:24:57.154995+00:00",
++  "binding_update": {
++    "at": "2026-10-19T01:36:37.692931+00:00",
++    "original": {
++      "bytes": 11570,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/output-environment.json",
++      "sha256": "4072f7f0f96d403c765b537501b2c34f7bd6adcddf3e156619fa32e6827c451c"
++    },
++    "runtime": null,
++    "scope": "Only the new per-run XDG output paths; original direct-toolchain/owned homes/profile/cache bindings retained. Historical protected/version observations remain provenance only."
++  },
+   "cache_copy_performed": false,
+   "compiled_artifact_seeding": false,
+   "credential_or_config_copy": false,
+@@ -38,10 +48,10 @@
+     "TMP": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/tmp",
+     "TMPDIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/tmp",
+     "VECTORCRAFT_NO_PREFS": "1",
+-    "XDG_CACHE_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-text-mixed-direction-73f-before-01/environment/cache",
+-    "XDG_CONFIG_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-text-mixed-direction-73f-before-01/environment/config",
+-    "XDG_DATA_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-text-mixed-direction-73f-before-01/environment/data",
+-    "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-text-mixed-direction-73f-before-01/environment/rt"
++    "XDG_CACHE_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/cache",
++    "XDG_CONFIG_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/config",
++    "XDG_DATA_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/data",
++    "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/rt"
+   },
+   "existing_cache": {
+     "bytes": 9349,
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/assertion-contract.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/assertion-contract.json
+@@ -1,21 +1,37 @@
+ {
+-  "test_count": 1,
+-  "exact_test_name": "text::tests::type_arrows_keep_devanagari_clusters_with_an_rtl_suffix",
++  "early_failure_policy": "Missing-font capability skip, setup/route/font/layout failures or any assertion before TYPE_WRAP_PRE_ASSERT_READY do not establish the reported fallback defect. Preserve the first actual assertion and full marker line.",
++  "exact_test_name": "text::tests::type_arrows_keep_devanagari_clusters_across_wrapped_lines",
+   "expected_baseline_exit": 101,
+   "expected_exit_alone_is_not_semantic_acceptance": true,
++  "first_intended_behavioral_failure": "After the accepted actual wrapped-layout and font prerequisites, real Type Right from collapsed byte6 must reach the unchanged caret/anchor18 assertion. Source predicts actual12; no runtime result is claimed.",
++  "font_evidence_scope": "The exact accepted installed-family/coverage policy and within-run selected/used Hindi face identity remain unchanged; no earlier private-pair font/runtime credit transfer.",
++  "ordinary_input_scope": "One existing-harness Type regression, using actual key handling. No OS or physical-input claim.",
+   "required_order": [
+-    "TYPE_ARROW_PRE_ASSERT_READY: case=plain_ltr;",
+-    "TYPE_ARROW_CASE_COMPLETE: plain_ltr",
+-    "TYPE_ARROW_PRE_ASSERT_READY: case=mixed_rtl;"
++    "TYPE_WRAP_PRE_ASSERT_READY"
+   ],
+-  "first_intended_behavioral_failure": "Mixed-direction Right arrow must be observed reaching the unchanged (18,18) assertion; source predicts actual (12,12), not yet observed. Plain Right and Left controls must complete first.",
++  "runtime": null,
++  "source_owner": {
++    "bytes": 4342,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/accepted-owner-receipt.json",
++    "sha256": "14d29dacffcdae7fe18347f6d76afec85a6330a97ccf4c9de81202b653cc32a8"
++  },
++  "source_patch": {
++    "bytes": 6768,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/accepted-test-only.patch",
++    "sha256": "a5afec13d8da33929db69ab77255bb662ae0b2c303cf9409fbf7c40be9ceeb5b"
++  },
++  "source_peer": {
++    "bytes": 5552,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/accepted-independent-source-review.json",
++    "sha256": "2ed628dc9aca98faae17a84c4f89d87497411ea6e9fd4afdc121f38ca78abf12"
++  },
++  "source_test": {
++    "bytes": 6440,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/accepted-test.rs",
++    "sha256": "e0b400ac76f0af70cbd73144c86725a75c8514847efd88ad3cebcf48e50e1dc5"
++  },
++  "test_count": 1,
+   "unreached_after_expected_failure": [
+-    "Mixed-direction Left assertion",
+-    "TYPE_ARROW_CASE_COMPLETE: mixed_rtl"
+-  ],
+-  "early_failure_policy": "Font/raw-span/edit-boundary or other setup failure is not causal Type reproduction. Preserve exact earliest assertion and all prior markers.",
+-  "font_evidence_scope": "Selected font and used Hindi glyph fonts must match within this run by actual byte equality and face index. Equality to prior captured diagnostic font bytes is unknown unless independently established; no historical identity credit from family/version alone.",
+-  "publication_scope": "Private diagnostic baseline only. Exact system-font/raw-span prerequisites are not a universal supported-font/OS contract. Any eventual committed regression must follow existing repository font provisioning/skip policy and the demonstrated behavior contract.",
+-  "ordinary_input_scope": "Existing test harness dispatches actual Type key handling; no OS/native keyboard claim.",
+-  "marker_matching": "Literal source-derived prefixes including punctuation; preserve complete emitted lines."
++    "Left assertion returning to byte6"
++  ]
+ }
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/transition.UNBOUND.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/transition.UNBOUND.json
+@@ -1,1347 +1,58 @@
+ {
+-  "after_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
++  "after_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+   "after_manifest": {
+     "bytes": 193557,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runtime-source-manifest.json",
+-    "sha256": "015a9fff310867e2c45e113051ec2c9c9d42e74f1539f40bff3feb9cd0ee9223"
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/runtime-source-manifest.json",
++    "sha256": "04d3a47253ef756639edea3b5beb466d4fbdcedddccd2f96cfbfd9701c85ee93"
+   },
+-  "after_tree": "8a75d2f86bfbb31f39fa83b13f52ab76255ab27a",
++  "after_tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985",
+   "assertion_contract": {
+-    "bytes": 1705,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/assertion-contract.json",
+-    "sha256": "98b6fcdb432a1788edecaea9e8ec5dca808a4b6aa548b7c43a7b404107251694"
++    "bytes": 2401,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/assertion-contract.json",
++    "sha256": "130259cfb951b4b106fda1f20e4897fd8a9853b0e3d8533e7d9402a873ad1fb5"
+   },
+-  "before_head": "e6aec0664cf8ebc86677cb17f46be42b511208a7",
+-  "before_index_sha256": "03cb76e26385c2bc0fcd7aa66f7148be8dd79291b29fc86c9431efbb610dc1cf",
++  "before_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
++  "before_index_sha256": "05f639c091e740355b100c0bd58018bcce7afb834d7e06d69a8137c716e7c7e3",
+   "before_manifest": {
+-    "bytes": 192775,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/source-before.actual.json",
+-    "sha256": "2c34a686a998d77238bf3c81092e06b78b622cdb6db835992a81e404625c729e"
++    "bytes": 193557,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/source-before.actual.json",
++    "sha256": "9dc1f122e048c73e905a4c874d16d24cbddd594ed07f88bb969b07d316f444d5"
+   },
+-  "before_tree": "5467804c649dfbf5d5bec969cb2126fd01c31d89",
++  "before_tree": "7abbe28c9a942c9e81f28f196a78308290228b42",
+   "cache_input_binding": {
+     "bytes": 12775,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text73f-craft-docpath-cache-01/result.json",
+     "sha256": "3b94c37c1b57ce671d5fa2e4b12d83372f21da79a21d6a0ae74fac50cd9ad9f3"
+   },
+   "change_counts": {
+-    "added": 7,
+-    "modified": 208,
++    "added": 0,
++    "modified": 1,
+     "removed": 0
+   },
+-  "changed_path_count": 215,
++  "changed_path_count": 1,
+   "changed_paths": [
+     {
+-      "after_sha256": "5d5f0acc103b5c5a53a54a288d460cda495d3b9704668993d4e6b2937ae7a718",
+-      "before_sha256": "83c59e01e6f18e16c62f4e24a1e55b5d6daf5b62f3c70254216fca16e26f5099",
+-      "path": "Cargo.lock",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/Cargo.lock"
+-    },
+-    {
+-      "after_sha256": "0275eb08a9940dd61462b3f3a5b8f1854770a3d14e4cc305b7e2b648fe30c2b8",
+-      "before_sha256": "82e5453aa04451e334be40ceed2948f573039b2ece4d3fbe52227c7ab555ae57",
+-      "path": "Cargo.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/Cargo.toml"
+-    },
+-    {
+-      "after_sha256": "5c144eadc9cfdeb73c8b529d4a3928518792667d457da99a7f6e3a7cb6a7061e",
+-      "before_sha256": "e6883a287abd615f50274fc22ba37ac6d16845dbba3aad0e8eca01332c6758c8",
+-      "path": "ROADMAP.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/ROADMAP.md"
+-    },
+-    {
+-      "after_sha256": "d2174cc08826774dfb56a8cf2f2a3e7b2a73995a3ce553fe8dac257906c06b56",
+-      "before_sha256": "d299f6d685c47a0abb233e2bff8e8143eb2b167e2c869c7a909304ae9db28b94",
+-      "path": "apps/vectorcraft-cli/src/main.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/apps/vectorcraft-cli/src/main.rs"
+-    },
+-    {
+-      "after_sha256": "aae2959d2d884f36f4ebf17f9612572495d5aab0a668829ca6fa70f0b607f8ed",
+-      "before_sha256": "21e17ceaca3b4a65a3cca0c03b4c6d7527b9fde2ca610ea5065bebf46ce8d7d7",
+-      "path": "apps/vectorcraft-cli/tests/fileio.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/apps/vectorcraft-cli/tests/fileio.rs"
+-    },
+-    {
+-      "after_sha256": "964f1e42b6581df53c4832ffcefc3b72809876f56ea3e4053a9d8b8af623547f",
+-      "before_sha256": "1715f48abbb4bcf08dddcb27465f9cee52007655897d59d144c3f02d2c410f32",
+-      "path": "apps/vectorcraft/Cargo.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/apps/vectorcraft/Cargo.toml"
+-    },
+-    {
+-      "after_sha256": "783b9227089282fa7e5c8e5f6b2a21dba607c393be11ba40861ceabb4bcdc4fb",
+-      "before_sha256": "1c794ae1f31860748d937600ecdb2c651a0bced6c60419b9be32dd1add8dec5e",
+-      "path": "apps/vectorcraft/src/main.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/apps/vectorcraft/src/main.rs"
+-    },
+-    {
+-      "after_sha256": "2e2a6bc774e41c436a6bf2684377ee97b9dc2a548ea7455c2260e26234d28557",
+-      "before_sha256": null,
+-      "path": "apps/vectorcraft/src/portal_save.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/apps/vectorcraft/src/portal_save.rs"
+-    },
+-    {
+-      "after_sha256": "345d092df17253ea427002165035b3a65233c6021965f0d52e76ceb651ea745d",
+-      "before_sha256": "da9b05fe006a72f936f7518b43478e37f89b61bb8f500fdbf391391640540a75",
+-      "path": "crates/color/src/freeform.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/color/src/freeform.rs"
+-    },
+-    {
+-      "after_sha256": "1c0ab06ca614dd59e61aacf584de36b8d5c1a5c653c6097232601a6def918284",
+-      "before_sha256": "8cc1005843431e5d791368eac8b2f5dc0f9b2925dc9467db7143dfc4b15cdadf",
+-      "path": "crates/color/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/color/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "f38251c0a1ff322da1fe8ab13cf91e7799e3d44ce4c69131173e3172eaf77a6f",
+-      "before_sha256": "8ee4f85f7706688be1a92b65926af2201198ef787b09e6e3d7bab15918703682",
+-      "path": "crates/doc/src/blend.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/doc/src/blend.rs"
+-    },
+-    {
+-      "after_sha256": "7788e4fbd51bdd73946d6b15912cc9233f0b93892d10addc721a91251c9c3dc6",
+-      "before_sha256": "5a5d3ddaa7ea40f92c65110b4748661baf60d30d2e54dee86e072e8430883726",
+-      "path": "crates/doc/src/hit.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/doc/src/hit.rs"
+-    },
+-    {
+-      "after_sha256": "cfafa55e4a4dda2a1e9c637673418dcdb9a5787d0310cc831e3fc509c9e5ce00",
+-      "before_sha256": "6fa46a47588e7cada6e6c10e230dcfa2f26fbca547ddd8c6069490a8dc7c2c35",
+-      "path": "crates/doc/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/doc/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "55a12d506fc5d847cb292491a835619b06a3fd8b76e174722fecb59893a7e077",
+-      "before_sha256": "21cd0188562a4c18dedf819abf53a2ae084452f10db85a251edc0f34c23c081d",
+-      "path": "crates/doc/src/live.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/doc/src/live.rs"
+-    },
+-    {
+-      "after_sha256": "0cb24710602302485d5d30bf8be9e44a15851a1fc864314f6749931b40e4e68b",
+-      "before_sha256": "5bf0e0dde2bec25c80ecf3c6ef54ca6b7ed53cdd988ce1ca057278d763eeb32a",
+-      "path": "crates/doc/src/text.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/doc/src/text.rs"
+-    },
+-    {
+-      "after_sha256": "bf04d8f49d7e6eb89da6aeee5acd4de48d1378e1b27f89e60b09c63a5516f17d",
+-      "before_sha256": "a2e988b52f8dc24d48bf10a5e7e14fe6dae714c4ac8375479b9cbb5432140f9d",
+-      "path": "crates/effects/src/adjust.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/effects/src/adjust.rs"
+-    },
+-    {
+-      "after_sha256": "78309ec8f2c49045cc2ee58b6022eb192c50c08fb76cc101689bbba74a52529c",
+-      "before_sha256": "ab77fa3c5bbf85b32ef4a6493aac4e2ed4c5ec4ee58a527a6f9e21d8efb8b15e",
+-      "path": "crates/effects/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/effects/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "78db8d6b41d37f4eccd097ea5828c09fa16e70f3a542c61d6b5a474ae03dd587",
+-      "before_sha256": "e325c1df89890dd2a3822b468278daf1deb41face2412bc601031af876fa899e",
+-      "path": "crates/engine/Cargo.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/Cargo.toml"
+-    },
+-    {
+-      "after_sha256": "6a12124924c9dd8695b6008e7f1232d078cc6f00ceee3712a3c0d05f2976abb9",
+-      "before_sha256": "07baffc159d738acdfb7b68e139cf0d1d7ab32176ff69c105a5f324998fcf39d",
+-      "path": "crates/engine/src/cmd/brushsym.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/brushsym.rs"
+-    },
+-    {
+-      "after_sha256": "fbf073e8aad67331b756b802ddce04cf18dafa5f8f57bee2aa152d6bc06cf7ec",
+-      "before_sha256": "780d047acdfa7c5c442255a429e35ca285d2f712acf05ba228727d829155d93c",
+-      "path": "crates/engine/src/cmd/buildcmds.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/buildcmds.rs"
+-    },
+-    {
+-      "after_sha256": "ad2358a1356e8f42c224f765372c393c9f86ec466d2aa06d41e948f2d2c5dbf6",
+-      "before_sha256": "f554ea1a56e90df5a4112e1991e197e1e7b85d409848702e782ce4ebc0e03a13",
+-      "path": "crates/engine/src/cmd/colortheme.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/colortheme.rs"
+-    },
+-    {
+-      "after_sha256": "579a83ab35b88bbbd1052972a14b017bceffc6b26fa4c43b0c3c14fe20bb5f21",
+-      "before_sha256": "ced5bdeab6ca6aa03df07406fb3e746115ddaca97101f07e3f3cff309495fcf3",
+-      "path": "crates/engine/src/cmd/create.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/create.rs"
+-    },
+-    {
+-      "after_sha256": "406dc80669f6254741e15beae91214ef70988fa4db8ab7d41b4d8cd6c33aa8dc",
+-      "before_sha256": "431ae419d0e3dae0c33b3c203bd900f1d837e9da939716acc2b6d6d028aa6530",
+-      "path": "crates/engine/src/cmd/edit.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/edit.rs"
+-    },
+-    {
+-      "after_sha256": "6a04aa8afa2f7bb71ad0b899aca135e3fe1b13069acab726583511f7e8714054",
+-      "before_sha256": "c58ad97fe83eafb11d964b41c3f30cf344cb7cae7e225ec15f725e05ee8cd98e",
+-      "path": "crates/engine/src/cmd/effectcmd.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/effectcmd.rs"
+-    },
+-    {
+-      "after_sha256": "1aeaf6a953f68233d6902f864be3e10eb05187162b8b2de58273f4d01823381a",
+-      "before_sha256": "df2894ccef6b26ca2e6ab48be3d32b7ba8d6719c4561177eec6e1e64f74af0e1",
+-      "path": "crates/engine/src/cmd/expand.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/expand.rs"
+-    },
+-    {
+-      "after_sha256": "04068ba6f0a47b2e5b4b185ed67fc2013155aa01ac2e6549c7a5f81f940b97a8",
+-      "before_sha256": "bbbdbe68d3fae114ade7e98a4993c999fbc9f683d5d592470db549830749b613",
+-      "path": "crates/engine/src/cmd/fileio/export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/export.rs"
+-    },
+-    {
+-      "after_sha256": "b5380fe092ebd076679a748cc7d353fed9bf9eaf9c0a4c752615b033f2552328",
+-      "before_sha256": "2e163d76f055215d31310b5c9f9f98b6d51cac8810e42adc5358bca71697f47a",
+-      "path": "crates/engine/src/cmd/fileio/legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/legacy_ai.rs"
+-    },
+-    {
+-      "after_sha256": "a3bf21ab382b24440fac604bdc1c28a0008943d0caec3f3905e1a09164c791db",
+-      "before_sha256": "fc95ed464266c22c813cb0a71b66a97cedcc5502de284104a6154370b5c5d2cf",
+-      "path": "crates/engine/src/cmd/fileio/load.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/load.rs"
+-    },
+-    {
+-      "after_sha256": "db74d3fb5b6dbb488ef0996dc9033dcb8930523b364caf241e2fb7b86418e54c",
+-      "before_sha256": "84ed6678d950278f857a0542a0297bd8a88805c6ec94bac16f852d2c3eb698ba",
+-      "path": "crates/engine/src/cmd/fileio/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/mod.rs"
+-    },
+-    {
+-      "after_sha256": "3dcba7a57c1514f7299affcfba88cd31dbc526eaa65db1b34c38af688d3a961a",
+-      "before_sha256": "cb4150280c8f75bed43d5074ac9336e8056cbcdd8079e7a6c579cefc61c0197c",
+-      "path": "crates/engine/src/cmd/fileio/native.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/native.rs"
+-    },
+-    {
+-      "after_sha256": "d3405c459530a30d11c5179caacb79a365a7621ae972360c049e9511eaf81902",
+-      "before_sha256": "0a79cc2340217d835767e370500a4e2a4dd6c60d098772dbfaa6dbb9aedc47cb",
+-      "path": "crates/engine/src/cmd/fileio/pdf.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/pdf.rs"
+-    },
+-    {
+-      "after_sha256": "e23356a82051da00ec6a0fe836bbc90bcd1b409afda192760e096a08ed5af039",
+-      "before_sha256": null,
+-      "path": "crates/engine/src/cmd/fileio/progress.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/progress.rs"
+-    },
+-    {
+-      "after_sha256": "ee04f1ed0917b2cc552908adde5f055d19e4bdea3b5adceefab7fd76affb99ae",
+-      "before_sha256": "4dea4f9a27faca6cdea7ea4776e84235557dc38c1d8d08bd718ed934341ccaba",
+-      "path": "crates/engine/src/cmd/fileio/save.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/save.rs"
+-    },
+-    {
+-      "after_sha256": "2d4d5aebece3444d3b73d3a80871424bd855c02218eb270b5028f850d0838915",
+-      "before_sha256": "865a411f9b0bccf66750705b6dd87c5a777d6e04c43f93a1545c4a51804c4c38",
+-      "path": "crates/engine/src/cmd/fileio/screens.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/screens.rs"
+-    },
+-    {
+-      "after_sha256": "d0bb8c92565adbd18e656933cd9dc8aaedbfe623563194f456c5f3ddcf9f94f0",
+-      "before_sha256": "fb8d6cfea07bbe22f04edda94f7deff043ba56e6f67137912fce3063d4fa9940",
+-      "path": "crates/engine/src/cmd/fileio/tests_aiimport.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/tests_aiimport.rs"
+-    },
+-    {
+-      "after_sha256": "a64fe4e6bdbf85d22ea544ff7a8f85e447a588997ffb6466026562a62d227ad1",
+-      "before_sha256": "0570a99750158af98543623aed5df2813d56287bf921075be254dba7986b35f4",
+-      "path": "crates/engine/src/cmd/fileio/tests_pdf.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/tests_pdf.rs"
+-    },
+-    {
+-      "after_sha256": "c121285d87680b19429b751d537eb94db811cc6a53fd91136e8e08c8a651818b",
+-      "before_sha256": "05480021359c4f034453cd20c3a9617cea81d7c9f0702465c9eb887fb97728e2",
+-      "path": "crates/engine/src/cmd/fileio/tests_pdfedit.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/tests_pdfedit.rs"
+-    },
+-    {
+-      "after_sha256": "d500a84fb1e584f1a04ff3f2e89c611b2019df7a9de915cff9af25a93593b669",
+-      "before_sha256": "d763571e753d0cb4da9a42eedc8b8ee2084ab44ae74ae2bafea283bc86d86ee1",
+-      "path": "crates/engine/src/cmd/fileio/tests_pdffidelity.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/tests_pdffidelity.rs"
+-    },
+-    {
+-      "after_sha256": "3b0663042868587395b494d8aa18d4812ad74cdbfa84ab3871857983904be22e",
+-      "before_sha256": "99c7d61b1f82f51465df82ef7df5d7622c666b3c28953e43cfd5eb3f1bad13ec",
+-      "path": "crates/engine/src/cmd/fileio/tests_screens.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/fileio/tests_screens.rs"
+-    },
+-    {
+-      "after_sha256": "9f098c5ecebe09154ddc3fec002773542b96b8545e29194c2db2521567b7a583",
+-      "before_sha256": "2391475ed83b3d876caee0ebc17578450bd3bf6908c3f65dcea838b4ae6c1193",
+-      "path": "crates/engine/src/cmd/freeform.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/freeform.rs"
+-    },
+-    {
+-      "after_sha256": "8be7ee29e89c436d471bdb64182836e8b41112c0650de6409efbb0e3bac6a7af",
+-      "before_sha256": "ab82a7b3c96d06242979bbda4f862e58ae2b66cfdc18873b6e1495862ea5daa6",
+-      "path": "crates/engine/src/cmd/gradient.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/gradient.rs"
+-    },
+-    {
+-      "after_sha256": "e563c6c9fc858b71f3f585d2a54cba8afd77b22f0a9a6c184d1c1a0cd03f466f",
+-      "before_sha256": "5736e32f76fc2b032e805a974afe451e215c468f196106089281bfe8aec134ac",
+-      "path": "crates/engine/src/cmd/links.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/links.rs"
+-    },
+-    {
+-      "after_sha256": "d9cb1bd65f8296665acb094e0561b49b1072592fecaa2ee781f90ef214d121ca",
+-      "before_sha256": "bfae1326f18fda67ea499a70406bbf7aa013890977e58e93c0568d01313a439f",
+-      "path": "crates/engine/src/cmd/live.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/live.rs"
+-    },
+-    {
+-      "after_sha256": "e0bdd2e16cc16fb1e2486bd9edfcc5456a86303bbf41c450e76d819d231c37a9",
+-      "before_sha256": "250521dc3d29a3aa7afa0fa00dee404dc21bff9692e0e30fb90995fc5dea9d9b",
+-      "path": "crates/engine/src/cmd/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/mod.rs"
+-    },
+-    {
+-      "after_sha256": "36b46a4499923e0f00081039fd918ab218d1b3990dee507b3ef93a8aa7598523",
+-      "before_sha256": "40fcee1c2ed17bb8a0e3f2b8edf14d951982634794519f3d0177f4fed263e406",
+-      "path": "crates/engine/src/cmd/paint.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/paint.rs"
+-    },
+-    {
+-      "after_sha256": "861c7f4ddb276f056ae43468e190e441aff1f4d386017823211a344664abd4e2",
+-      "before_sha256": "0e83ec10e7c4bcf8f07be44cefddc4653cf6c6110e3f7e84f919a88ef89bed0c",
+-      "path": "crates/engine/src/cmd/panelcmds.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/panelcmds.rs"
+-    },
+-    {
+-      "after_sha256": "30684e24fbc4094f3e6b32319eab07b19892e914f587cd0d917d2dc64c6e5500",
+-      "before_sha256": "446209a2474ddd6cd53d372ddd6ccc820f3d60611fc34894e38009c3a747d6cf",
+-      "path": "crates/engine/src/cmd/params.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/params.rs"
+-    },
+-    {
+-      "after_sha256": "fed4989877023f03c792a6a3a8d6b9e5ffd52f62a50b342133d00485de93c54b",
+-      "before_sha256": "ee368f2fe6a480fef5b9f0098a4bfdc3c24089ad09553cc561ff34356a495a77",
+-      "path": "crates/engine/src/cmd/patterncmds.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/patterncmds.rs"
+-    },
+-    {
+-      "after_sha256": "78e6e87a75519fedbeaeb58159ea17eb4487e62be6b483e5621bd2a2c498e401",
+-      "before_sha256": "5b934731a1d4bfe19c113498d4f831ce6b4b52988af6e5b373c3adf64cb4536b",
+-      "path": "crates/engine/src/cmd/place/document.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/place/document.rs"
+-    },
+-    {
+-      "after_sha256": "22f503ade68669a1f4ea798c61d6a976488b93fda5f990ef54f8566bb3574e4f",
+-      "before_sha256": "b5567778ad3cf12b6d14d60e622b54716822ad65706aa93dcc92104dc912a444",
+-      "path": "crates/engine/src/cmd/place/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/place/mod.rs"
+-    },
+-    {
+-      "after_sha256": "3b129ebf0a70766f0c3111cae9a62a8a8e3782a4d868935a0978242012170182",
+-      "before_sha256": "38ab4b3d0ffb8947220b2a3766ccd228e0203356df44324c40089b1bfea8ebee",
+-      "path": "crates/engine/src/cmd/place/rtf.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/place/rtf.rs"
+-    },
+-    {
+-      "after_sha256": "8b92add00d37cf82b3fcdce3be0d984c025b76f4f916c404a4dd759c9da6603a",
+-      "before_sha256": "6fb200e507d98824fd457820b1a90eb306cb97f9d5d96a5c6d7c821b2ed02da1",
+-      "path": "crates/engine/src/cmd/style.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/style.rs"
+-    },
+-    {
+-      "after_sha256": "333b5d49825f28f387dd08032aee2e075e25642c590f39ca340e675f04927319",
+-      "before_sha256": "381c4dc638139994b99119619ae64c9e15b17489b4026e315fa2da2135c16ace",
+-      "path": "crates/engine/src/cmd/swatch.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/swatch.rs"
+-    },
+-    {
+-      "after_sha256": "b9b611c1536cc33bb7364add958842eda519ee7165dd0cb91f15d01e73e6194d",
+-      "before_sha256": "46897ffe4ef42602500e92228edba619092f6a59c654ee83bdafbdbdd5e15782",
+-      "path": "crates/engine/src/cmd/textedit.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/textedit.rs"
+-    },
+-    {
+-      "after_sha256": "3f93c606fede1d77a57d8a166a9ef5c712672a5272193f864c96bb76c45aa9c0",
+-      "before_sha256": "fdfcb6d2f1929b4a3f89b2c44d5b379b3d1af3497f4e1294fd03fba6959d0606",
+-      "path": "crates/engine/src/cmd/textstyles.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/textstyles.rs"
+-    },
+-    {
+-      "after_sha256": "74cd3a49c83898d9c9d8c9bf9b4abbbbd72193a79be78e8a4126d5e02d7474d5",
+-      "before_sha256": "9b22a768468f922f025754cab44f397737f8e4ac3d6f81980dc0353a9c3d7e27",
+-      "path": "crates/engine/src/cmd/typecmd.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/cmd/typecmd.rs"
+-    },
+-    {
+-      "after_sha256": "c8cc81d64e9bf0c489928f7a2fa7fa217b828d91bffc144c1352e0a5b14faf87",
+-      "before_sha256": "42362e9bd3c29586f584efa92524b11569f4478d57b50554953f5ca0c9373418",
+-      "path": "crates/engine/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "8b09876701f4dd3120a2be4eead954b06ff7f0a952c395ada011b17a03a29937",
+-      "before_sha256": "ccbfb236bb04f5e07a931956413093bbd2a4ba8433d32ecee6644380ada9bcb4",
+-      "path": "crates/engine/src/link_watch.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/link_watch.rs"
+-    },
+-    {
+-      "after_sha256": "31e115323310d786d0219be8236ddc0e9c2de46a542d2ecac4ebe4fa40f92c42",
+-      "before_sha256": "ac8c3e5b2598d66dfe04a12154ec80c09dbb9ad42146c582f2ae0483b7066376",
+-      "path": "crates/engine/src/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests.rs"
+-    },
+-    {
+-      "after_sha256": "8cccd1b65b7394999e3ab254bae4819ba286da26b7cb72b25bda98713cfa7147",
+-      "before_sha256": "5070d70bfaed334773a2bcf70735d128e9b83393b6844ff1d326daa06a26989f",
+-      "path": "crates/engine/src/tests_brushsym.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_brushsym.rs"
+-    },
+-    {
+-      "after_sha256": "331e1b64d33d1a9c91b3f0b730294863dc27cfb1b3a47c421ff037c957dac6ab",
+-      "before_sha256": "61c955a9215205c4eb29980f0866afc6d98337caa2d2a01a1ac98846595e0746",
+-      "path": "crates/engine/src/tests_colorthemes.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_colorthemes.rs"
+-    },
+-    {
+-      "after_sha256": "7fbac8f02b19d0130132ed188085f3d7754179d7f6d6c568edee72faabbffd17",
+-      "before_sha256": "d69874e5fe1aa00e6042c5094b6a8aa58d94dd91c064073f74585fbd956b57f3",
+-      "path": "crates/engine/src/tests_draw2.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_draw2.rs"
+-    },
+-    {
+-      "after_sha256": "4e2edb009348e94251337180b4e29e2704c049c8cab875c2c4150108e2ff24ed",
+-      "before_sha256": "f8d1afa671207de58b18f0e638468bcc1fe38324f2816a23be10c4634f5e3a50",
+-      "path": "crates/engine/src/tests_eyedropper.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_eyedropper.rs"
+-    },
+-    {
+-      "after_sha256": "5e9403f4b2a1f77b4dc853e76d7fa16b4107348050b1fd6937650f1156b0cbb5",
+-      "before_sha256": "e5e0844063d7156ed47946b0d43a7d0ea934cd5f6e4f352a67f518595b8b0cbf",
+-      "path": "crates/engine/src/tests_fileinfo.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_fileinfo.rs"
+-    },
+-    {
+-      "after_sha256": "5c49b71f107257441c163074c2bb2c613dcd826a3932e0887d6759805da32511",
+-      "before_sha256": "e3bfb72774a89fdb7434461f240700ac6edd73b091b50eaf0d09cf98323a35f7",
+-      "path": "crates/engine/src/tests_freeform.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_freeform.rs"
+-    },
+-    {
+-      "after_sha256": "4f2e01d226f3e06ba8f65df570b74ff17a99595147de7c4dd103d2292ab55872",
+-      "before_sha256": "744b601566573ef73f92c8f2febfc4dece8a0cdb93e964dec0abf0e40ca1fc22",
+-      "path": "crates/engine/src/tests_legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_legacy_ai.rs"
+-    },
+-    {
+-      "after_sha256": "9b0579cd251c4af71f56ecb6f0ee30342dec26e116a6456126159db69b2f78a4",
+-      "before_sha256": null,
+-      "path": "crates/engine/src/tests_link_paths.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_link_paths.rs"
+-    },
+-    {
+-      "after_sha256": "5789d4c041f666ae83eb89d92cdffd3b5fe4617e30d96631e802970ec737835c",
+-      "before_sha256": "3e0fada9234752239751432823f85a663a506f94e83c762fa421908e8cc28473",
+-      "path": "crates/engine/src/tests_live.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_live.rs"
+-    },
+-    {
+-      "after_sha256": "a0433d51a44180e58b91c49021a17ddbd5c41647f59150e0b34613b8dcde32c8",
+-      "before_sha256": "21d542b06b1f27b720ce831b728b3af44f55a49e20407cb163d960c65b8d1d1e",
+-      "path": "crates/engine/src/tests_objexpand.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_objexpand.rs"
+-    },
+-    {
+-      "after_sha256": "4f24ccbadacc8df82d021548551a80ea25d0b3e9f6d5c8f1fc57e96f12b61043",
+-      "before_sha256": "b16781b77836aa7a2bffb07047a7ad4289f20a47169753474d24aa2c481324aa",
+-      "path": "crates/engine/src/tests_pattern.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_pattern.rs"
+-    },
+-    {
+-      "after_sha256": "2721f3995b1cf95e9fcd6aadc1f2b58348c8c70b7be210115a7cf9aa9dfb2d50",
+-      "before_sha256": "b4a0a6c0b0891acd4abcd0000d2244a2569db40843be2600240daca2018c1e3c",
+-      "path": "crates/engine/src/tests_place.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_place.rs"
+-    },
+-    {
+-      "after_sha256": "fbb404d3a827336a3d360135ac911384eae910d66f5b9fb8116123f01dd03383",
+-      "before_sha256": "0dca83e779032c7940e31b5338290bd6714b40e4c38444d08d2db659f483a1a5",
+-      "path": "crates/engine/src/tests_styles.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_styles.rs"
+-    },
+-    {
+-      "after_sha256": "1a87f5fcef832c90f3ee83880007a65e725a3445a9ef5b78a19f7bce3810b44b",
+-      "before_sha256": "68c406a2f83831aa5fe4a9350b209659cf1751e195b05ecbde3489dbf3c03dfc",
+-      "path": "crates/engine/src/tests_swatchcmds.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/src/tests_swatchcmds.rs"
+-    },
+-    {
+-      "after_sha256": "e5f9a69d43e5195c61a6a4040116acd5a542d7dffbf925bac4fcad7921f6aff6",
+-      "before_sha256": "7994d94dd97d7471a81f108b2b2111f4fd02455ababe63f6441c5de821022e3e",
+-      "path": "crates/engine/tests/color_settings.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/tests/color_settings.rs"
+-    },
+-    {
+-      "after_sha256": "5eabcf875112e7260351943130386b15a58e61c6f13c0f90b581a93777e88bf4",
+-      "before_sha256": "57851bdc550676cf2124c4769a4cc5acc18a6d0c411a06a7026927d2bc298544",
+-      "path": "crates/engine/tests/import_fuzz.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/tests/import_fuzz.rs"
+-    },
+-    {
+-      "after_sha256": "641c813ae9976bf79a3187f0a29038852d83c026d1cd0926b5f36905abec464f",
+-      "before_sha256": "4e2419bb21e6f139e1c2f3cef63430cf8417c533ccfa4f7c15293631c513f50b",
+-      "path": "crates/engine/tests/param_keys.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/engine/tests/param_keys.rs"
+-    },
+-    {
+-      "after_sha256": "70f2052c032bf29b6b13d6db2f9519a7f7a11939a5d9d730fcdbbcee429dec5d",
+-      "before_sha256": "1ba43afb336fc170268598db159a813804948bf9f518a0c5e2f032af5f6c4057",
+-      "path": "crates/eps/src/import/ai/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/import/ai/mod.rs"
+-    },
+-    {
+-      "after_sha256": "c85a706a08e965199a7e07732cf4c84ae69631759c480069f91423f926988ce9",
+-      "before_sha256": "3f40eacd5ea0c7e855226217415b60f6f03fbc1b3caaf45038545caf57120a88",
+-      "path": "crates/eps/src/import/ai/read.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/import/ai/read.rs"
+-    },
+-    {
+-      "after_sha256": "d28a1a0b05e3ca2de3bc1a9769d9616d683633a7b1ece4b2f95c5c67d062d1c0",
+-      "before_sha256": "24bd8a0d5a965df120c68b0f78c4adf31b50252fb03d4e08a445af365a110c06",
+-      "path": "crates/eps/src/import/ai/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/import/ai/tests.rs"
+-    },
+-    {
+-      "after_sha256": "e9cd535ee20083e551bb3c006dc544b728e28dceb4c2e489c863414849622e7f",
+-      "before_sha256": "ac47b84bd8956d94eaf374dfe934860333c32d2d84f312c4033911f8cc85336b",
+-      "path": "crates/eps/src/import/ate.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/import/ate.rs"
+-    },
+-    {
+-      "after_sha256": "9cd4cea4c934bc1801b7641059c7013ed915d7422ef3f95325d5238a26c0202e",
+-      "before_sha256": "b38e52d26558ed704f7fbd1781df119c294ce162a52cdf077e8a74db193b8752",
+-      "path": "crates/eps/src/import/native.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/import/native.rs"
+-    },
+-    {
+-      "after_sha256": "f364a75d1e2abaeb5873b6882b16070ee71bd5877ab67dd50b22a61d2e2ca1f3",
+-      "before_sha256": "7960a936262319b4740848a8c27d56995bf87776220efc8af4399feaeedef3a8",
+-      "path": "crates/eps/src/import/tests_native.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/import/tests_native.rs"
+-    },
+-    {
+-      "after_sha256": "5a0c28d9b4aa046e1cf07e33ff13ba525af12e80932452218aec3033ab669770",
+-      "before_sha256": "5800d60410027da3fe4517cc9a9a14da1bc479251978bb3f7568ea3e8016846c",
+-      "path": "crates/eps/src/legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/legacy_ai.rs"
+-    },
+-    {
+-      "after_sha256": "1b06c4771923641af09f5384be866d50166ce90a81faeaaae706a18e8107ea4d",
+-      "before_sha256": "4fae3ea40c09beb5e63c432229a6a9fc28140c9a0c2d2bbac6c70727612f1b60",
+-      "path": "crates/eps/src/tests_legacy_ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/eps/src/tests_legacy_ai.rs"
+-    },
+-    {
+-      "after_sha256": "a88814542ca600391f51c6e3a9de4a6202488e65f7f8997e78247c235511a211",
+-      "before_sha256": "5ad29879696071df19592a4198276e0c8c646fa67e7e9233aeb44d20bf39d84e",
+-      "path": "crates/geom/src/path.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/geom/src/path.rs"
+-    },
+-    {
+-      "after_sha256": "fdaf3e830d60a7cf5a9245d150bf1a53e4064473383ca7457debf8f0813bd04b",
+-      "before_sha256": "85ac144d6e53eee77332e07697c668fa38a1fb57e799fc2ccfaaaeee4bf0a66f",
+-      "path": "crates/mcp/src/intake.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/mcp/src/intake.rs"
+-    },
+-    {
+-      "after_sha256": "7f10eaeda3dae31558cffc3c1773bf37bfd295f2b037ac1eb6beb2176fd5292f",
+-      "before_sha256": "f6c897feac4c910e2a8af220126e9ac451e807299f9e6fbfb558137ed38d0172",
+-      "path": "crates/pdf/src/export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/export.rs"
+-    },
+-    {
+-      "after_sha256": "b32fe944e28a51cc17b1e9040e712972ea122c6bd7933fe550009bb02a8144e6",
+-      "before_sha256": "d2e1fc90c91ea19760a1c62e6faebd2f6d083075a4bc9613185f24340e2f2393",
+-      "path": "crates/pdf/src/file_info.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/file_info.rs"
+-    },
+-    {
+-      "after_sha256": "489517f115995e11f41082fc835668ae4c6b6918936dbe250e1b17261c25a63d",
+-      "before_sha256": "f3476d16d3b4e47f8a568524e9052df572bfde8c0fa2e68fa94dc57405183676",
+-      "path": "crates/pdf/src/import_scan.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/import_scan.rs"
+-    },
+-    {
+-      "after_sha256": "043f22cecf94bf61d3c95d49cc3c0be17dfefa5f8f0b9d9576d02e26ade3f12b",
+-      "before_sha256": "2b8ed37e4992cc76ef5284653507d4893d717c99ad4415523e0aea5bea9f73d3",
+-      "path": "crates/pdf/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "4930a00b0352624ca2bdfc365c9f27728c5afc6bcfe8925913c0506fea973127",
+-      "before_sha256": "420acef0a95296290a0f48a0c945354c87732a30ba7aac2e4dcd2a83aab08d4f",
+-      "path": "crates/pdf/src/post.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/post.rs"
+-    },
+-    {
+-      "after_sha256": "d0de585a8c5962e7d99923269109ed57d90209610b773e7bcc8f09db26b48f21",
+-      "before_sha256": "f68a613b537757d246451cc35ce100e098052619055f8e617e1526e22055ca8c",
+-      "path": "crates/pdf/src/print/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/print/mod.rs"
+-    },
+-    {
+-      "after_sha256": "6ab88f86b89e3c1ac98fc127d626ce88383a32cec23a12985b59bb5354457cbc",
+-      "before_sha256": "19667540a86d929bb1ebd53dfcbf3eadc39c094d241563c1698b431259c9be9b",
+-      "path": "crates/pdf/src/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/tests.rs"
+-    },
+-    {
+-      "after_sha256": "312d58f7b7bf414c2707406717ba61b8fddca720973e011ece5a3b8c2d133e63",
+-      "before_sha256": "aed80974692facdc0a86eef1ac43eb6e86c767e76b017fa2b7ffb9bc44dbebde",
+-      "path": "crates/pdf/src/tests_editing.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/tests_editing.rs"
+-    },
+-    {
+-      "after_sha256": "2714297fe45556b747328d78cf73c8ed0dd6e4990e71ff8070c810624d9fff97",
+-      "before_sha256": "04ec97b94daad2899888624e943bceaf3174077d232e9d728005aaeeb14e958c",
+-      "path": "crates/pdf/src/tests_file_info.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/tests_file_info.rs"
+-    },
+-    {
+-      "after_sha256": "247d82eb3542cc89b76c0c7125e18d097bf85cb1feb1af9a663c14ac98db981b",
+-      "before_sha256": "b103acffaf8ed6dd3ea3e64adc04e64abc8984dfae3a9f60f5b38d68cba5808c",
+-      "path": "crates/pdf/src/tests_import_layers.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/tests_import_layers.rs"
+-    },
+-    {
+-      "after_sha256": "d5b5b8ca3911915dd2dbd7985d09f2ba7f62938ad0075969042f8dd3443ddc5a",
+-      "before_sha256": "d3829b6bd9f360c90e4dbeb2fa13f698738415b695652df747cf96efba72d9a2",
+-      "path": "crates/pdf/src/tests_marks.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/pdf/src/tests_marks.rs"
+-    },
+-    {
+-      "after_sha256": "7b5456cf38f6d75cd373fe4a5169415b27d2d31cb3c80a78e83597104c905abd",
+-      "before_sha256": "133b8610ba2fbb109eb613b7c96c5034dbd9fa6f1d4c9d1701323e84ef9a4067",
+-      "path": "crates/render/src/encode/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/render/src/encode/mod.rs"
+-    },
+-    {
+-      "after_sha256": "85083efc5fe8686ef163915074f61f2b6a7d997ffe89324ac563221638d20b12",
+-      "before_sha256": "f65c2e273bbe14012cd011f9aef45853d30ce170c7c5369232e1590fcb3dc338",
+-      "path": "crates/render/src/fx.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/render/src/fx.rs"
+-    },
+-    {
+-      "after_sha256": "ee5ddb984bcd1cb5b9cad6e132cb5dcb837d6204421c15bbb6474d88f55a92c2",
+-      "before_sha256": "9dacd31006f1a62bdb58946885ab3e7ad679f2af245164809eda5a27c3eeebe5",
+-      "path": "crates/render/src/ink.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/render/src/ink.rs"
+-    },
+-    {
+-      "after_sha256": "02016f0753a5e8119bacf5ec9b77dbf09161b6c513e0175d8ead0f39ef260f01",
+-      "before_sha256": "ba015df8dba938fa7c8f399dfe02cf387bd326aa442501c0b0ccbff2332a4d43",
+-      "path": "crates/render/src/live.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/render/src/live.rs"
+-    },
+-    {
+-      "after_sha256": "e897762e76783e3094e763bed3925ecaa5fb5105460673fee125759e6fa6b3b9",
+-      "before_sha256": "0129087b0502e9f0fbb14526d37db96e3d9577851164832b313ccf64f5a51e81",
+-      "path": "crates/svg/Cargo.toml",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/svg/Cargo.toml"
+-    },
+-    {
+-      "after_sha256": "a54742189336079dd9574339071e62da39a25ba88fcc7aecff946737437723e2",
+-      "before_sha256": "86bb46a75b88f14d85f3ee97c4614c06069780b7d88e6fbfe0829c45fb71b197",
+-      "path": "crates/svg/src/export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/svg/src/export.rs"
+-    },
+-    {
+-      "after_sha256": "fcf373f84420a433b6a092c7963ff0866cf0a42d7d881bd853a28c168ccf52cf",
+-      "before_sha256": "b747b87aadde920e548551f6bce94d2b665ba650f864917dd1d4706937afddbc",
+-      "path": "crates/svg/src/import/files.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/svg/src/import/files.rs"
+-    },
+-    {
+-      "after_sha256": "4dc936ef9f35db95f4979ebe34b2ca696839b3f9261d576d92a6a90d13c0a70e",
+-      "before_sha256": "97f486561843e506e63febe75f98ca571df936e2f31d211f045d544614e64f3b",
+-      "path": "crates/svg/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/svg/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "bd5bc9526efbbf67b638cd17c16199d13814b0492a0e5a60480057b3561f4967",
+-      "before_sha256": "0459d725013d16b7c77e2977067f7c9419b432359092dddd8d289419447c6dde",
+-      "path": "crates/svg/tests/text_layout.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/svg/tests/text_layout.rs"
+-    },
+-    {
+-      "after_sha256": "a309d33dece14de3d6921e4eee3674f1972f2deae6a85bff68cf07f1ab1553e8",
+-      "before_sha256": "27b050d17d2d7d3cd1fdc6510ac60827d320bddb367a539f32f594178b4be451",
+-      "path": "crates/testkit/src/ai.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/testkit/src/ai.rs"
+-    },
+-    {
+-      "after_sha256": "e7448bd21453465f9f9a0a1bbd6aab647e1650db9c3c0f58408eb13b23caa54d",
+-      "before_sha256": "1e50eb1e2d1684c0569d0d1a623972f6e692d231122181dc0eeaf6df52d23528",
+-      "path": "crates/text/src/composer.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/composer.rs"
+-    },
+-    {
+-      "after_sha256": "f7688260808bd5871b1296c3c23a10bd41a3557a0b2eef7be1f11ef53d2f30e5",
+-      "before_sha256": null,
+-      "path": "crates/text/src/justify.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/justify.rs"
+-    },
+-    {
+-      "after_sha256": "212c2ee6228b5f94fdb14bcbf5dbc11b58616419bda4079a53d75e8866ee6b0e",
+-      "before_sha256": "dc9d5d27ee01ce2ae7589fb5793c61e57d34287d9bb3c39ef77cc55cf274ec8a",
+-      "path": "crates/text/src/layout.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/layout.rs"
+-    },
+-    {
+-      "after_sha256": "17f3eaec55b4051da07cb68f4a123631ab8ca628aaa2789d67fa19c08429d0b5",
+-      "before_sha256": "71a9092fdc14e520c186e5e41412e82640b210bd279e8b39e111928370bd9c87",
+-      "path": "crates/text/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "4aa365b43696d640dd2a91f9f72010b2ab3d02b1950fa2bca33f9dc7e5ec309d",
+-      "before_sha256": "48c6baf3f99172d65315df58599b51b03654d1a95958f03b8fc62c66fd3e895e",
+-      "path": "crates/text/src/tests_bidi.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/tests_bidi.rs"
+-    },
+-    {
+-      "after_sha256": "b824cd42ed37e7c9ac8ed13b73a552de8af7077696689af16e0e1c55803fcc83",
+-      "before_sha256": "7abc64f6712380a73540f8ecbb4e582a772c38230c8982c12e3517a90737ac88",
+-      "path": "crates/text/src/tests_devanagari.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/tests_devanagari.rs"
+-    },
+-    {
+-      "after_sha256": "986751c9974908afd534e93b847ccfb3bf49910a9b88bf3928c831347003eb0c",
+-      "before_sha256": null,
+-      "path": "crates/text/src/tests_justify.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/tests_justify.rs"
+-    },
+-    {
+-      "after_sha256": "8a66aaac2d61d898c22273b4de2956d004df5f12eda970d43018c24f3247c0d6",
+-      "before_sha256": "3d2c84001479903b0982b19e63f77c5d99353b05e32aa2f3eeebcfb35e5d4c67",
+-      "path": "crates/text/src/tests_typo.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/text/src/tests_typo.rs"
+-    },
+-    {
+-      "after_sha256": "33055178d6fc7552d4bbedc90a75b95217541167f8316c3b22a2f93df55bd66b",
+-      "before_sha256": "9240b787f37e8bbf6d57ea3347e96ac773e58a98ef7e0974018439608db6f397",
+-      "path": "crates/tools/src/direct.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/direct.rs"
+-    },
+-    {
+-      "after_sha256": "5936e9ccfbc77fb2c20072d9585533a8a563ec152543eac6770b3c2ddbc8c69e",
+-      "before_sha256": "8502d30794a33dff9d139bc32879a6df43f3a061cc812b14a5266ae738ef5de1",
+-      "path": "crates/tools/src/draw2.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/draw2.rs"
+-    },
+-    {
+-      "after_sha256": "6bfd2c8aa82819f1ca07b6b4cdeb3c9f80997da5971af586b3789e8ceba5e7ac",
+-      "before_sha256": "931fc682c4a7d90008556dcc1e4824a233827cf61ee5dbf09aee55f112c5fc89",
+-      "path": "crates/tools/src/draw2/anchor.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/draw2/anchor.rs"
+-    },
+-    {
+-      "after_sha256": "391c4701a409feccc86582bfd988fc2806287c34bd4e626383d53168e83d0db8",
+-      "before_sha256": "e7d86eca9230bc77a07afafc8c66371b220dc8d82f41f7818ed1409edc924a3b",
+-      "path": "crates/tools/src/guides.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/guides.rs"
+-    },
+-    {
+-      "after_sha256": "baf0e0a259ea322c7dfce3385aada0a2dca6d72fe9c91b4494d4b45f47349f2e",
+-      "before_sha256": "d83f3e3eada086db89e6768de550af0f89c594dd5057d8641b0d89d6a90b0edb",
+-      "path": "crates/tools/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "e66da75fcb90d1ab7f231e8841f89a1a94f57c13a415edca2a6736c67585835e",
+-      "before_sha256": "33a205eadec772fc4e86853edaa1cd528d575cfd7fabf7fc5faae7e7e56521d0",
+-      "path": "crates/tools/src/meshblend.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/meshblend.rs"
+-    },
+-    {
+-      "after_sha256": "adf676523c9c9850fe75fe2798f1fc7bec0cd9b88b762a345dc81c39d6581831",
+-      "before_sha256": "3fa1fb252dcef02e1a5e83409fca5e8e4a442b83a7df3a266430f3a0a176d69b",
+-      "path": "crates/tools/src/select.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/select.rs"
+-    },
+-    {
+-      "after_sha256": "6982f50e8432a6ff1d12e9a652226c83944171d78d6032c33566c316625e7eb3",
+-      "before_sha256": "e0fd7303c931786c3d2d5b63e36818f7d25e6e0389f9a6bb5ac14b64094e215c",
+-      "path": "crates/tools/src/shaperwidget.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/shaperwidget.rs"
+-    },
+-    {
+-      "after_sha256": "8ccd36434b75e062bceb3d9d26da55a848a4945e31c68153a39d9d92d4e34bf3",
+-      "before_sha256": "e498ea7dfb6b077a835f3543a1c945781fdf900de186f207e05115c44d0ef896",
+-      "path": "crates/tools/src/slice.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/slice.rs"
+-    },
+-    {
+-      "after_sha256": "97f4d3168eff516ecc7bb0686070bea673dbb658cadaccdab6cde8417d376174",
+-      "before_sha256": "e1cc153824a261319cc098cdce2d21d3ebb863ee29c395a67f1585c1bde092d6",
+-      "path": "crates/tools/src/symbolism.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/symbolism.rs"
+-    },
+-    {
+-      "after_sha256": "08d2e42d7ec9d2661259b70fd3353cece3249e1171ca1770bfa63fb1ff78282a",
+-      "before_sha256": "c137876ec463ccd03a81d4eaea65c163ad745e28116ee08b3df128fb62c481c6",
+-      "path": "crates/tools/src/text.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/text.rs"
+-    },
+-    {
+-      "after_sha256": "34a3fe80c84e41e0edb38208de8d813d8f62b3396b6bb61c38c941f851fa49ec",
++      "after_sha256": "b5df6db009228c6d5a806910e978c004f8275dcbd1ceaa58a0e1f09d3d797db0",
+       "before_sha256": "2e6f81876f5a7a51d555ddf84834a5f448afca4b3d67af566c0e113a7b693711",
+       "path": "crates/tools/src/text_tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/text_tests.rs"
+-    },
+-    {
+-      "after_sha256": "48d27c603cb3d6890fc684024d36b0af44880385c5d67d2ba8ab1944a15c93cc",
+-      "before_sha256": "dffaff3779a645a3338dbd7e0e381fccbcc32a9ef9d01887ffc1cb400227f661",
+-      "path": "crates/tools/src/xform/gradient.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/xform/gradient.rs"
+-    },
+-    {
+-      "after_sha256": "d8a81076d95ff3488653c6e194ff2251df832ba87d11e96095efadc808eb32b9",
+-      "before_sha256": "c33822b9d31b399bb556f0759464824f12b1893f81ff119a525921ab289a97f2",
+-      "path": "crates/tools/src/xform/wand.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/tools/src/xform/wand.rs"
+-    },
+-    {
+-      "after_sha256": "5216aa901e5d8813daf10cbaff86bf88875b973d012da8d059fd0e4592cab900",
+-      "before_sha256": "46d06cf8d8ae648b88b0c6b07dc10373882bf6460a30ecb11cccee49b3af3689",
+-      "path": "crates/ui-egui/src/background.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/background.rs"
+-    },
+-    {
+-      "after_sha256": "f2600a0013f315cb33b4981c1f0256ea473ec27cc8b55ab9762d81c321750c83",
+-      "before_sha256": "e9c8d4679536d707a7c34df02ef9197b6c5869b758189383e3985a701731fb2d",
+-      "path": "crates/ui-egui/src/canvas.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/canvas.rs"
+-    },
+-    {
+-      "after_sha256": "1c9c52565d345af25242fdd21486b633c67f6decce05481ec44dbc5dc72fbac5",
+-      "before_sha256": "6405efb34c0f2084d3186dd435b8261645d010d18572507fa32d139b9b9a11fb",
+-      "path": "crates/ui-egui/src/chrome.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/chrome.rs"
+-    },
+-    {
+-      "after_sha256": "d9bf9f93eb221404637330bb6cafed857519ed0bb0feb6cc891b7e27830a5a6b",
+-      "before_sha256": "76fa389f862ce048003f9856b752b34e99bc22bda9d957e3e9d6606dac87cb96",
+-      "path": "crates/ui-egui/src/dialogs/color_picker.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/color_picker.rs"
+-    },
+-    {
+-      "after_sha256": "8d78f16b04e090d1c234df9722f9beea867df8a5b9ad04c20bfaab6b30c1f5c6",
+-      "before_sha256": "e087f277dc4e90d53d9e5024aeaf69a3514f35324588ee8007d6e433fd90b03d",
+-      "path": "crates/ui-egui/src/dialogs/effect.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/effect.rs"
+-    },
+-    {
+-      "after_sha256": "a0bed98058a16d67ae9a1e65231288971ad3cdd12d66db317b0c76145490286c",
+-      "before_sha256": "4dbb53edd182e000fce0fb08f006ce7e27d4579858bc8c705bc1da1382edaa89",
+-      "path": "crates/ui-egui/src/dialogs/export_for_screens.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/export_for_screens.rs"
+-    },
+-    {
+-      "after_sha256": "2bdfe210bccd79728c837db8a854c0bd70ec7692063f422334be65d09dcf697c",
+-      "before_sha256": "6d87af56668600f252957e3a413569d30fdc8a556eacce37c5ff407afc9e88bf",
+-      "path": "crates/ui-egui/src/dialogs/flatten.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/flatten.rs"
+-    },
+-    {
+-      "after_sha256": "5f443557781c12e06d7f7b38a5edd7743270eae1149440c8f888c54aaf7a7820",
+-      "before_sha256": "37068af2bdc6ca8e2bfb332811e68d12f27064032703cbea1d22cf2dcf020e5f",
+-      "path": "crates/ui-egui/src/dialogs/form.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/form.rs"
+-    },
+-    {
+-      "after_sha256": "987fa644244946f0b2a10eb3f166d06f6f4c34b0fa7efcdd692d5b59baf6b0ac",
+-      "before_sha256": "e054b4bb2a4048393286af62f1373525cf3ddca8064550ee7bc727ee75151e5c",
+-      "path": "crates/ui-egui/src/dialogs/freehand.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/freehand.rs"
+-    },
+-    {
+-      "after_sha256": "f2b0abd3e37e9a582b51f9840f5b0e534b5fcb74e0b74c17d5b5a3704cfc328c",
+-      "before_sha256": "939f54266aa878019d19cb96c82f952b1fb2f35052dbb49411d68caedd041a9d",
+-      "path": "crates/ui-egui/src/dialogs/gradient_stop.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/gradient_stop.rs"
+-    },
+-    {
+-      "after_sha256": "7c42c1ad0e7437e3b26f2142881e5b9dedf2fd5a20c369b735aea66a03c0d3f9",
+-      "before_sha256": null,
+-      "path": "crates/ui-egui/src/dialogs/justification.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/justification.rs"
+-    },
+-    {
+-      "after_sha256": "6b2dde261914d5353e423a2cecabae46c0d806bed82344732823edc58d0c87b6",
+-      "before_sha256": "8f7aff3dd6a710a9f9dc7686104f87a38e0d7837e2c12c1042c5c8a646e7e053",
+-      "path": "crates/ui-egui/src/dialogs/mod.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/mod.rs"
+-    },
+-    {
+-      "after_sha256": "c3b5ceebb39e13424e9607347da0d1c499fdba93d776c13f3d0d564e113b851c",
+-      "before_sha256": "79025493264f563d1c9318e8a2b5aefba9becbb59349025613b2d1b2dffee55d",
+-      "path": "crates/ui-egui/src/dialogs/modal.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/modal.rs"
+-    },
+-    {
+-      "after_sha256": "fc454fd864c9d523db6d0c3ba6711e8346e0c9c9b6813bd14bd02033fd12fcc5",
+-      "before_sha256": "575c29eac252f867e89271fa31a7c6170ab90fca16d59dcaeec7d0874d306793",
+-      "path": "crates/ui-egui/src/dialogs/perspective_grid.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/perspective_grid.rs"
+-    },
+-    {
+-      "after_sha256": "7313252c15a0dd5304356c7ef936e51531f1782553661153159718fbf20752bc",
+-      "before_sha256": "e1bd592756702c5b6fcbb3f0e6c38c09b50446ca18ab6215f4acba4da984dbcf",
+-      "path": "crates/ui-egui/src/dialogs/raster_effects.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/raster_effects.rs"
+-    },
+-    {
+-      "after_sha256": "44b02f82071f2631d15baa964da3e9e28e397e1001d6cb0c0de07483213390c8",
+-      "before_sha256": "1b539bc92cb4f71d409af29b8d96b08670e5a419bdcf6df914d709096213ea22",
+-      "path": "crates/ui-egui/src/dialogs/recolor.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/recolor.rs"
+-    },
+-    {
+-      "after_sha256": "85740d1fd4dbc7884736412da262c7bf6b29d232f9ae1101394080d917ee637b",
+-      "before_sha256": "d0294e12489ca389ab97e8b5076935b73b7bdfe7f2a2cb22ef48b74f5a8888d9",
+-      "path": "crates/ui-egui/src/dialogs/revolve.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/revolve.rs"
+-    },
+-    {
+-      "after_sha256": "2c38a2b31bc7589f77c08e326d83008e3b4c19777bfd1fe772eab9f5c8c998d2",
+-      "before_sha256": "73b7d1d19c5076b8a174f72720e720791a762a2b652da9e32bd00f732fec072e",
+-      "path": "crates/ui-egui/src/dialogs/save_options.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/save_options.rs"
+-    },
+-    {
+-      "after_sha256": "01de5b0832824e4f568a5ed20ca1f793ee01495cffe238a91fe33606ba0b6bb4",
+-      "before_sha256": "62b174ea223bbc2ded26096113f8ef1250b84ac40debae575031224ba005f870",
+-      "path": "crates/ui-egui/src/dialogs/save_pdf.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/save_pdf.rs"
+-    },
+-    {
+-      "after_sha256": "1f4bc18ac830b5c27252200cbba29ef4077ea2051ab1d2046aea88d95bd1cad6",
+-      "before_sha256": "37c7409219d0d168431c362fb13ec2efc7d51db0698cc11eef3ba68f1f9f443a",
+-      "path": "crates/ui-egui/src/dialogs/swatch_options.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/swatch_options.rs"
+-    },
+-    {
+-      "after_sha256": "d5c2cd30c8ba0a31f0d8d5fc601eec8ef685ebfefc37fa0f132da6914166b804",
+-      "before_sha256": "279c3e6ce579ad8c2c4025430d019be34b7b829251ab62056779ece371fc42ca",
+-      "path": "crates/ui-egui/src/dialogs/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/tests.rs"
+-    },
+-    {
+-      "after_sha256": "dcf370e56568eae3bbcfff7a4e8c89e95579f722a4e745e4653acd23865df67f",
+-      "before_sha256": "c8ff525b508314e20923dbc0fbca7f44f33bcb031b65c8992a46a08570480bf4",
+-      "path": "crates/ui-egui/src/dialogs/tests_modal.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/tests_modal.rs"
+-    },
+-    {
+-      "after_sha256": "0d79ee52ef4eefb43c6d8a244b79eb7dd214117b9c89ab56c3fe024e0eca8974",
+-      "before_sha256": "95614f7169c6ac08345125683feb35c383ad5c9d9be8838e63030e9dc76c136e",
+-      "path": "crates/ui-egui/src/dialogs/tests_screens.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/tests_screens.rs"
+-    },
+-    {
+-      "after_sha256": "2736a185cde494b162222b786d810d0adfaa345f6e01c7ba836cd9af9084b824",
+-      "before_sha256": "998fc505ed7d7e37b752934ee40dd73f50d8870fc476152eac4a661ff9f0fc88",
+-      "path": "crates/ui-egui/src/dialogs/transform_each.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/transform_each.rs"
+-    },
+-    {
+-      "after_sha256": "e009e9fcaccd4d03ca3ab15d2c86ba5d7cc3c4fd2ebb70b4adac445a2b6a3dbd",
+-      "before_sha256": "082b46072b8084d354bb55f80ca8c2843764ddc29e6c5868d0a49ffe03dbc922",
+-      "path": "crates/ui-egui/src/dialogs/warp_effect.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/dialogs/warp_effect.rs"
+-    },
+-    {
+-      "after_sha256": "86b94d91889aaccbdd60aa8190bbdaa224dfa7aeb568b3e1e4d7ff5b71c31699",
+-      "before_sha256": null,
+-      "path": "crates/ui-egui/src/export_progress.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/export_progress.rs"
+-    },
+-    {
+-      "after_sha256": "64060c562a79895dffefd21d527e6f6d836a87e8d4c731f261a44c7b8bde21fa",
+-      "before_sha256": "d9e3356cfb3c7a78245405578e1e9ad008d87404a02cd872be1b7f542beaca62",
+-      "path": "crates/ui-egui/src/i18n/bg.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/bg.tsv"
+-    },
+-    {
+-      "after_sha256": "2131526dd93c850aa005b1169816871fc63ae350f2ebca128a264737cba648ad",
+-      "before_sha256": "dc1b7a6464230b6e871da9450a011996a8c91cdacf1a249685584107e9710f88",
+-      "path": "crates/ui-egui/src/i18n/cs.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/cs.tsv"
+-    },
+-    {
+-      "after_sha256": "4a2343a04929c2875483234dbe4ae41d9e4227e4ff4275fc26f1158dba270009",
+-      "before_sha256": "7fde8c6f187aeb4e91607e60f66921ace50203b7a529e2af68097405d81d7427",
+-      "path": "crates/ui-egui/src/i18n/da.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/da.tsv"
+-    },
+-    {
+-      "after_sha256": "8bc081dd05f523b62ab9137012eef2eacb2e84f64126a0d117d164b8ee21cc5f",
+-      "before_sha256": "54ac511563e320642b6d5f31031a54f4cbedf0c34e3a4e579dcd5597ccdb90c4",
+-      "path": "crates/ui-egui/src/i18n/de.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/de.tsv"
+-    },
+-    {
+-      "after_sha256": "222ea7ba337eb2c9996bb4e1a9a4dbeda7d010ce1f62ed87ca88e613e57d012f",
+-      "before_sha256": "cb50ae31d20cfbc104c8d4359a77015cf6a9178a7a940ea4fd5d36ba87bd6c39",
+-      "path": "crates/ui-egui/src/i18n/el.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/el.tsv"
+-    },
+-    {
+-      "after_sha256": "12128c3514947bb77951be5c9f45444655a09c85573aeea838ff28a9cdf1536e",
+-      "before_sha256": "c6e8edb7344649dc088a668334047ad0227d3ac1d22459e541858e80caf085ff",
+-      "path": "crates/ui-egui/src/i18n/es.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/es.tsv"
+-    },
+-    {
+-      "after_sha256": "208b5ebaaeebd31266f5764fcbd0077972040cf4b1a77d7ba8fd30cb98cdc260",
+-      "before_sha256": "f7fdd97b7830eb903e986988d3ebda40927a26dca13cd2b0095364aa809fed9c",
+-      "path": "crates/ui-egui/src/i18n/fi.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/fi.tsv"
+-    },
+-    {
+-      "after_sha256": "f774aa71538ed74e87ce1ecc105bf0a2e30d71f7af307a609711a08b776f80ab",
+-      "before_sha256": "bfd81d4e9254c2bfa292a79f59f570d119348d1fa3b3461fee25aa5638c6c901",
+-      "path": "crates/ui-egui/src/i18n/fr.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/fr.tsv"
+-    },
+-    {
+-      "after_sha256": "94fc340eafdfd99098e69c0da8cd4f0855ac6cd6212457dd067f5b2c363557e8",
+-      "before_sha256": "b83cb9e69e1feab95e95859993b255759fa9859b52954fd77ed66db3f1235d70",
+-      "path": "crates/ui-egui/src/i18n/hu.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/hu.tsv"
+-    },
+-    {
+-      "after_sha256": "36513f5a76834eb4a3bd6958c76e18805f588f6b420ee238d292db8710f1295c",
+-      "before_sha256": "09f3d76e2c818767bdee022d10aa0ac5326ba33ecb94a065f3e13c100da2aef8",
+-      "path": "crates/ui-egui/src/i18n/id.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/id.tsv"
+-    },
+-    {
+-      "after_sha256": "8f8723245a241315855eed69ee57e02b63b4060021023761b58583f6ee0a1b1d",
+-      "before_sha256": "c6b9d4462627f4038fe5cca6aa5bcd69719cbafd00c31a0f0a4d5efa3dbf301d",
+-      "path": "crates/ui-egui/src/i18n/it.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/it.tsv"
+-    },
+-    {
+-      "after_sha256": "e0b404dbeda93ba2e6f4b68f7211d01a9c6a7351b38fc64a26983282cfa25674",
+-      "before_sha256": "23029e3e0edfba7ac7d2e2051ebe10ef08d89030240c141c9b82e0470f825ce6",
+-      "path": "crates/ui-egui/src/i18n/ja.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/ja.tsv"
+-    },
+-    {
+-      "after_sha256": "5bd9fc448b1262788f77b7b32ab8430a21d5b863b5ab03e65d532b448d0ab60b",
+-      "before_sha256": "1cf031a9e858f4e4f0b35120af39173542812e8d840e5ce05a22ea9e01311156",
+-      "path": "crates/ui-egui/src/i18n/ko.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/ko.tsv"
+-    },
+-    {
+-      "after_sha256": "3f6155730e6cb3988579d9a1dc54e355edd46da63ae5b54b36aeae6e03ed4164",
+-      "before_sha256": "9fe96c0740e46658712c9edb999bca6bebbf065dff9882c296b24df978d74551",
+-      "path": "crates/ui-egui/src/i18n/nl.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/nl.tsv"
+-    },
+-    {
+-      "after_sha256": "566514c1afa2bac5200e4058d4732c59bf86dc12d0263f27cf8fa7f6f0dcb695",
+-      "before_sha256": "c8baed344ed194de25bce60ea0845bc1a19d04ee992de6827eae6ce50f8b0de8",
+-      "path": "crates/ui-egui/src/i18n/pl.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/pl.tsv"
+-    },
+-    {
+-      "after_sha256": "c78dbc5415c8a6396fa0e48754b07619bb4bc0325117e911c0dfef5b1ab656d2",
+-      "before_sha256": "f5b2bb1b16043095c5dd62bb892906c35210c03ffcedeec88fd8204b2f4bbc19",
+-      "path": "crates/ui-egui/src/i18n/pt-br.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/pt-br.tsv"
+-    },
+-    {
+-      "after_sha256": "d95d694cfd62d90ad9e4e90a4139349dd24348418f1dfa1eb04930d0a327ec3c",
+-      "before_sha256": "048fec8cdea4388cc71d07f2b91d108ec9db1e34843fed1be5a0b679a23a96af",
+-      "path": "crates/ui-egui/src/i18n/ru.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/ru.tsv"
+-    },
+-    {
+-      "after_sha256": "b77d4cd8066ffa5af63de32b3d02390f34dc96691d38f359be5d9a81084df3cd",
+-      "before_sha256": "03638266d7abe44abe86fb8d17972d8f88b96afca05ceaf9507c1603c26ff42d",
+-      "path": "crates/ui-egui/src/i18n/sv.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/sv.tsv"
+-    },
+-    {
+-      "after_sha256": "dfa9803bb9a8283397db9d8b335349f662bd48f5cf1be917cb1e590e9ead4fcc",
+-      "before_sha256": "b716908aead7a7bb7860fd45fed9252eac68e7d64b4297b73a3ffc73d85a87b3",
+-      "path": "crates/ui-egui/src/i18n/tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/tests.rs"
+-    },
+-    {
+-      "after_sha256": "6caf4993724230aca4b096d873d14fbf5e96c870b6cdbc01f428aaf14390c432",
+-      "before_sha256": "cddc3aa47972dd862d6f060cc3ca7b958c58bf1286485e00121c2146779c90f1",
+-      "path": "crates/ui-egui/src/i18n/uk.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/uk.tsv"
+-    },
+-    {
+-      "after_sha256": "828162acf526e8796058c9d0168f750b077154f3f8bac7fe8eb71e25e87fd60d",
+-      "before_sha256": "12dbe7d65d0cce72dbdb6b1711019c44444044b261cabb2284a86436b6b8e724",
+-      "path": "crates/ui-egui/src/i18n/vi.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/vi.tsv"
+-    },
+-    {
+-      "after_sha256": "e9f4d5e85cd7a95e5085bbe82853e747b4a987160c5d5188153f7c7b00d2b8f6",
+-      "before_sha256": "90871cdd55b63f1ff057e490eab11e01c58d2e7ef254b9c4173b5465922bee8c",
+-      "path": "crates/ui-egui/src/i18n/zh-hans.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/zh-hans.tsv"
+-    },
+-    {
+-      "after_sha256": "f8213a2be39f84bba2954cea5ba1e50ef681c1ad145c883259862876966263c3",
+-      "before_sha256": "55669eac30a220b66ff2e3b0e639c58235044dc655800a1e1ee2f1538e4307c8",
+-      "path": "crates/ui-egui/src/i18n/zh-hant.tsv",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/i18n/zh-hant.tsv"
+-    },
+-    {
+-      "after_sha256": "b3999abca6781ef98e1e9f3178eea625b4b268a44a5bf95ce5fa4fcaa56beed8",
+-      "before_sha256": "b4f3c8e8def8f47ffd06c8485b1870e53b4ffd849015a39a229b2d8650600617",
+-      "path": "crates/ui-egui/src/io.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/io.rs"
+-    },
+-    {
+-      "after_sha256": "48f8ffc6fde741c4754e0a849142704bfedd4494ae3dd39a0ba1494def358ae8",
+-      "before_sha256": "18dde14b54548b8897145afe9dc312c06fc17d13be194cf9ab1e57bc9d7605fd",
+-      "path": "crates/ui-egui/src/lib.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/lib.rs"
+-    },
+-    {
+-      "after_sha256": "062b3982723682c3e3deda2e51d9df1a5cc90efa5b83c824d1630a2c4705e9c2",
+-      "before_sha256": "af75f9178938b6f1e14ad3ec9f04a3d019c790a15421cb2673ead31eb956146f",
+-      "path": "crates/ui-egui/src/menus.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/menus.rs"
+-    },
+-    {
+-      "after_sha256": "4114ae9e3aa5c91c5571bbaf0d935ef0abe9b87dd3a390c3e5e2d6bc0f34af60",
+-      "before_sha256": "a0055fb49da1d82fa8a53b03b069add50287d0ce6dda73bf0565133fdb0ea480",
+-      "path": "crates/ui-egui/src/panels/appearance.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/appearance.rs"
+-    },
+-    {
+-      "after_sha256": "42f44e21de7a8db542686dc1038d78d0ff849d520f6f48417c0c3c7e5294be13",
+-      "before_sha256": "6707ef7d6e06cc5349288d9431a71cab87ca1d361af60c802089ce5869965cf3",
+-      "path": "crates/ui-egui/src/panels/artboards.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/artboards.rs"
+-    },
+-    {
+-      "after_sha256": "1afdcebccb976316a87eb733aafa4f8f3104a303b796d14327a5bd6cff502c54",
+-      "before_sha256": "f4b25098970b652b3a768910edb49b58f9ac0226ee5f9dbafe63f8827983dfb6",
+-      "path": "crates/ui-egui/src/panels/asset_export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/asset_export.rs"
+-    },
+-    {
+-      "after_sha256": "3cfd2c5a9197688b624bce07847912b0d5e383d4801a78fb89c1d1f4bf9ff6ae",
+-      "before_sha256": "564872619ab9c8985c51c87c52c31c5480d96ed84cd78cd1eec127293d1d2eb8",
+-      "path": "crates/ui-egui/src/panels/attributes.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/attributes.rs"
+-    },
+-    {
+-      "after_sha256": "64cefff642a6c298f6c28807a678b556d73a330cf373baa04bba69f9705b61c9",
+-      "before_sha256": "8812476a13a6d5fed317eb79d24e68b3c09195b2d01e9b43541e8b25f0df0f49",
+-      "path": "crates/ui-egui/src/panels/character.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/character.rs"
+-    },
+-    {
+-      "after_sha256": "78cf8569591d8a8b9b8c0a4d9fc886d5da7692f731e3c5fb7bdb13bcdec156fe",
+-      "before_sha256": "53339c5f031dc4a4725be76e02b7dcf2311e6a8fb45a93abf84eff36499d5f03",
+-      "path": "crates/ui-egui/src/panels/color.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/color.rs"
+-    },
+-    {
+-      "after_sha256": "b52e324364ca4dca361f3b73a7ee476d5317532f1bd94f8204cf8fa5031acf4a",
+-      "before_sha256": "698eba4f6fd0386b2062e338f9eefb68e85ac078ad5822d0fdb36007174d3ef6",
+-      "path": "crates/ui-egui/src/panels/color_guide.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/color_guide.rs"
+-    },
+-    {
+-      "after_sha256": "26675a0a4245deda05121432e56cb3217c4160edeb1c5d11d5612f7d2129ddf1",
+-      "before_sha256": "de2ac233aa09b078692f1177b30875d34a586b724c03f95a9033736e1e8fcc0e",
+-      "path": "crates/ui-egui/src/panels/color_themes.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/color_themes.rs"
+-    },
+-    {
+-      "after_sha256": "cde67f084c2db914a4b4c3a0f2ea47bf39a868da37a76d3a32f416a3fa796d37",
+-      "before_sha256": "6c5e8156b591f853caf6b07f465b76fd29b3eb26349572c31e97be7ae30bf687",
+-      "path": "crates/ui-egui/src/panels/gradient.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/gradient.rs"
+-    },
+-    {
+-      "after_sha256": "69de2f06f1e6033ecee69fd6f59115fb2464b9368115bac5bb2c28952f8bf76c",
+-      "before_sha256": "c62e8a739f33410555219b459461eff51884f00177ae54b26abe6d8746a65eed",
+-      "path": "crates/ui-egui/src/panels/history.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/history.rs"
+-    },
+-    {
+-      "after_sha256": "912cf32d7226dca7b3baea34a4f1af9738a3a1335c171d7f1de03bd803f964b4",
+-      "before_sha256": "226e4d4fa348c0b4c923fc4289febac8d62571e0240eb95539627a86cc35c4ff",
+-      "path": "crates/ui-egui/src/panels/layers.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/layers.rs"
+-    },
+-    {
+-      "after_sha256": "ae7c13624eb41e68427e0d079a598eadf0b7b48ec2c804f137e3d3e8f44ec382",
+-      "before_sha256": "3ac405142a940efa6233b5fb8ebf63e95f85ad19721eeeb1c5ec85ca2a45203e",
+-      "path": "crates/ui-egui/src/panels/links.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/links.rs"
+-    },
+-    {
+-      "after_sha256": "856e89907cc886bb0c940d2b71b87a8e48e8d0fcbe62a66356f418018119a309",
+-      "before_sha256": "9db3d372b7b67d44744d3c099d59b148f0be5e773c3df1ad46a6509de2f0aa97",
+-      "path": "crates/ui-egui/src/panels/navigator.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/navigator.rs"
+-    },
+-    {
+-      "after_sha256": "d238586c7ffdd9447437e1b8c5a02b329387eeb11f58bdc9f1525d2ac7108f41",
+-      "before_sha256": "3f4727cca57646233bfd3c562d1066abad5f0d028c76e425c3feab241fb8ce5f",
+-      "path": "crates/ui-egui/src/panels/paragraph.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/paragraph.rs"
+-    },
+-    {
+-      "after_sha256": "508b1e4971d8b703d664cc1a8d1ba4e1063e8cb9050881781532cc2bf4650bcc",
+-      "before_sha256": "a07a569478b8ee8af033f041ffc08ef0ab6722e729555d74e8a71876d35886fd",
+-      "path": "crates/ui-egui/src/panels/pattern_options.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/pattern_options.rs"
+-    },
+-    {
+-      "after_sha256": "bf3c7a5c0e21e7f7e52df91e2d2aa7313648473d791f0b7647a8238f3817ec98",
+-      "before_sha256": "7f526cd93192aa25cd6f271318b4521788c08a5f688dd75c08887fa47d2b33df",
+-      "path": "crates/ui-egui/src/panels/tabs.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/tabs.rs"
+-    },
+-    {
+-      "after_sha256": "b40f30058e6cc15c53bf622d964a2329b9d600603eeb0bd51de71a63b63a214f",
+-      "before_sha256": "4f3bcee3687ed11735d4eb57dad7240941555552002a615eafdefbf581e9c498",
+-      "path": "crates/ui-egui/src/panels/tests_asset_export.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/tests_asset_export.rs"
+-    },
+-    {
+-      "after_sha256": "18c096efbdb745f9b263d90a7fc17423bafa47f12bacd2d5b782ec8f3213de0f",
+-      "before_sha256": "b070e27f7f0f56c67f4f9774cc6a4cf8ab1faea47748b8ab5368e49bee19dd2c",
+-      "path": "crates/ui-egui/src/panels/tests_links.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/panels/tests_links.rs"
+-    },
+-    {
+-      "after_sha256": "3ad478895b993b1b38fa38e20f74f3f39d27780bb399ea70c10af214652b93d0",
+-      "before_sha256": "889c6363cd9ac65c8b50645487ada506dbc4c31217ac8223b94dc4266d4856f3",
+-      "path": "crates/ui-egui/src/picks.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/picks.rs"
+-    },
+-    {
+-      "after_sha256": "4b0864adf9248f825bef9021b1554ca1aac4d22044cea46a37bde4656f459606",
+-      "before_sha256": "a7cacdaee6d2afb67dc195ffbf4be7d27d9e0b8bb64ec04536cedb7e6f67ceee",
+-      "path": "crates/ui-egui/src/tests_automation.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/tests_automation.rs"
+-    },
+-    {
+-      "after_sha256": "ed7350fd8c33a22f11f2bcfdb9d0538c73ffd5b1eebdf996c5957f4a4cb55363",
+-      "before_sha256": "bc1cf560eeb70b43db55bc6cd5facec620c10d7b54c769c26c4b5d80e8982830",
+-      "path": "crates/ui-egui/src/tests_background.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/tests_background.rs"
+-    },
+-    {
+-      "after_sha256": "1a3484eb036d777576ef7a4ea5624fa6a9ffc5ac9cadddff8917a1a221a66475",
+-      "before_sha256": "5a2e98b7e6f2ba985908a84713a1a36249f87736d05af5ac4337e9bdcb4f2de9",
+-      "path": "crates/ui-egui/src/tests_plugins.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/tests_plugins.rs"
+-    },
+-    {
+-      "after_sha256": "220b8e43455fa287d2c3326207efc820642a3fbe84b9dff0feb91a96f78133b6",
+-      "before_sha256": "cd87b5387c07f4f84c116c36e622c4ff27e2d0db7976e6c24133022c82ab81ee",
+-      "path": "crates/ui-egui/src/tests_saveext.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/tests_saveext.rs"
+-    },
+-    {
+-      "after_sha256": "bbbfab5bd3075372fce91a027d2cce08685721b74e86cef1153f9b3622686a86",
+-      "before_sha256": "61fc4c8f955d57d43d1182e6123cc9317987be3d49c7291d67e8cd4b4a3c58b6",
+-      "path": "crates/ui-egui/src/widgets.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/crates/ui-egui/src/widgets.rs"
+-    },
+-    {
+-      "after_sha256": "a8022c4f0897ba232b3665cfc7f28748dc44911c5645e27ff7ca774e2851b615",
+-      "before_sha256": "d2316f38fcda5652cdf2b91c14db641b96ed039e46a0169f39b00e31d4594bff",
+-      "path": "docs/control-protocol.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/control-protocol.md"
+-    },
+-    {
+-      "after_sha256": "ea5418d84875c26fc4c513ffcb6fd85a260b97f2bfa7152737ffa638d80d8e0f",
+-      "before_sha256": "d27a24b2ebc31d54103b80fc606c24b23ada85be988c0b084f88be6604a51192",
+-      "path": "docs/file-format-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/file-format-parity.md"
+-    },
+-    {
+-      "after_sha256": "84548bf385a8bc57d0edc74cc51c62d4b28fb1d2b1e8219928347ff5dd421059",
+-      "before_sha256": "af187e9522f465e97ab3546842e95c37f0e77768688f1ae83cebbe789ba65ddf",
+-      "path": "docs/gaps.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/gaps.md"
+-    },
+-    {
+-      "after_sha256": "e82d1903d80843ab54fd0e109c6db907d89abcceb93f85cd77518b66d1415715",
+-      "before_sha256": "7aa973380a73fc2fae9566e104453062399d8cd2358bd67d11176d15485ec92a",
+-      "path": "docs/mcp.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/mcp.md"
+-    },
+-    {
+-      "after_sha256": "87005cb687ea14ee313f44695ab756451b43952e4cb63a32098905cd4186b925",
+-      "before_sha256": "355a48f1f0f52bf9833646c70d7e70e1aea11f62b5cec7d26e7744be71e10e2d",
+-      "path": "docs/plugins.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/plugins.md"
+-    },
+-    {
+-      "after_sha256": "a0ae3870c91719adf2d89e5350685bdd22f31b3fe172067c1608033a993baf97",
+-      "before_sha256": "8ada2671f30bc76ebdcbfb5c786258057c571910eb3b6488ffcfe6c78ec5d01b",
+-      "path": "docs/shaper.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/shaper.md"
+-    },
+-    {
+-      "after_sha256": "8d8103a7b205d0b4180cde728caae188aa4c5098dfd3839d4835bd525f6a4ab1",
+-      "before_sha256": "bfb12db89b10271efa7560e31aa4740b010efda28f1dba58523a199aafae36c5",
+-      "path": "docs/target-app-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/target-app-parity.md"
+-    },
+-    {
+-      "after_sha256": "8d46a083b9b2513cd86267a1cfa205243240775ed36f3ed6dd7dbdf639b3aa3f",
+-      "before_sha256": "132b06e331f92647088644d42b8893ff552fbbcfbf754b16714316aaa1bf46a0",
+-      "path": "docs/type-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/type-parity.md"
+-    },
+-    {
+-      "after_sha256": "77d422e08014e3dd78259c3105f4ba9bca61c410cc15617c3ae76e58528d561d",
+-      "before_sha256": "9593c2ff876514fd12f193645fbcd7252edb12b6d472b1b86bbd86665cb9ff3a",
+-      "path": "docs/ui-parity.md",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/docs/ui-parity.md"
+-    },
+-    {
+-      "after_sha256": "4b6f51287e065c065ebea0156f51771dc3c7175e43c7873314cb988da15264c2",
+-      "before_sha256": "bf71f2a01c64d7dfc001f56c3e721fe1c88e1f9caa306e0fe780b737395b2f0c",
+-      "path": "packaging/macos/package.sh",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01/packaging/macos/package.sh"
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-baseline-b6e58-01/crates/tools/src/text_tests.rs"
+     }
+   ],
+-  "completed_metadata_bootstrap": {
+-    "bytes": 4918,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/runs/r82-text-caret-maine6ae-capture-bootstrap-01/result.json",
+-    "sha256": "150330558e851b54dd71edd6b5ba27affcbd86c4fa833f91b14bdae7956ed623"
+-  },
+   "dispatcher_execution": false,
+   "execution_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated",
+   "fresh_admission_required": true,
+-  "isolated_source_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-text-mixed-direction-73f-before-01",
++  "isolated_source_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-baseline-b6e58-01",
+   "last_owned_runtime_closure": {
+-    "bytes": 9539,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-ui-render-e6ae-bootstrap-launch-01/observation-20261018T0636Z.json",
+-    "sha256": "87b84bbd3bf7785029a20dffd922b9ef701393ff418efe40e83177a0f738f91d"
++    "bytes": 10040,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-ui-render-797-capture-launch-02/terminal-closure-01/receipt.json",
++    "sha256": "31f45ab706518ce1c2f8d564e8e5f013d6eab73d38e8e0a660bce525fa4e10bc"
+   },
+   "launch_argv": [
+     "/usr/bin/python",
+     "-B",
+     "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/picker-runner-v1.py",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/baseline-config.json",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/admission.bound.json"
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/baseline-config.json",
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/admission.bound.json"
+   ],
+   "outer_environment_application": "Apply every outer_environment_required entry to runner Popen env after inherited outer environment; do not reset PATH afterward. The unchanged runner then applies pinned r75 environment and its existing per-run target/XDG overrides. No validator launch performed.",
+   "outer_environment_required": {
+@@ -1361,14 +72,24 @@
+     "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/output-environment-02/runtime"
+   },
+   "output_environment_binding": {
+-    "bytes": 11570,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/output-environment.json",
+-    "sha256": "4072f7f0f96d403c765b537501b2c34f7bd6adcddf3e156619fa32e6827c451c"
++    "bytes": 12145,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json",
++    "sha256": "598adc782d8170fd30c06fde4f996bc6dd2e3ea3cc518944bbe1d5c1d75966d4"
+   },
+-  "preserved_e6_artifacts": {
+-    "bytes": 5835,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-e6ae-01/ci-dispatch-02/qualified-binary-archive-01/result.json",
+-    "sha256": "45d7808dc075461f19e9c130c86c2d7433d91b987a3994b895d0ff5b2a9771a7"
++  "predecessor_compute_release": {
++    "bytes": 1125,
++    "path": "/mnt/downloads/dev/artcraft/.codex-coordinator-20261016/vector-type797-corrected-root-compute-release-20261019T002612Z.json",
++    "sha256": "85e34f318d43ef2090a7f05ba1f7a26f4b52725f8e010ef39181bceec4d8df88"
++  },
++  "preserved_normal_artifacts": {
++    "bytes": 18327,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/independent-terminal-review-01/artifact-archive.json",
++    "sha256": "aca749a1b36b740c122df377ba59573ec7fd85c9fd102dcbf8da5bf9eea33c08"
++  },
++  "publication_refs_reconciliation": {
++    "bytes": 3666,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-cluster-caret-publishable-797-01/publication-action-01/preservation-reconciliation.json",
++    "sha256": "b682614e0a2b12b78e643197774e34d4b25d99565884aa6bee5c23fa3aaedc87"
+   },
+   "resource_limits": {
+     "address_space_limit_bytes": null,
+@@ -1388,21 +109,21 @@
+     "terminate_grace_seconds": 10
+   },
+   "root_guard": {
+-    "candidate_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
+-    "candidate_index": "00d8ee81bf3c2e991d76a463c93aa027376e409b213bb3c0ab05d542603ffe2d",
+-    "refs": "c040ca25cfe5675357c09646d1be70d0d4794524c01d47784428b0b490d6b9cf",
+-    "root_head": "e6aec0664cf8ebc86677cb17f46be42b511208a7",
+-    "root_index": "f88be7d79598c17629e161540e2b98a7afb644e48b8364f573a38a70ca10e830",
+-    "root_status_hex": "",
++    "candidate_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++    "candidate_index": "5c19703379e605f5c82883a6a98320f6c65b5dbc5e0d5a728f96621084700ecf",
++    "refs": "b96fe8c968395bc9b1ca3fb703d5bd6ad84398ade07c7fa313aa9a60794ac208",
++    "refs_domain": "sha256 of git show-ref raw stdout, including the actual publication tracking ref",
++    "root_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
++    "root_index": "04fbbddc2207b434912ecda888569aef1ee76d484404200d2284c1dcb85dc185",
+     "target": {
+       "dev": 66310,
+       "ino": 865301590
+     },
+-    "work_head": "e6aec0664cf8ebc86677cb17f46be42b511208a7",
+-    "work_index": "03cb76e26385c2bc0fcd7aa66f7148be8dd79291b29fc86c9431efbb610dc1cf"
++    "work_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
++    "work_index": "05f639c091e740355b100c0bd58018bcce7afb834d7e06d69a8137c716e7c7e3"
+   },
+-  "run_output": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-text-mixed-direction-73f-before-01",
+-  "source_preservation_required": "Preserve complete actual corrected-e6 preimages/index before the future admitted transition. Qualified e6 text/tools binaries are already archived as evidence, and completed metadata-bootstrap evidence is preserved. No compiled artifact seeding.",
++  "run_output": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01",
++  "source_preservation_required": "Preserve actual closed797 full source/preimage/index and the published/normal/capture artifacts. Only the accepted one-test file transitions; no compiled artifact seeding.",
+   "status": "PREPARED_DATA_ONLY_UNBOUND_UNRUN",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated"
+ }

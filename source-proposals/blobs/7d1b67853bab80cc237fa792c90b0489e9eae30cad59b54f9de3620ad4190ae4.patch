@@ -1,0 +1,59 @@
+--- a/crates/text/src/tests_devanagari.rs
++++ b/crates/text/src/tests_devanagari.rs
+@@ -101,6 +101,56 @@
+     let s = "हिन्दी";
+     let l = devanagari_layout(&face, s);
+     let second = "हि".len();
++    // Private diagnostic: preserve the original assertions below and record their inputs first.
++    {
++        eprintln!("DEVANAGARI_DIAGNOSTIC_BEGIN text={s:?} bytes={}", s.len());
++        let record_face = |label: &str, loaded: &FontFace| {
++            eprintln!(
++                "DEVANAGARI_LOADED_FACE label={label:?} family={:?} style={:?} version={:?} path={:?} index={} bytes={}",
++                loaded.family,
++                loaded.style,
++                loaded.version,
++                loaded.path(),
++                loaded.face_index(),
++                loaded.file_data().len()
++            );
++            let output = std::path::Path::new(
++                "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-devanagari-diagnostic-01/runtime/loaded-fonts",
++            )
++            .join(format!("{label}.font"));
++            let result = std::fs::OpenOptions::new().write(true).create_new(true).open(&output).and_then(|mut file| {
++                std::io::Write::write_all(&mut file, loaded.file_data())
++            });
++            eprintln!("DEVANAGARI_LOADED_BYTES label={label:?} output={output:?} result={result:?}");
++        };
++        record_face("selected", &face);
++        let used: std::collections::BTreeSet<_> = l.glyphs.iter().map(|glyph| glyph.font_id).collect();
++        for id in used {
++            match FontDb::global().face_by_id(id) {
++                Some(loaded) => record_face(&format!("glyph-font-{id}"), &loaded),
++                None => eprintln!("DEVANAGARI_LOADED_FACE_MISSING id={id}"),
++            }
++        }
++        let glyphs: Vec<_> = l.glyphs.iter().map(|glyph| {
++            (glyph.font_id, glyph.gid, glyph.byte, glyph.len, glyph.origin, glyph.advance, glyph.rtl)
++        }).collect();
++        eprintln!("DEVANAGARI_GLYPHS {glyphs:?}");
++        eprintln!("DEVANAGARI_CLUSTERS {:?}", source_clusters(&l));
++        eprintln!("DEVANAGARI_TYPE_USES_VISUAL_ROUTE {}", l.glyphs.iter().any(|glyph| glyph.rtl));
++        eprintln!(
++            "DEVANAGARI_EDIT next0={} next_second={} prev_end={}",
++            edit::next_cluster(s, 0), edit::next_cluster(s, second), edit::prev_cluster(s, s.len())
++        );
++        eprintln!(
++            "DEVANAGARI_VISUAL right0={} right_second={} left_end={}",
++            caret_horizontal(&l, 0, true), caret_horizontal(&l, second, true), caret_horizontal(&l, s.len(), false)
++        );
++        eprintln!(
++            "DEVANAGARI_BOUNDARY caret_second={:?} first_cluster_extent={:?}",
++            caret_position(&l, second), cluster_extent(&l, 0)
++        );
++        eprintln!("DEVANAGARI_DIAGNOSTIC_PRE_ASSERT_READY");
++    }
+     assert_eq!(source_clusters(&l), vec![(0, second), (second, s.len() - second)]);
+     // The first syllable's i matra is drawn before its consonant.
+     assert_eq!(l.glyphs[1].gid, face.glyph_for('ह'), "{:?}", l.glyphs);

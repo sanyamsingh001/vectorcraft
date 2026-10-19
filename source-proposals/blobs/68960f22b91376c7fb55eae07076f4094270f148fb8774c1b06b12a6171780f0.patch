@@ -1,0 +1,230 @@
+diff --git a/crates/engine/src/cmd/path.rs b/crates/engine/src/cmd/path.rs
+index 9a82de1e..8d04db97 100644
+--- a/crates/engine/src/cmd/path.rs
++++ b/crates/engine/src/cmd/path.rs
+@@ -1,5 +1,7 @@
+ //! Path editing commands (used by the Pen and Direct Selection tools and Object → Path).
+ 
++mod average_join;
++
+ use std::collections::BTreeSet;
+ 
+ use serde_json::{Value, json};
+@@ -77,6 +79,15 @@ pub fn specs() -> Vec<CommandSpec> {
+             has_selection,
+             average
+         ),
++        cmd!(
++            "path.averageJoin",
++            "Average and Join…",
++            ["Object", "Path"],
++            Some("Cmd+Alt+Shift+J"),
++            "{kind?: \"corner\"|\"smooth\" (default corner)} average exactly two direct-selected open-path endpoints in both axes and merge as one undo step; the two ends of one open subpath close it, or two open subpaths join. Interior and closed-path anchors are excluded. Corner retains the surviving handles; Smooth uses the neighboring anchors. The first selected path keeps its appearance; other subpaths remain. → {id, subpath, anchor}",
++            average_join::enabled,
++            average_join::run
++        ),
+         cmd!(
+             "path.convertAnchors",
+             "Convert Anchor Points",
+diff --git a/crates/ui-egui/src/dialogs/form.rs b/crates/ui-egui/src/dialogs/form.rs
+index 460eda4b..88ee3ed4 100644
+--- a/crates/ui-egui/src/dialogs/form.rs
++++ b/crates/ui-egui/src/dialogs/form.rs
+@@ -103,6 +103,7 @@ fn choices(kind: &str, key: &str) -> Vec<(&'static str, &'static str)> {
+     match (kind, key) {
+         ("offsetPath", "joins") => vec![("miter", tl!("Miter")), ("round", tl!("Round")), ("bevel", tl!("Bevel"))],
+         ("average", "axis") => vec![axis("horizontal", "Horizontal"), axis("vertical", "Vertical"), axis("both", "Both")],
++        ("averageJoin", "kind") => vec![("corner", tl!("Corner")), ("smooth", tl!("Smooth"))],
+         ("reflect", "axis") => vec![axis("horizontal", "Horizontal"), axis("vertical", "Vertical"), axis("angle", "Angle")],
+         ("shear", "axis") => vec![axis("horizontal", "Horizontal"), axis("vertical", "Vertical")],
+         _ => vec![],
+diff --git a/crates/ui-egui/src/dialogs/mod.rs b/crates/ui-egui/src/dialogs/mod.rs
+index 124d6d25..171a88ab 100644
+--- a/crates/ui-egui/src/dialogs/mod.rs
++++ b/crates/ui-egui/src/dialogs/mod.rs
+@@ -224,7 +224,7 @@ registry! {
+     NewDocument: [new_document::KIND] => new_document::SPEC,
+     Shape: ["rectangle", "roundedRectangle", "ellipse", "polygon", "star", "lineSegment", "rectangularGrid", "polarGrid"] => shapes::SPEC,
+     Transform: ["move", "rotate", "scale", "reflect", "shear"] => transform::SPEC,
+-    PathOp: ["average", "offsetPath", "simplify", "splitIntoGrid"] => path_ops::SPEC,
++    PathOp: ["average", "averageJoin", "offsetPath", "simplify", "splitIntoGrid"] => path_ops::SPEC,
+     DocumentSetup: ["documentSetup"] => document_setup::SPEC,
+     ArtboardOptions: [artboard_options::KIND] => artboard_options::SPEC,
+     ExportForScreens: ["exportForScreens"] => export_for_screens::SPEC,
+@@ -582,5 +582,8 @@ mod tests_rectangular_grid;
+ #[cfg(test)]
+ mod tests_shortcut_import;
+ 
++#[cfg(test)]
++mod tests_average_join;
++
+ #[cfg(test)]
+ mod tests_warp;
+diff --git a/crates/ui-egui/src/dialogs/path_ops.rs b/crates/ui-egui/src/dialogs/path_ops.rs
+index 8bf15f7a..31b3bb2e 100644
+--- a/crates/ui-egui/src/dialogs/path_ops.rs
++++ b/crates/ui-egui/src/dialogs/path_ops.rs
+@@ -1,4 +1,4 @@
+-//! Path dialogs: Average, and Offset Path, Simplify and Split Into Grid with Preview.
++//! Path dialogs: Average, Average and Join, and Offset Path, Simplify and Split Into Grid with Preview.
+ 
+ use serde_json::{Value, json};
+ use vectorcraft_doc::{NodeId, NodeKind, Unit};
+@@ -23,6 +23,7 @@ const ORIGINAL_IDS: &str = "__ids";
+ fn title(kind: &str) -> &'static str {
+     match kind {
+         "average" => tl!("Average"),
++        "averageJoin" => tl!("Average and Join"),
+         "offsetPath" => tl!("Offset Path"),
+         "simplify" => tl!("Simplify"),
+         _ => tl!("Split Into Grid"),
+@@ -33,6 +34,7 @@ fn title(kind: &str) -> &'static str {
+ fn command(d: &Dialog) -> (&'static str, Value) {
+     match d.kind.as_str() {
+         "average" => ("path.average", json!({"axis": d.str("axis")})),
++        "averageJoin" => ("path.averageJoin", json!({"kind": d.str("kind")})),
+         "offsetPath" => {
+             ("object.path.offsetPath", json!({"offset": d.f64("offset", 10.0), "joins": d.str("joins"), "miterLimit": d.f64("miterLimit", 4.0)}))
+         }
+@@ -44,7 +46,7 @@ fn command(d: &Dialog) -> (&'static str, Value) {
+     }
+ }
+ 
+-/// The undo label of the dialogs that preview on the canvas (all but Average).
++/// The undo label of the dialogs that preview on the canvas (neither Average command does).
+ fn previewed(kind: &str) -> Option<&'static str> {
+     match kind {
+         "offsetPath" => Some("Offset Path"),
+diff --git a/crates/ui-egui/src/menus.rs b/crates/ui-egui/src/menus.rs
+index 6b322a89..181e24d1 100644
+--- a/crates/ui-egui/src/menus.rs
++++ b/crates/ui-egui/src/menus.rs
+@@ -634,7 +634,7 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
+         "ui.menuDialog",
+         "Menu Dialog",
+         "",
+-        "{command: object.move|object.rotate|object.scale|object.reflect|object.shear|object.transformEach|path.average|object.path.offsetPath|object.path.simplify|object.path.splitIntoGrid|object.vectorHalftone|artboard.rearrange|object.envelope.makeWithWarp|object.envelope.resetWithWarp|object.envelope.makeWithMesh|object.envelope.resetWithMesh|object.envelope.options} open the dialog that command's menu item opens (dialog kind: move, rotate, scale, reflect, shear, transformEach, …, vectorHalftone, rearrangeArtboards, envelopeWarp, envelopeMesh, envelopeOptions; Scale and Transform Each have `corners` and `strokes`, from the preferences, which OK updates; the envelope dialogs start from the selected envelope, Make opens as Reset (`reset: true`) while one is selected)",
++        "{command: object.move|object.rotate|object.scale|object.reflect|object.shear|object.transformEach|path.average|path.averageJoin|object.path.offsetPath|object.path.simplify|object.path.splitIntoGrid|object.vectorHalftone|artboard.rearrange|object.envelope.makeWithWarp|object.envelope.resetWithWarp|object.envelope.makeWithMesh|object.envelope.resetWithMesh|object.envelope.options} open the dialog that command's menu item opens (dialog kind: move, rotate, scale, reflect, shear, transformEach, …, vectorHalftone, rearrangeArtboards, envelopeWarp, envelopeMesh, envelopeOptions; Scale and Transform Each have `corners` and `strokes`, from the preferences, which OK updates; the envelope dialogs start from the selected envelope, Make opens as Reset (`reset: true`) while one is selected)",
+     ),
+     (
+         "ui.widthPointEdit",
+@@ -2449,6 +2449,7 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
+                     vec![
+                         c("Join", "path.join"),
+                         c("Average…", "path.average"),
++                        c("Average and Join…", "path.averageJoin"),
+                         Sep,
+                         c("Outline Stroke", "object.path.outlineStroke"),
+                         c("Offset Path…", "object.path.offsetPath"),
+@@ -2991,7 +2992,7 @@ pub fn context_items(app: &VectorcraftApp) -> Vec<Item> {
+         }
+         let paths = any(|k| matches!(k, NodeKind::Path { .. }));
+         if paths {
+-            v.extend([c("Join", "path.join"), c("Average…", "path.average")]);
++            v.extend([c("Join", "path.join"), c("Average…", "path.average"), c("Average and Join…", "path.averageJoin")]);
+         }
+         if !st.selection.anchors.is_empty() {
+             v.extend([c("Remove Anchor Points", "path.removeAnchors"), c("Cut Path at Selected Anchor Points", "path.cutAtAnchors")]);
+@@ -3270,6 +3271,7 @@ fn menu_dialog(app: &VectorcraftApp, id: &str) -> Option<(&'static str, Value)>
+         "object.reflect" => ("reflect", json!({"axis": "vertical", "angle": 90})),
+         "object.shear" => ("shear", json!({"angle": 0, "axis": "horizontal"})),
+         "path.average" => ("average", json!({"axis": "both"})),
++        "path.averageJoin" if enabled(app, id) => ("averageJoin", json!({"kind": "corner"})),
+         // Offset Path opens on the values it was last confirmed with.
+         "object.path.offsetPath" if app.ui.offset_path.is_object() => ("offsetPath", app.ui.offset_path.clone()),
+         "object.path.offsetPath" => ("offsetPath", json!({"offset": "10 pt", "joins": "miter", "miterLimit": 4})),
+diff --git a/crates/ui-egui/src/tests_contextmenu.rs b/crates/ui-egui/src/tests_contextmenu.rs
+index 67ddbfcd..06e593dd 100644
+--- a/crates/ui-egui/src/tests_contextmenu.rs
++++ b/crates/ui-egui/src/tests_contextmenu.rs
+@@ -209,6 +209,90 @@ fn the_menu_follows_the_selection() {
+     assert!(items.windows(2).all(|w| !matches!(w, [Item::Sep, Item::Sep])));
+ }
+ 
++#[test]
++fn average_join_menu_and_context_access_follow_the_picked_endpoints() {
++    const COMMAND: &str = "path.averageJoin";
++    const LABEL: &str = "Average and Join…";
++
++    let snapshot = |app: &VectorcraftApp| {
++        let st = app.session.doc().unwrap();
++        let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
++            items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
++        };
++        (
++            st.doc.clone(),
++            st.selection.clone(),
++            entries(&st.history.undo),
++            entries(&st.history.redo),
++            st.is_dirty(),
++            app.session.in_interaction(),
++        )
++    };
++
++    for (selection, eligible) in [("empty", false), ("whole_objects", false), ("single_line", false), ("pair", true)] {
++        let mut app = app();
++        app.select_tool("directSelection");
++        let a = NodeId(app.run("shape.line", json!({"x1":20,"y1":100,"x2":100,"y2":100})).unwrap()["id"].as_u64().unwrap());
++        let b = NodeId(app.run("shape.line", json!({"x1":140,"y1":140,"x2":240,"y2":100})).unwrap()["id"].as_u64().unwrap());
++        app.run("object.move", json!({"dx":5,"dy":0})).unwrap();
++        app.run("edit.undo", json!({})).unwrap();
++        match selection {
++            "empty" => app.run("select.none", json!({})).unwrap(),
++            "whole_objects" => app.run("select.set", json!({"ids":[a.0,b.0]})).unwrap(),
++            "single_line" => app.run("select.anchors", json!({"id":a.0,"anchors":[[0,0],[0,1]],"mode":"set"})).unwrap(),
++            "pair" => app.run("select.anchorsMany", json!({"items":[{"id":a.0,"anchors":[[0,1]]},{"id":b.0,"anchors":[[0,0]]}]})).unwrap(),
++            _ => unreachable!(),
++        };
++        app.session.doc_mut().unwrap().mark_saved();
++        let before = snapshot(&app);
++        assert!(!before.3.is_empty(), "fixture retains a usable Redo branch");
++        assert!(!before.4 && !before.5);
++        assert!(app.ui.dialog.is_none());
++
++        // This is the public menu representation; rendered main-menu inspection is separate.
++        let menu = menus::menu_entries(&app);
++        let main: Vec<_> = menu.iter().filter(|e| e.command.as_deref() == Some(COMMAND)).collect();
++        assert_eq!(main.len(), 1, "{selection}: one main-menu entry");
++        assert_eq!(main[0].path, ["Object", "Path"]);
++        assert_eq!(main[0].label, LABEL);
++        assert_eq!(main[0].enabled, eligible, "{selection}");
++
++        // Check the prepared selection before right-click can intentionally retarget an object.
++        let context = menus::context_entries(&app);
++        let entries: Vec<_> = context.iter().filter(|e| e.command.as_deref() == Some(COMMAND)).collect();
++        assert_eq!(snapshot(&app), before);
++        if !eligible {
++            assert!(entries.is_empty(), "{selection}: unavailable context command is omitted");
++            assert!(app.ui.dialog.is_none());
++            continue;
++        }
++        assert_eq!(entries.len(), 1);
++        assert!(entries[0].enabled);
++        assert!(entries[0].path.is_empty());
++        assert_eq!(entries[0].label, LABEL);
++
++        let ctx = egui::Context::default();
++        frame(&mut app, &ctx, vec![]);
++        let path = app.session.doc().unwrap().doc.node(a).unwrap().path_data().unwrap();
++        let endpoint = path.subpaths[0].anchors[1].p;
++        assert_eq!(endpoint, Point::new(100.0, 100.0));
++        let point = screen(&app, endpoint.x, endpoint.y);
++        let texts = click(&mut app, &ctx, point, PointerButton::Secondary);
++        assert_eq!(snapshot(&app), before, "opening the menu at a picked endpoint preserves the pair");
++        let shown: Vec<_> = texts.iter().filter(|(label, _)| label == LABEL).collect();
++        assert_eq!(shown.len(), 1, "one visible entry identifies the click target");
++        let bounds = shown[0].1;
++        assert!(ctx.content_rect().contains_rect(bounds));
++        let target = bounds.center();
++        assert_eq!(ctx.layer_id_at(target).map(|layer| layer.order), Some(egui::Order::Foreground));
++        click(&mut app, &ctx, target, PointerButton::Primary);
++        let dialog = app.ui.dialog.as_ref().expect("the selected context command opens its dialog");
++        assert_eq!(dialog.kind, "averageJoin");
++        assert_eq!(dialog.fields["kind"], json!("corner"));
++        assert_eq!(snapshot(&app), before, "opening Average and Join preserves art, selection, history and saved state");
++    }
++}
++
+ /// Every label the context menu can show is a menu string, so complete catalogs must translate it.
+ #[test]
+ fn every_context_label_is_a_menu_string() {

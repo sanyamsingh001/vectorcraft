@@ -1,0 +1,19 @@
+--- a/crates/engine/src/cmd/distortcmds.rs
++++ b/crates/engine/src/cmd/distortcmds.rs
+@@ -1352,6 +1352,16 @@
+             st.saved_doc = e.doc.clone();
+         }
+     }
++    if let Some(g) = &mut st.undo_group {
++        for e in &mut g.saved_redo {
++            let saved = Arc::ptr_eq(&e.doc, &st.saved_doc);
++            clear(&mut e.doc);
++            e.doc.drop_lookup_cache();
++            if saved {
++                st.saved_doc = e.doc.clone();
++            }
++        }
++    }
+     if let Some(it) = &mut st.interaction {
+         clear(&mut it.doc);
+     }

@@ -1,0 +1,160 @@
+--- accepted73f/binding-source.py
++++ current797/binding-source.py
+@@ -1,12 +1,12 @@
+ from pathlib import Path
+ import os,sys,json,hashlib,subprocess,datetime,difflib,ast,traceback
+ R=Path("/mnt/downloads/dev/artcraft/vectorcraft");A=R/".git/codex/r82/consolidation-20261016"
+-OLD=A/"text-cluster-caret-publishable-e6ae-01/ci-binding-03"
+-C=A/"text-cluster-caret-publishable-73f-01";P=C/"ci-binding-01";D=C/"ci-dispatch-01"
+-W=R/".git/codex/worktrees/r82-pr1919-validation06b-consolidated";S=R/".git/codex/worktrees/r82-text-cluster-caret-73f-publishable-01";T=R/".git/codex/targets/r82-pr1919-validation06b-consolidated"
+-O=A/"picker-validation-runner-01/runs/r82-text-mixed-direction-73f-after-01";OUT=A/"guide-validation-runner-01/runs/r82-text-cluster-caret-73f-ci-01"
+-BASE="73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7";ROOT="e6aec0664cf8ebc86677cb17f46be42b511208a7"
+-TREE="cc9eb50ab36b711ea7dd6ef45596eb3512c8d76a";COMPACT="0527d82cf43c804ea67b055444a6a4a71e90b029462b6ec85530c17e1b3653d2"
++OLD=A/"text-cluster-caret-publishable-73f-01/ci-binding-01"
++C=A/"text-cluster-caret-publishable-797-01";P=C/"ci-binding-01";D=C/"ci-dispatch-01"
++W=R/".git/codex/worktrees/r82-pr1919-validation06b-consolidated";S=R/".git/codex/worktrees/r82-text-cluster-caret-797-publishable-01";T=R/".git/codex/targets/r82-pr1919-validation06b-consolidated"
++O=A/"picker-validation-runner-01/runs/r82-text-mixed-direction-73f-after-01";OUT=A/"guide-validation-runner-01/runs/r82-text-cluster-caret-797-ci-01"
++BASE="797e899c56957d292fe6140b4af18366d3cf0eb2";ROOT=BASE;BEFORE_BASE="73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7"
++TREE="7abbe28c9a942c9e81f28f196a78308290228b42";COMPACT="7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002"
+ BEFORE_TREE="6cc560f983a4767037f784190a248f80b06386d2";BEFORE_COMPACT="22088ae9dce1fcfc2a6da7dceb84e5c7fd419a4295e97c6b9b3fddf4810e8359"
+ H=lambda b:hashlib.sha256(b).hexdigest()
+ env=dict(os.environ,GIT_NO_LAZY_FETCH="1",GIT_OPTIONAL_LOCKS="0",GIT_NO_REPLACE_OBJECTS="1",PYTHONOPTIMIZE="0")
+@@ -29,29 +29,38 @@
+  return {"head":git(w,"rev-parse","HEAD").decode().strip(),"files":files,"sha256":H(json.dumps(files,sort_keys=True,separators=(",",":")).encode())}
+ def guard():
+  return {"root_head":git(R,"rev-parse","HEAD").decode().strip(),"root_index":H((R/".git/index").read_bytes()),"root_status_hex":git(R,"status","--porcelain=v1","-z","--untracked-files=no").hex(),"refs":H(git(R,"show-ref")),"work_head":git(W,"rev-parse","HEAD").decode().strip(),"work_index":H(index(W).read_bytes()),"candidate_head":git(S,"rev-parse","HEAD").decode().strip(),"candidate_index":H(index(S).read_bytes()),"target":{"dev":T.stat().st_dev,"ino":T.stat().st_ino}}
+-print("TEXT73F_CI_BINDING_START",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
++print("TEXT797_CI_BINDING_START",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
+ assert sys.flags.optimize==0 and not P.exists() and not D.exists() and not OUT.exists()
+ before=guard()
+-assert before["root_head"]==ROOT and before["root_index"]=="f88be7d79598c17629e161540e2b98a7afb644e48b8364f573a38a70ca10e830" and before["root_status_hex"]==""
+-assert before["work_head"]==BASE and before["work_index"]=="b295d1bdf3df054485482ff94921fc74e19f1dae1e44f501abb0ca7116a5460e"
+-assert before["candidate_head"]==BASE and before["candidate_index"]=="89a9cbd665b1586b8dce4422842795c54ca52eeed44d27efa1ae6a6b578ab697" and before["target"]=={"dev":66310,"ino":865301590}
+-source=pinned(C/"runtime-source-manifest.json",193557,"eec1d0818d49cf07e044e8876a61962ad059d85766293273deda03d80d66556b")
+-material=pinned(C/"result.json",4219,"472972ca6726bddfcfc0d5187a184f77f52c86e94b3edcdc2cd2423382f03190")
++assert before["root_head"]==ROOT and before["root_index"]=="04fbbddc2207b434912ecda888569aef1ee76d484404200d2284c1dcb85dc185" and before["root_status_hex"]=="" and before["refs"]=="f04624bf6150a332f1d63aec419d33a7c81f8e3f3a8e51900b56b5be3dfef46c"
++assert before["work_head"]==BEFORE_BASE and before["work_index"]=="b295d1bdf3df054485482ff94921fc74e19f1dae1e44f501abb0ca7116a5460e"
++assert before["candidate_head"]==BASE and before["candidate_index"]=="9651f7d3bbec066d148e85eb0729cb158eef4545d24a67bfa1f449b5897b917d" and before["target"]=={"dev":66310,"ino":865301590}
++source=pinned(C/"runtime-source-manifest.json",193557,"9dc1f122e048c73e905a4c874d16d24cbddd594ed07f88bb969b07d316f444d5")
++material=pinned(C/"result.json",3440,"29de3a2b9275c4824e517ad9eb8ac1d6b953f79a40ec64ba4cecf50bebd34c1f")
++ff_path=A/"canonical-main-797-ff-01/result.json";ff=pinned(ff_path,2246,"571801dfa77fbc6b486139ed59e47bcd7b1ae9339aa70a4e2080cddee05ea986")
++assert ff["head"]==ROOT and ff["index_sha256"]==before["root_index"] and ff["show_ref"]["after_sha256"]==before["refs"]
+ current=pinned(O/"source-after-step-1.json",193557,"e3f44232997ee6d4b140ae66994348faea2ee886d8b5257b1df2fcfe354225e8")
+-assert current["head"]==source["head"]==BASE and current["sha256"]==BEFORE_COMPACT and source["sha256"]==COMPACT and len(current["files"])==len(source["files"])==1785
++assert current["head"]==BEFORE_BASE and source["head"]==BASE and current["sha256"]==BEFORE_COMPACT and source["sha256"]==COMPACT and len(current["files"])==len(source["files"])==1785
+ assert material["candidate_tree"]==TREE and material["format_exit"]==0 and snapshot(W)==current and snapshot(S)==source
+ paths=sorted(k for k in current["files"].keys()|source["files"].keys() if current["files"].get(k)!=source["files"].get(k))
+-assert paths==["crates/text/src/tests_bidi.rs","crates/text/src/tests_devanagari.rs","crates/tools/src/text_tests.rs"] and current["files"].keys()==source["files"].keys()
++assert paths==["ROADMAP.md","crates/engine/src/cmd/fileio/tests_aiimport.rs","crates/engine/src/tests_eyedropper.rs","crates/eps/src/import/ai/read.rs","crates/eps/src/import/ai/tests.rs","crates/text/src/tests_bidi.rs","crates/text/src/tests_devanagari.rs","crates/tools/src/text_tests.rs","crates/ui-egui/src/i18n/bg.tsv","crates/ui-egui/src/i18n/cs.tsv","crates/ui-egui/src/i18n/de.tsv","crates/ui-egui/src/i18n/el.tsv","crates/ui-egui/src/i18n/es.tsv","crates/ui-egui/src/i18n/fi.tsv","crates/ui-egui/src/i18n/fr.tsv","crates/ui-egui/src/i18n/hu.tsv","crates/ui-egui/src/i18n/it.tsv","crates/ui-egui/src/i18n/ja.tsv","crates/ui-egui/src/i18n/ko.tsv","crates/ui-egui/src/i18n/pl.tsv","crates/ui-egui/src/i18n/pt-br.tsv","crates/ui-egui/src/i18n/ru.tsv","crates/ui-egui/src/i18n/sv.tsv","crates/ui-egui/src/i18n/tests.rs","crates/ui-egui/src/i18n/uk.tsv","crates/ui-egui/src/i18n/vi.tsv","crates/ui-egui/src/i18n/zh-hans.tsv","crates/ui-egui/src/widgets.rs"] and current["files"].keys()==source["files"].keys()
+ assert all(current["files"][p]==source["files"][p] for p in ["crates/text/src/lib.rs","crates/tools/src/text.rs","Cargo.lock","Cargo.toml","xtask/src/main.rs"])
+ changes=[{"path":p,"before_sha256":current["files"][p],"after_sha256":source["files"][p],"source":str(S/p)} for p in paths]
+-original_ready=pinned(OLD/"binding-result.json",15644,"36de824f8486c1c36a1ad4a81c65ef34bd5ad043adcce57b1d812f5766238726")
+-config=pinned(OLD/"ci-config.json",469,"cc87f46387c6fbb355818fa3afe91a56626e14aa3d36ecb75093094d12be3513")
+-admission=pinned(OLD/"admission.UNBOUND.json",5545,"9526b4fb640d96975f4ac572a33e13088e15aff4110220c706faddfc3fa7a69a")
+-transition=pinned(OLD/"transition.UNBOUND.json",7859,"94b2b8522372c8f3beba9bd21da4e5c5bfdaeea556864dcdab826105ad174dcf")
+-grant=pinned(OLD/"grant.UNBOUND.json",2106,"4e9b25e85480cfceb397d565da29770d10eabdf36e3bb9798ddee3093cc13e6c")
+-environment=pinned(OLD/"output-environment.json",10688,"e8531e68c83137745af804f888226721777950cbf522d3819c5cdd1ef8eb5622")
+-contract_path=OLD.parent/"ci-binding-02/ci-acceptance-contract.json";contract=pinned(contract_path,1311,"549ca266b3af5a82856629309191b525cb550dd71840e6512b52b9e8052e5208")
+-old_dispatch=rawpin(OLD/"ci-dispatch.py",15319,"6d88ccc651a81645e4da379c1afa0176af8a8e17be8dc6c1a55f68d5378370e1")
++old_builder=rawpin(OLD/"binding-source.py",16730,"5f56d5a32462a90793cb1ecee7059d4f912ba2a4d10b345ce53aa4d22a569e58")
++original_ready_pin=entry(OLD/"binding-result.json");original_ready=json.loads((OLD/"binding-result.json").read_bytes())
++assert original_ready["status"]=="ORIGINAL_FULL_CI_PREPARED_UNBOUND_UNRUN" and original_ready["source_base"]==BEFORE_BASE and original_ready["source_tree"]=="cc9eb50ab36b711ea7dd6ef45596eb3512c8d76a"
++original_pins={"ci-config.json":original_ready["config"],"admission.UNBOUND.json":original_ready["admission"],"transition.UNBOUND.json":original_ready["transition"],"output-environment.json":original_ready["output_environment_binding"],"ci-acceptance-contract.json":original_ready["acceptance_contract"]}
++records={}
++for name,pin in original_pins.items():
++ assert Path(pin["path"])==OLD/name
++ records[name]=pinned(OLD/name,pin["bytes"],pin["sha256"])
++config=records["ci-config.json"];admission=records["admission.UNBOUND.json"];transition=records["transition.UNBOUND.json"];environment=records["output-environment.json"];contract=records["ci-acceptance-contract.json"];contract_path=OLD/"ci-acceptance-contract.json"
++grant=json.loads((OLD/"grant.UNBOUND.json").read_bytes());assert grant["ready"]==original_ready_pin
++old_dispatch=rawpin(OLD/"ci-dispatch.py",15317,"d05847bb4106525d83d92ab5e16a7440a103bb93d1b6ba19cb742898c23f53d1")
++head_donor_path=A/"text-mixed-direction-caret-baseline-73f-01/runner-binding-01/baseline-dispatch-v2.py"
++head_donor=rawpin(head_donor_path,15453,"b047608603e83bc36b214e0c082f02ef82d8e44dc666dbee38447b4c27bb11eb")
++head_update="    git(W,'update-ref','--no-deref','HEAD',BASE,OLD_BASE)"
++assert head_donor.decode().count(head_update)==1
+ runner=A/"guide-validation-runner-01/guide-ci-runner-v1.py";rawpin(runner,19380,"3236aeb0c94f50bc001291a7a00f78afed82eedd51ac118cf086505b0758960b")
+ cache_path=A/"text73f-craft-docpath-cache-01/result.json";cache=pinned(cache_path,12775,"3b94c37c1b57ce671d5fa2e4b12d83372f21da79a21d6a0ae74fac50cd9ad9f3")
+ assert cache["status"]=="READY_OFFLINE_CACHE_ONLY" and cache["lock_sha256"]==source["files"]["Cargo.lock"]
+@@ -65,54 +74,63 @@
+ assert config["commands"]==[["cargo","xtask","ci"]] and config["phase"]=="ci" and config["expected_exits"]==[0]
+ P.mkdir();save("binding-source.py",sys.orig_argv[sys.orig_argv.index("-c")+1].encode());save("before.json",before)
+ try:
++ builder_replacements=json.loads(sys.argv[1]);own_source=sys.orig_argv[sys.orig_argv.index("-c")+1];inverse_builder=own_source
++ for a,b,n in reversed(builder_replacements):
++  assert inverse_builder.count(b)==n,(b[:120],inverse_builder.count(b),n);inverse_builder=inverse_builder.replace(b,a)
++ assert inverse_builder.encode()==old_builder
++ save("original-binding-source.py",old_builder);save("binding-source.literal-replacements.json",builder_replacements)
++ save("binding-source.delta.patch","".join(difflib.unified_diff(old_builder.decode().splitlines(True),own_source.splitlines(True),fromfile="accepted73f/binding-source.py",tofile="current797/binding-source.py")).encode())
++ save("original-head-transition-dispatch.py",head_donor)
++ save("donor-input-pins.json",{"builder":entry(OLD/"binding-source.py"),"ready":original_ready_pin,"dispatcher":entry(OLD/"ci-dispatch.py"),"records":original_pins,"grant":entry(OLD/"grant.UNBOUND.json"),"head_transition_donor":entry(head_donor_path),"root_fast_forward":entry(ff_path)})
+  for name in ["ci-dispatch.py","ci-config.json","admission.UNBOUND.json","transition.UNBOUND.json","grant.UNBOUND.json","output-environment.json"]:
+   save("original-"+name,(OLD/name).read_bytes())
+  save("original-ci-acceptance-contract.json",contract_path.read_bytes())
+  config.update(name=OUT.name,expected_head=BASE,tree=TREE);config_pin=save("ci-config.json",config)
+  stages=["fmt","clippy","test","no-bundled-fonts","pdf-deps","assets","brands","cursors","layers","wasm"]
+- contract.update(stage_program="Original current73f xtask CI; qualify actual ordered stage completions and footer, not entry markers alone.",stage_names=stages,test_change_scope=paths,source_base=BASE,source_tree=TREE,source_compact=COMPACT,stage_source={"path":"xtask/src/main.rs","sha256":source["files"]["xtask/src/main.rs"]},focused_membership_note="Private73f one-test positive is separate evidence. This original CI adds no focused command, marker-output requirement or transferred Guide/11-test total.")
++ contract.update(stage_program="Original pinned797 xtask CI; qualify actual ordered stage completions and footer, not entry markers alone.",stage_names=stages,test_change_scope=["crates/text/src/tests_devanagari.rs","crates/tools/src/text_tests.rs"],transition_scope=paths,source_base=BASE,source_tree=TREE,source_compact=COMPACT,stage_source={"path":"xtask/src/main.rs","sha256":source["files"]["xtask/src/main.rs"]},focused_membership_note="Private73f one-test positive is separate evidence. This original CI adds no focused command, marker-output requirement or transferred Guide/11-test total.")
+  contract_pin=save("ci-acceptance-contract.json",contract)
+- environment["effective_known_runner_environment"]={k:v.replace("r82-text-cluster-caret-e6ae-ci-02","r82-text-cluster-caret-73f-ci-01") if isinstance(v,str) else v for k,v in environment["effective_known_runner_environment"].items()}
++ environment["effective_known_runner_environment"]={k:v.replace("r82-text-cluster-caret-73f-ci-01","r82-text-cluster-caret-797-ci-01") if isinstance(v,str) else v for k,v in environment["effective_known_runner_environment"].items()}
+  environment.update(at=datetime.datetime.now(datetime.timezone.utc).isoformat(),preparation_source=entry(OLD/"output-environment.json"),additional_verified_cache_input=entry(cache_path),status="SOURCE_BOUND_RUNTIME_UNBOUND",runtime=None)
+  env_pin=save("output-environment.json",environment)
+  admission["cases"]["ci"].update(canonical_source_digest=COMPACT,config=config_pin,expected_head=BASE,source_manifest=entry(C/"runtime-source-manifest.json"),tree=TREE)
+  admission["outer_environment_binding"]=env_pin;admission["semantic_acceptance"]=contract_pin;admission["source_materialization"]=entry(C/"result.json")
+- admission["historical_source_reviews"]=admission.pop("source_reviews")
++ assert "historical_source_reviews" in admission and "source_reviews" not in admission
+  admission["current_production_source"]=entry(positive/"result.json");admission["separate_private_positive_evidence"]=entry(peer_path)
+- admission["separate_fixture_compatibility"]=material["separate_fixture_compatibility"]
+- admission["source_binding_note"]="One original cargo xtask ci command on current73f five-path text publication source with ten-stage semantics. Actual stages/counts/source/closure require terminal qualification; private73f one-test proof and rendered UI remain separate. Historical Guide/11-test metadata is not current membership."
+- admission["runtime_admission_required"]="Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual three-test-file transition and original CI. No automatic launch."
++ admission.pop("separate_fixture_compatibility",None);admission["upstream_reconciliation"]=material["upstream_reconciliation"]
++ admission["source_binding_note"]="One original cargo xtask ci command on pinned797 four-path text publication source with ten-stage semantics; the 26 upstream paths are retained. Actual stages/counts/source/closure require terminal qualification; private73f one-test proof and rendered UI remain separate. Historical Guide/11-test metadata is not current membership."
++ admission["runtime_admission_required"]="Separate fresh root slot/grant plus unchanged resource/boot/source/root/target/closure/lock guards precede the actual 28-path 73f-to-797 transition and original CI. No automatic launch."
+  admission_pin=save("admission.UNBOUND.json",admission)
+  argv=["/usr/bin/python","-B",str(runner),str(P/"ci-config.json"),str(P/"admission.bound.json")]
+- transition.update(after_head=BASE,after_manifest=entry(C/"runtime-source-manifest.json"),after_tree=TREE,assertion_contract=contract_pin,before_head=BASE,before_index_sha256=before["work_index"],before_manifest=entry(O/"source-after-step-1.json"),before_tree=BEFORE_TREE,cache_input_binding=entry(cache_path),change_counts={"added":0,"modified":3,"removed":0},changed_path_count=3,changed_paths=changes,isolated_source_worktree=str(S),last_owned_runtime_closure=entry(closure_path),launch_argv=argv,outer_environment_required=environment["outer_environment_required"],output_environment_binding=env_pin,root_guard=before,run_output=str(OUT),source_materialization=entry(C/"result.json"),source_preservation_required="Only after a separate fresh grant: preserve actual positive73f three test-file preimages and stable index, then install the accepted publication fixture, Hindi editing-contract correction and separate scale compatibility. Production files/head remain unchanged. Private pair, accepted positive binary archive and all e6 evidence stay preserved.",predecessor_release={"path":None,"sha256":None},preserved_positive_binary_archive=entry(archive_path),private_positive_peer=entry(peer_path))
++ transition.update(after_head=BASE,after_manifest=entry(C/"runtime-source-manifest.json"),after_tree=TREE,assertion_contract=contract_pin,before_head=BEFORE_BASE,before_index_sha256=before["work_index"],before_manifest=entry(O/"source-after-step-1.json"),before_tree=BEFORE_TREE,cache_input_binding=entry(cache_path),change_counts={"added":0,"modified":28,"removed":0},changed_path_count=28,changed_paths=changes,isolated_source_worktree=str(S),last_owned_runtime_closure=entry(closure_path),launch_argv=argv,outer_environment_required=environment["outer_environment_required"],output_environment_binding=env_pin,root_guard=before,run_output=str(OUT),source_materialization=entry(C/"result.json"),source_preservation_required="Only after a separate fresh grant: preserve all 28 actual positive73f preimages and the stable index, install the 26 upstream paths plus two publication test paths, verify the exact candidate tree, then apply the prior guarded detached HEAD update from 73f to 797. The two owned production files are byte-identical. Private pair, accepted positive binary archive and all prior evidence stay preserved.",predecessor_release={"path":None,"sha256":None},preserved_positive_binary_archive=entry(archive_path),private_positive_peer=entry(peer_path))
+  transition_pin=save("transition.UNBOUND.json",transition)
+  d=old_dispatch.decode();replacements=[]
+  def replace(a,b,n=1):
+   global d
+   assert d.count(a)==n,(a,d.count(a),n);d=d.replace(a,b);replacements.append((a,b,n))
+- replace("text-cluster-caret-publishable-e6ae-01/ci-dispatch-02","text-cluster-caret-publishable-73f-01/ci-dispatch-01")
+- replace("text-cluster-caret-publishable-e6ae-01/ci-binding-03","text-cluster-caret-publishable-73f-01/ci-binding-01")
+- replace("\nBASE='"+ROOT+"'\n","\nBASE='"+BASE+"'\n")
+- replace("\nOLD_BASE='"+ROOT+"'\n","\nOLD_BASE='"+BASE+"'\n")
+- replace("len(before['files'])==1778","len(before['files'])==1785")
+- replace("len(changes)==1 and len(manifest['files'])==1778","len(changes)==3 and len(manifest['files'])==1785")
+- replace("len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==1","len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==3")
+- replace("'before_entries':1778,'after_entries':1778","'before_entries':1785,'after_entries':1785")
+- replace("'changes':{'added':0,'modified':1,'removed':0}","'changes':{'added':0,'modified':3,'removed':0}")
++ replace("text-cluster-caret-publishable-73f-01/ci-dispatch-01","text-cluster-caret-publishable-797-01/ci-dispatch-01")
++ replace("text-cluster-caret-publishable-73f-01/ci-binding-01","text-cluster-caret-publishable-797-01/ci-binding-01")
++ replace("\nBASE='"+BEFORE_BASE+"'\n","\nBASE='"+BASE+"'\n")
++ replace("\nROOT_BASE='e6aec0664cf8ebc86677cb17f46be42b511208a7'\n","\nROOT_BASE='"+ROOT+"'\n")
++ replace("len(changes)==3 and len(manifest['files'])==1785","len(changes)==28 and len(manifest['files'])==1785")
++ replace("len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==3","len(added)==0 and len(removed)==0 and len(changes)-len(added)-len(removed)==28")
++ replace("'changes':{'added':0,'modified':3,'removed':0}","'changes':{'added':0,'modified':28,'removed':0}")
++ replace("    assert BASE==OLD_BASE and git(W,'rev-parse','HEAD').decode().strip()==BASE",head_update)
+  ast.parse(d);inverse=d
+  for a,b,n in reversed(replacements):
+   assert inverse.count(b)==n,(b,inverse.count(b),n);inverse=inverse.replace(b,a)
+  assert inverse==old_dispatch.decode()
+- dispatch_pin=save("ci-dispatch.py",d.encode());delta_pin=save("ci-dispatch.delta.patch","".join(difflib.unified_diff(old_dispatch.decode().splitlines(True),d.splitlines(True),fromfile="accepted-e6/ci-dispatch.py",tofile="current73f/ci-dispatch.py")).encode())
++ dispatch_pin=save("ci-dispatch.py",d.encode());delta_pin=save("ci-dispatch.delta.patch","".join(difflib.unified_diff(old_dispatch.decode().splitlines(True),d.splitlines(True),fromfile="accepted73f/ci-dispatch.py",tofile="current797/ci-dispatch.py")).encode())
+  save("literal-replacements.json",replacements)
+- save("config-admission.delta.patch",("".join(difflib.unified_diff((OLD/"ci-config.json").read_text().splitlines(True),(P/"ci-config.json").read_text().splitlines(True),fromfile="accepted-e6/config",tofile="current73f/config"))+"".join(difflib.unified_diff((OLD/"admission.UNBOUND.json").read_text().splitlines(True),(P/"admission.UNBOUND.json").read_text().splitlines(True),fromfile="accepted-e6/admission",tofile="current73f/admission"))).encode())
++ save("config-admission.delta.patch",("".join(difflib.unified_diff((OLD/"ci-config.json").read_text().splitlines(True),(P/"ci-config.json").read_text().splitlines(True),fromfile="accepted73f/config",tofile="current797/config"))+"".join(difflib.unified_diff((OLD/"admission.UNBOUND.json").read_text().splitlines(True),(P/"admission.UNBOUND.json").read_text().splitlines(True),fromfile="accepted73f/admission",tofile="current797/admission"))).encode())
+  after=guard();assert after==before and snapshot(W)==current and snapshot(S)==source and not D.exists() and not OUT.exists() and not (P/"admission.bound.json").exists()
+  save("after.json",after)
+- result={"status":"ORIGINAL_FULL_CI_PREPARED_UNBOUND_UNRUN","at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"source_materialization":entry(C/"result.json"),"source_manifest":entry(C/"runtime-source-manifest.json"),"source_tree":TREE,"source_compact_sha256":COMPACT,"source_entries":1785,"source_base":BASE,"config":config_pin,"admission":admission_pin,"runner_unchanged":entry(runner),"dispatcher":dispatch_pin,"executable_delta":delta_pin,"dispatcher_inverse_equality":True,"dispatcher_syntax_passed":True,"namespace_owned_correction_preserved":True,"output_environment_binding":env_pin,"transition":transition_pin,"source_transition_summary":{"before_head":BASE,"before_tree":BEFORE_TREE,"before_entries":1785,"after_head":BASE,"after_tree":TREE,"after_entries":1785,"added":0,"modified":3,"removed":0,"head_update_required":False,"paths":paths},"cache_input_binding":entry(cache_path),"cache_lock_identity_unchanged":True,"acceptance_contract":contract_pin,"command":["cargo","xtask","ci"],"expected_exits":[0],"original_ci_command_count":1,"expected_stage_count":10,"stage_names":stages,"resource_limits":admission["resources"],"preserved_positive_binary_archive":entry(archive_path),"separate_private_positive_peer":entry(peer_path),"last_owned_runtime_closure":entry(closure_path),"formatting":material["formatting"],"dispatch":{"invocation":["env","PYTHONOPTIMIZE=0","/usr/bin/python","-B",str(P/"ci-dispatch.py"),"<GRANT_PATH>","<GRANT_SHA256>","<GRANT_BYTES>"],"runner_argv":argv,"runtime_directory":str(D),"run_output":str(OUT),"status":"UNBOUND_UNRUN"},"before":before,"after":after,"source_execution_transition_performed":False,"runtime_outputs_absent":True,"root_grant":None,"runtime":None,"limits":"Original28800s command cap+10s TERM+10s KILL; setup/source hashing outside command deadline; no RSS or universal containment. No current publication CI/render or historical test-count credit.","stdout_scope":original_ready["stdout_scope"],"original_binding":entry(OLD/"binding-result.json")}
++ result={"status":"ORIGINAL_FULL_CI_PREPARED_UNBOUND_UNRUN","at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"source_materialization":entry(C/"result.json"),"source_manifest":entry(C/"runtime-source-manifest.json"),"source_tree":TREE,"source_compact_sha256":COMPACT,"source_entries":1785,"source_base":BASE,"config":config_pin,"admission":admission_pin,"runner_unchanged":entry(runner),"dispatcher":dispatch_pin,"executable_delta":delta_pin,"dispatcher_inverse_equality":True,"dispatcher_syntax_passed":True,"namespace_owned_correction_preserved":True,"output_environment_binding":env_pin,"transition":transition_pin,"source_transition_summary":{"before_head":BEFORE_BASE,"before_tree":BEFORE_TREE,"before_entries":1785,"after_head":BASE,"after_tree":TREE,"after_entries":1785,"added":0,"modified":28,"removed":0,"head_update_required":True,"paths":paths},"cache_input_binding":entry(cache_path),"cache_lock_identity_unchanged":True,"acceptance_contract":contract_pin,"command":["cargo","xtask","ci"],"expected_exits":[0],"original_ci_command_count":1,"expected_stage_count":10,"stage_names":stages,"resource_limits":admission["resources"],"preserved_positive_binary_archive":entry(archive_path),"separate_private_positive_peer":entry(peer_path),"last_owned_runtime_closure":entry(closure_path),"formatting":material["formatting"],"dispatch":{"invocation":["env","PYTHONOPTIMIZE=0","/usr/bin/python","-B",str(P/"ci-dispatch.py"),"<GRANT_PATH>","<GRANT_SHA256>","<GRANT_BYTES>"],"runner_argv":argv,"runtime_directory":str(D),"run_output":str(OUT),"status":"UNBOUND_UNRUN"},"before":before,"after":after,"source_execution_transition_performed":False,"runtime_outputs_absent":True,"root_grant":None,"runtime":None,"limits":"Original28800s command cap+10s TERM+10s KILL; setup/source hashing outside command deadline; no RSS or universal containment. No current publication CI/render or historical test-count credit.","stdout_scope":original_ready["stdout_scope"],"original_binding":original_ready_pin,"original_builder":entry(OLD/"binding-source.py"),"builder_inverse_equality":True,"head_transition_donor":entry(head_donor_path),"canonical_fast_forward":entry(ff_path),"upstream_reconciliation":material["upstream_reconciliation"]}
+  ready_pin=save("binding-result.json",result)
+  grant.update(argv=argv,commands=config["commands"],ready=ready_pin,source_after=COMPACT,source_transition=transition_pin,authorized=False,grant_id=None,launch_only_expires_at=None,slot=None,predecessor_release={"path":None,"sha256":None})
+  grant_pin=save("grant.UNBOUND.json",grant)
+  print(json.dumps({"ready":ready_pin,"dispatcher":dispatch_pin,"delta":delta_pin,"config":config_pin,"admission":admission_pin,"grant_schema":grant_pin,"transition":transition_pin,"environment":env_pin,"acceptance":contract_pin,"source_compact":COMPACT,"source_tree":TREE,"transition_summary":result["source_transition_summary"],"inverse_equal":True,"syntax_passed":True,"runtime_outputs_absent":True,"protected_equal":True},sort_keys=True),flush=True)
+- print("TEXT73F_CI_BINDING_END",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
++ print("BEGIN_EXECUTABLE_DELTA\n"+(P/"ci-dispatch.delta.patch").read_text()+"END_EXECUTABLE_DELTA",flush=True)
++ print(json.dumps({"resources":admission["resources"],"builder":entry(P/"binding-source.py"),"builder_delta":entry(P/"binding-source.delta.patch"),"donor_inputs":entry(P/"donor-input-pins.json")},sort_keys=True),flush=True)
++ print("TEXT797_CI_BINDING_END",datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
+ except BaseException as e:
+  save("failure.json",{"status":"FAILED_PRESERVED","error":repr(e),"traceback":traceback.format_exc(),"retry":False});raise

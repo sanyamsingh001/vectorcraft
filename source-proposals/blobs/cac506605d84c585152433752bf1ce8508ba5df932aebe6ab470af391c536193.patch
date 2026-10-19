@@ -1,0 +1,26 @@
+diff --git a/crates/ui-egui/src/lib.rs b/crates/ui-egui/src/lib.rs
+index b6c58414ff62e42f29d4295f54e22259e2a33b2e..a7406bdb470b028d213e2b4534fdf642dd8cad07 100644
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -117,6 +117,8 @@ mod tests_printps;
+ #[cfg(test)]
+ mod tests_printtiling;
+ #[cfg(test)]
++mod tests_properties_rotation_reference;
++#[cfg(test)]
+ mod tests_puppetwarp;
+ #[cfg(test)]
+ mod tests_recolor;
+diff --git a/crates/ui-egui/src/panels/properties.rs b/crates/ui-egui/src/panels/properties.rs
+index 3a39b47d2937ce409569a82f6957d516ac6efa96..d88fa7278afc4e3201b46f7c147413664eb77d63 100644
+--- a/crates/ui-egui/src/panels/properties.rs
++++ b/crates/ui-egui/src/panels/properties.rs
+@@ -465,7 +465,7 @@ pub fn transform_section(app: &mut VectorcraftApp, ui: &mut Ui) {
+         crate::scrub::note_label(ui, icon.rect);
+         // The bounding box's angle: a new value turns the selection to it.
+         if let Some(a) = widgets::plain_field(ui, "rot", bx.angle, "°", 2, fw) {
+-            app.run("object.rotate", json!({"angle": a, "absolute": true, "copy": copy})).ok();
++            app.run("object.rotate", json!({"angle": a, "absolute": true, "origin": [rp.x, rp.y], "copy": copy})).ok();
+         }
+         ui.add_space(10.0);
+         // Lucide's flip icons are named for their mirror line: flip-vertical-2 draws a vertical

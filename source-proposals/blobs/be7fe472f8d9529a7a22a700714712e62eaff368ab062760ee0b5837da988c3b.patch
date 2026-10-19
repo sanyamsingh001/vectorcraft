@@ -1,0 +1,126 @@
+diff --git a/crates/engine/src/lib.rs b/crates/engine/src/lib.rs
+index ced1ccef7c3a0b6fb4d0ec0d2de3845bb003cfc3..9e0c014859152ac542e7a6720da62da7888ed0ee 100644
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -1736,12 +1736,14 @@ impl Session {
+         let Some(mut it) = st.interaction.take() else { return Ok(()) };
+         let Some(preview) = it.preview.take() else { return Ok(()) };
+         let perspective_again = it.perspective_again.take();
+-        let copy = preview.0 == "object.transform" && preview.1.get("copy").and_then(Value::as_bool).unwrap_or(false);
++        let copy = preview.1.get("copy").and_then(Value::as_bool).unwrap_or(false);
+         // Alt pressed or released during a move drag turns it into a copy or back: name it for
+         // what it did in the end.
+-        match (it.label.as_str(), copy) {
+-            ("Move", true) => it.label = "Copy".into(),
+-            ("Copy", false) if preview.0 == "object.transform" => it.label = "Move".into(),
++        match (it.label.as_str(), preview.0.as_str(), copy) {
++            ("Move", "object.transform", true) => it.label = "Copy".into(),
++            ("Copy", "object.transform", false) => it.label = "Move".into(),
++            ("Move Guide", "guide.move", true) => it.label = "Copy Guide".into(),
++            ("Copy Guide", "guide.move", false) => it.label = "Move Guide".into(),
+             _ => {}
+         }
+         // A preview that left the document as it was records no Transform Again either (as
+diff --git a/crates/tools/src/rulerguide.rs b/crates/tools/src/rulerguide.rs
+index a6631ccd97944c303fcb4a92402e6bcefddbdfa0..ff61dfb2cd0abf5aecf1d7824edcb4899b4f9a03 100644
+--- a/crates/tools/src/rulerguide.rs
++++ b/crates/tools/src/rulerguide.rs
+@@ -92,6 +92,8 @@ struct Drag {
+     began: bool,
+     /// Shift-pressed on a selected guide: released without a drag, it leaves the selection.
+     deselect: bool,
++    shift: bool,
++    copy: bool,
+ }
+ 
+ /// Snapping for a dragged ruler guide, its targets gathered when the drag begins.
+@@ -246,6 +248,8 @@ impl GuideEdit {
+             pointer: ev.pos,
+             began: false,
+             deselect: shift && selected,
++            shift,
++            copy: ev.mods.alt,
+         });
+         self.snap = GuideSnap::default();
+         Some(match (selected, shift) {
+@@ -266,8 +270,7 @@ impl GuideEdit {
+             }
+             PointerKind::Up => {
+                 self.drag = None;
+-                self.snap = GuideSnap::default();
+-                if d.began && on_ruler(cx, d.vertical, ev.pos) {
++                let out = if d.began && on_ruler(cx, d.vertical, ev.pos) {
+                     // Dropped on its ruler: the guide goes (a copy is just not made).
+                     let mut out = vec![Action::Cancel];
+                     if !ev.mods.alt {
+@@ -275,12 +278,18 @@ impl GuideEdit {
+                     }
+                     out
+                 } else if d.began {
+-                    vec![Action::Commit]
++                    // A release may be the first event with this position or modifier state.
++                    let mut out =
++                        if ev.pos != d.pointer || ev.mods.shift != d.shift || ev.mods.alt != d.copy { self.drag_to(cx, &mut d, ev) } else { vec![] };
++                    out.push(Action::Commit);
++                    out
+                 } else if d.deselect {
+                     vec![Action::Exec("guide.select".into(), json!({ "indexes": [d.index], "toggle": true }))]
+                 } else {
+                     vec![]
+-                }
++                };
++                self.snap = GuideSnap::default();
++                out
+             }
+             // Another press ends the gesture.
+             _ => {
+@@ -303,7 +312,7 @@ impl GuideEdit {
+         }
+         let moved = p - d.start;
+         let at = self.snap.snap(cx, d.vertical, d.from + if d.vertical { moved.x } else { moved.y }, ev.mods.shift);
+-        (d.at, d.pointer) = (at, p);
++        (d.at, d.pointer, d.shift, d.copy) = (at, p, ev.mods.shift, ev.mods.alt);
+         // The other selected guides follow the pointer: vertical ones across, horizontal ones down.
+         let (dx, dy) = if d.vertical { (at - d.from, moved.y) } else { (moved.x, at - d.from) };
+         out.push(Action::Preview("guide.move".into(), json!({ "dx": dx, "dy": dy, "copy": ev.mods.alt })));
+diff --git a/crates/ui-egui/src/canvas.rs b/crates/ui-egui/src/canvas.rs
+index 00f8adae770611d4e4921b0dc256a7e1a7185cb8..a95e77e67866a9e3e87f1cd6aa91d3de8e426c49 100644
+--- a/crates/ui-egui/src/canvas.rs
++++ b/crates/ui-egui/src/canvas.rs
+@@ -781,7 +781,7 @@ fn handle_input(app: &mut VectorcraftApp, ui: &Ui, resp: &egui::Response, rect:
+                     ui.data_mut(|dd| dd.insert_temp(drag_id(), Drag::Art));
+                 }
+                 Drag::Tool => {
+-                    if pointer.delta() != egui::Vec2::ZERO {
++                    if pointer.delta() != egui::Vec2::ZERO || (mods_changed && guide_drag_active(app)) {
+                         // Every position the pen or mouse passed this frame, not just the last: a
+                         // fast stroke keeps its curve (a pen reports far more often than frames come).
+                         for (at, force) in frame_moves(ui) {
+@@ -1128,6 +1128,11 @@ fn wheel(i: &egui::InputState, wheel_zooms: bool, line: f32, page: f32, turn: &m
+     (zoom * step.exp(), scroll)
+ }
+ 
++/// A selection tool is previewing an existing-guide move or copy.
++fn guide_drag_active(app: &VectorcraftApp) -> bool {
++    app.session.active().and_then(|st| st.interaction.as_ref()).and_then(|i| i.preview.as_ref()).is_some_and(|(cmd, _)| cmd == "guide.move")
++}
++
+ /// Enable Touch Gestures: this frame's finger contacts on the canvas ([`crate::touch`]). A second
+ /// finger drops the press the first one began (its tool interaction rolled back; the rest of the
+ /// gesture presses nothing), and a tap of two fingers undoes, one of three redoes.
+@@ -1177,8 +1182,14 @@ fn touch_gestures(app: &mut VectorcraftApp, ui: &Ui, rect: egui::Rect, view: vec
+ fn drop_press(app: &mut VectorcraftApp, ui: &Ui, view: vectorcraft_engine::ViewInfo) {
+     match ui.data(|d| d.get_temp::<Drag>(drag_id())) {
+         Some(Drag::Tool) => {
+-            // The tool's mouse-up returns it to rest.
+             let _ = app.session.cancel_interaction();
++            // A selection tool can still hold a guide press after its preview was cancelled or
++            // settled by Redo. Escape clears that press without treating this as a ruler drop or
++            // a Shift-click. Up still returns a temporarily borrowed selection tool.
++            if matches!(app.session.tool_id(), "selection" | "directSelection" | "groupSelection") {
++                let r = app.session.tool_key(vectorcraft_tools::ToolKey::Escape, Mods::default(), view);
++                apply_requests(app, r);
++            }
+             dispatch(app, &PointerEvent { kind: PointerKind::Up, pos: Point::ZERO, mods: Mods::default(), pressure: 1.0 }, view);
+         }
+         Some(_) => {}

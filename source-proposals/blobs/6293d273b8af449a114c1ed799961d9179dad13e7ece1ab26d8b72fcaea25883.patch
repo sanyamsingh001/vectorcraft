@@ -1,0 +1,50 @@
+--- a/crates/ui-egui/src/dialogs/color_picker.rs
++++ b/crates/ui-egui/src/dialogs/color_picker.rs
+@@ -240,7 +240,8 @@
+                 });
+             });
+             ui.add_space(10.0);
+-            let (edit, ch) = value_fields(ui, &p, channel);
++            let mode = app.session.active().map(|s| s.doc.color_mode);
++            let (edit, ch) = value_fields(ui, &p, channel, mode);
+             pick = pick.or(edit);
+             new_channel = ch;
+         });
+@@ -311,7 +312,16 @@
+ /// HSB, RGB and hex are in one grid, and Lab and CMYK are in a second grid beside it. Tab goes
+ /// through the fields in the order they are drawn: H, S, B, R, G, B, hex, then L, a, b, C, M, Y,
+ /// K, with a stop at each channel's radio button before its field.
+-fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel) -> (Option<Picked>, Option<Channel>) {
++fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel, mode: Option<ColorMode>) -> (Option<Picked>, Option<Channel>) {
++    // #1692: defer the dialog's one-time focus offer until the document mode's first component.
++    // Each target restores it in its own UI context; sizing/click deferral and select-all remain
++    // the shared fields' responsibility. Without a document keep the existing Hue default.
++    let focus_first = ui.data_mut(|m| m.remove_temp::<bool>(widgets::dialog_focus_flag())).unwrap_or(false);
++    let first = match mode {
++        Some(ColorMode::Rgb) => ("cp-left", 3),
++        Some(ColorMode::Cmyk) => ("cp-right", 3),
++        None => ("cp-left", 0),
++    };
+     let t = Tokens::get(ui.ctx());
+     let rgb = p.color.to_rgb();
+     let lab = p.color.to_lab();
+@@ -333,6 +343,9 @@
+                         1 | 2 => (p.hsb[i] * 100.0, "%"),
+                         _ => (rgb[i - 3] * 255.0, ""),
+                     };
++                    if focus_first && first == ("cp-left", i) {
++                        ui.data_mut(|m| m.insert_temp(widgets::dialog_focus_flag(), true));
++                    }
+                     if let Some(nv) = widgets::plain_field(ui, ("cp-left", i), v as f64, suffix, 0, VALUE_W) {
+                         let nv = nv as f32;
+                         edit = Some(match i {
+@@ -370,6 +383,9 @@
+                     ui.add_space(12.0);
+                     ui.label(egui::RichText::new(label).size(12.5).color(t.text));
+                 });
++                if focus_first && first == ("cp-right", i) {
++                    ui.data_mut(|m| m.insert_temp(widgets::dialog_focus_flag(), true));
++                }
+                 if let Some(nv) = widgets::plain_field(ui, ("cp-right", i), v as f64, suffix, 0, VALUE_W) {
+                     let nv = nv as f32;
+                     edit = Some(Picked::of(if i < 3 {

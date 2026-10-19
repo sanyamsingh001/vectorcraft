@@ -1,0 +1,396 @@
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r80/runtime/run-check-v3.py
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/guide-runner.py
+@@ -1,59 +1,335 @@
++"""Private Vectorcraft guide runner; never launch with an UNBOUND admission."""
+ from pathlib import Path
+-import os, sys, json, subprocess, hashlib, time, fcntl
+-ROOT=Path("/mnt/downloads/dev/artcraft/vectorcraft")
+-config=json.loads(Path(sys.argv[1]).read_text())
+-work=Path(config["worktree"]).resolve()
+-assert work==ROOT or ROOT in work.parents
+-out=ROOT/".git/codex/r76/checks"/config["name"]
+-out.mkdir(parents=True,exist_ok=False)
+-env={k:v for k,v in os.environ.items() if k not in {"RUSTFLAGS","CARGO_ENCODED_RUSTFLAGS","RUSTC_WRAPPER","RUSTC_WORKSPACE_WRAPPER","GIT_INDEX_FILE","GIT_DIR","GIT_WORK_TREE"}}
+-env.update(json.loads((ROOT/".git/codex/r75/validation-retry-01/source.json").read_text())["environment"])
+-overrides=config.get("environment_overrides",{})
+-assert set(overrides)<= {"CARGO_BUILD_JOBS"} and all(v=="1" for v in overrides.values())
+-env.update(overrides)
+-for k,n in [("XDG_CACHE_HOME","cache"),("XDG_CONFIG_HOME","config"),("XDG_DATA_HOME","data"),("XDG_RUNTIME_DIR","rt")]:
+-    p=out/"environment"/n;p.mkdir(parents=True);p.chmod(0o700);env[k]=str(p)
+-env["GIT_NO_LAZY_FETCH"]="1"
+-def git(*a):
+-    return subprocess.check_output(["git",*a],cwd=work,env=env)
+-def source():
+-    paths=git("ls-files","--cached","--others","--exclude-standard","-z").decode().split("\0")
+-    items={}
+-    for name in sorted(set(paths)-{""}):
+-        p=work/name
+-        items[name]=hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
+-    b=json.dumps(items,sort_keys=True,separators=(",",":")).encode()
+-    return {"head":git("rev-parse","HEAD").decode().strip(),"sha256":hashlib.sha256(b).hexdigest(),"files":items}
+-result={"config":config,"started":time.time(),"steps":[],"status":"RUNNING"}
+-try:
+-    locks=[]
+-    for name in ["gate-coordinator.lock","compiler.lock"]:
+-        f=(ROOT/".git/codex/r61/builds"/name).open("a+");fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);locks.append(f)
+-    assert git("write-tree").decode().strip()==config["tree"], "Index differs from expected candidate tree"
+-    subprocess.run(["git","diff","--quiet"],cwd=work,env=env,check=True)
+-    assert not git("ls-files","--others","--exclude-standard"), "Unexpected untracked source"
+-    before=source();(out/"source-before.json").write_text(json.dumps(before,indent=2)+"\n")
+-    subprocess.run(["python","-B",str(ROOT/".git/codex/r76/verify-source-tree.py"),config["tree"],str(out/"source-before.json"),str(out/"tree-audit.json")],cwd=ROOT,env=env,check=True,stdout=subprocess.DEVNULL)
+-    for i,argv in enumerate(config["commands"]):
+-        log=out/f"step-{i+1}.log"
+-        step={"argv":argv,"started":time.time(),"log":str(log)}
+-        with log.open("xb") as f:
+-            child=subprocess.Popen(argv,cwd=work,env=env,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT)
+-            step["pid"]=child.pid
+-            (out/"running.json").write_text(json.dumps({"runner":os.getpid(),"step":step},indent=2)+"\n")
+-            step["exit_code"]=child.wait()
+-        step["ended"]=time.time();step["log_sha256"]=hashlib.sha256(log.read_bytes()).hexdigest()
+-        result["steps"].append(step)
+-        if step["exit_code"]!=config.get("expected_exits",[0]*len(config["commands"]))[i]: break
+-    assert git("write-tree").decode().strip()==config["tree"], "Index differs from expected candidate tree"
+-    subprocess.run(["git","diff","--quiet"],cwd=work,env=env,check=True)
+-    assert not git("ls-files","--others","--exclude-standard"), "Unexpected untracked source"
+-    after=source();(out/"source-after.json").write_text(json.dumps(after,indent=2)+"\n")
+-    result["source_before"]=before["sha256"];result["source_after"]=after["sha256"]
+-    result["status"]="PASSED" if len(result["steps"])==len(config["commands"]) and all(s["exit_code"]==config.get("expected_exits",[0]*len(config["commands"]))[i] for i,s in enumerate(result["steps"])) and before==after else "FAILED"
+-except Exception as e:
+-    result["status"]="ERROR";result["error"]=str(e)
+-finally:
+-    result["ended"]=time.time()
+-    (out/"result.json").write_text(json.dumps(result,indent=2)+"\n")
+-    print(json.dumps({k:v for k,v in result.items() if k!="config"}),flush=True)
++import hashlib, json, math, os, signal, subprocess, sys, time, fcntl, resource
++
++ROOT = Path("/mnt/downloads/dev/artcraft/vectorcraft")
++WORK = ROOT / ".git/codex/worktrees/r82-pr1919-validation06b-consolidated"
++TARGET = ROOT / ".git/codex/targets/r82-pr1919-validation06b-consolidated"
++AREA = ROOT / ".git/codex/r82/consolidation-20261016/guide-validation-runner-01"
++OLD_ENV = ROOT / ".git/codex/r75/validation-retry-01/source.json"
++LOCK_NAMES = ("gate-coordinator.lock", "compiler.lock")
++STOP = None
++
++def require(condition, message):
++    if not condition:
++        raise RuntimeError(message)
++
++def sha(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++def read_json(path):
++    return json.loads(path.read_text())
++
++def save(path, value):
++    temporary = path.with_name(path.name + ".tmp")
++    with temporary.open("w") as output:
++        json.dump(value, output, indent=2)
++        output.write("\n")
++        output.flush()
++        os.fsync(output.fileno())
++    os.replace(temporary, path)
++
++def pinned(entry):
++    path = Path(entry["path"]).resolve()
++    require(ROOT in path.parents, "Pinned input must remain in this repository")
++    require(sha(path) == entry["sha256"], "Pinned input digest mismatch: " + str(path))
++    return path
++
++def positive(value, name):
++    require(isinstance(value, (int, float)) and not isinstance(value, bool)
++            and math.isfinite(value) and value > 0, "Unbound or invalid resource: " + name)
++    return value
++
++def on_signal(number, _frame):
++    global STOP
++    STOP = signal.Signals(number).name
++
++def process(pid):
++    try:
++        fields = (Path("/proc") / str(pid) / "stat").read_text().rsplit(")", 1)[1].split()
++        return {"pid": pid, "state": fields[0], "ppid": int(fields[1]),
++                "pgid": int(fields[2]), "sid": int(fields[3]), "start_ticks": int(fields[19])}
++    except (FileNotFoundError, ProcessLookupError):
++        return None
++
++def observed_owned(leader, known):
++    # Narrow observation for these Cargo commands, not universal daemon containment.
++    observed = {}
++    for path in Path("/proc").iterdir():
++        if not path.name.isdigit():
++            continue
++        try:
++            item = process(int(path.name))
++        except PermissionError:
++            if int(path.name) in known:
++                raise
++            continue
++        if item is not None:
++            observed[item["pid"]] = item
++    changed = True
++    while changed:
++        changed = False
++        for pid, item in observed.items():
++            parent = observed.get(item["ppid"])
++            parent_owned = (parent is not None and known.get(parent["pid"]) == parent["start_ticks"])
++            same_session = item["sid"] == leader["pid"]
++            if (same_session or parent_owned) and known.get(pid) != item["start_ticks"]:
++                known[pid] = item["start_ticks"]
++                changed = True
++    current = [item for pid, item in observed.items() if known.get(pid) == item["start_ticks"]]
++    live = [item for item in current if item["state"] not in ("Z", "X")]
++    return current, live
++
++def retain_for_coordinator(step, step_path, reason):
++    step.update(status="CLEANUP_BLOCKED_LOCKS_RETAINED", cleanup_error=reason,
++                coordinator_reconciliation_required=True)
++    try:
++        save(step_path, step)
++    except Exception as error:
++        print("Cannot persist cleanup-blocked record: " + repr(error), file=sys.stderr, flush=True)
++    print("CLEANUP_BLOCKED_LOCKS_RETAINED: " + reason, file=sys.stderr, flush=True)
++    # Deliberately do not unwind the owner's lock scope after unconfirmed cleanup.
++    while True:
++        time.sleep(60)
++
++def execute(argv, number, expected_exit, env, limits, out):
++    log = out / ("step-%d.log" % number)
++    step_path = out / ("step-%d.json" % number)
++    step = {"argv": argv, "expected_exit": expected_exit, "started": time.time(),
++            "log": str(log), "status": "STARTING",
++            "closure_scope": "original session/group plus sampled descendants; no universal or kernel containment claim"}
++    def child_limits():
++        os.sched_setaffinity(0, set(limits["cpu_affinity"]))
++        if limits["memory_enforcement"] == "per_process_rlimit_as":
++            size = limits["address_space_limit_bytes"]
++            resource.setrlimit(resource.RLIMIT_AS, (size, size))
++    save(step_path, step)
++    with log.open("xb") as output:
++        child = subprocess.Popen(argv, cwd=WORK, env=env, stdin=subprocess.DEVNULL,
++                                 stdout=output, stderr=subprocess.STDOUT,
++                                 start_new_session=True, preexec_fn=child_limits)
++        leader = process(child.pid)
++        if leader is None:
++            retain_for_coordinator(step, step_path, "Cannot establish launched child identity")
++        if leader["pgid"] != child.pid or leader["sid"] != child.pid:
++            retain_for_coordinator(step, step_path, "Child did not enter its owned session")
++        known = {child.pid: leader["start_ticks"]}
++        step.update(pid=child.pid, start_ticks=leader["start_ticks"],
++                    pgid=child.pid, sid=child.pid, status="RUNNING")
++        deadline = time.monotonic() + limits["step_timeout_seconds"]
++        shutdown = None
++        kill_at = None
++        blocked_at = None
++        exit_observed = None
++        closed = False
++        try:
++            save(step_path, step)
++            save(out / "running.json", {"runner": os.getpid(), "step": step})
++            while True:
++                identity = process(child.pid)
++                require(identity is not None and identity["start_ticks"] == leader["start_ticks"],
++                        "Owned session leader identity changed before reaping")
++                current, live = observed_owned(leader, known)
++                # WNOWAIT pins the leader PID until group observation/cleanup finishes.
++                exit_observed = os.waitid(os.P_PID, child.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
++                if exit_observed is not None and "observed_exit_code" not in step:
++                    step["observed_exit_code"] = (exit_observed.si_status if exit_observed.si_code == os.CLD_EXITED
++                                                  else -exit_observed.si_status)
++                    step["exit_observed_at"] = time.time()
++                    save(step_path, step)
++                others = [item for item in live if item["pid"] != child.pid]
++                if exit_observed is not None and not others:
++                    break
++                now = time.monotonic()
++                reason = STOP or ("TIMEOUT" if now >= deadline else None)
++                if exit_observed is not None and others:
++                    reason = reason or "DESCENDANTS_OUTLIVED_COMMAND"
++                if reason is not None and shutdown is None:
++                    shutdown = reason
++                    step["termination_reason"] = reason
++                    step["observed_owned"] = current
++                    save(step_path, step)
++                    os.killpg(child.pid, signal.SIGTERM)
++                    kill_at = now + limits["terminate_grace_seconds"]
++                    blocked_at = kill_at + limits["kill_grace_seconds"]
++                if shutdown is not None and now >= kill_at:
++                    os.killpg(child.pid, signal.SIGKILL)
++                if shutdown is not None and now >= blocked_at:
++                    retain_for_coordinator(step, step_path, "Owned descendants did not settle within TERM/KILL grace")
++                time.sleep(0.25)
++            step["observed_owned_at_closure"] = current
++            step["exit_code"] = child.wait()
++            closed = True
++            step["ended"] = time.time()
++            step["status"] = "EXIT_RECORDED"
++            # Persist observed exit and raw-log reference before source/postcondition checks.
++            save(step_path, step)
++        except Exception as error:
++            step["runtime_error"] = repr(error)
++            if not closed:
++                try:
++                    identity = process(child.pid)
++                    if identity is not None and identity["start_ticks"] == leader["start_ticks"]:
++                        os.killpg(child.pid, signal.SIGTERM)
++                        current, live = observed_owned(leader, known)
++                        end = time.monotonic() + limits["terminate_grace_seconds"]
++                        while time.monotonic() < end:
++                            _, live = observed_owned(leader, known)
++                            if not live:
++                                break
++                            time.sleep(0.25)
++                        if live:
++                            os.killpg(child.pid, signal.SIGKILL)
++                        end = time.monotonic() + limits["kill_grace_seconds"]
++                        while time.monotonic() < end:
++                            current, live = observed_owned(leader, known)
++                            if not live:
++                                break
++                            time.sleep(0.25)
++                        if live:
++                            retain_for_coordinator(step, step_path, repr(error))
++                        step["exit_code"] = child.wait()
++                        step["ended"] = time.time()
++                        step["observed_owned_at_closure"] = current
++                        save(step_path, step)
++                    else:
++                        retain_for_coordinator(step, step_path, "Cleanup cannot revalidate session leader: " + repr(error))
++                except Exception as cleanup_error:
++                    retain_for_coordinator(step, step_path, repr(cleanup_error))
++    step["log_sha256"] = sha(log)
++    step["expected_exit_matched"] = step.get("exit_code") == expected_exit
++    step["status"] = ("EXPECTED_EXIT_OBSERVED" if step["expected_exit_matched"]
++                      and "termination_reason" not in step and "runtime_error" not in step else "FAILED")
++    save(step_path, step)
++    return step
++
++def main():
++    require(sys.flags.optimize == 0, "Optimized Python is forbidden")
++    require(os.environ.get("PYTHONOPTIMIZE") == "0", "Launch must set PYTHONOPTIMIZE=0")
++    require(len(sys.argv) == 3, "Usage: runner CONFIG ADMISSION")
++    config_path = Path(sys.argv[1]).resolve()
++    admission_path = Path(sys.argv[2]).resolve()
++    config = read_json(config_path)
++    admission = read_json(admission_path)
++    require(admission.get("status") == "ROOT_ADMITTED", "Admission is UNBOUND")
++    runner_hash = sha(Path(__file__).resolve())
++    require(admission.get("runner_sha256") == runner_hash, "Runner digest is not admitted")
++    for role in ("owner_review", "independent_review"):
++        review = read_json(pinned(admission[role]))
++        require(review.get("status") == "ACCEPTED" and review.get("runner_sha256") == runner_hash,
++                "Missing exact-runner " + role)
++    require(Path(admission["worktree"]).resolve() == WORK.resolve(), "Wrong admitted source")
++    require(Path(admission["target"]).resolve() == TARGET.resolve(), "Wrong admitted target")
++    require(Path(config["worktree"]).resolve() == WORK.resolve(), "Wrong configured source")
++    phase = config["phase"]
++    require(phase in ("baseline", "candidate"), "Unknown guide phase")
++    case = admission["cases"][phase]
++    require(pinned(case["config"]) == config_path, "Config is not the admitted case")
++    manifest = read_json(pinned(case["source_manifest"]))
++    require(config["expected_head"] == case["expected_head"] == manifest["head"], "HEAD pins disagree")
++    require(config["tree"] == case["tree"], "Tree pins disagree")
++    commands = config["commands"]
++    require(len(commands) == 2 and all(isinstance(command, list) and command and command[0] == "cargo"
++                                      for command in commands), "Expected the two reviewed Cargo commands")
++    expected_exits = [101, 101] if phase == "baseline" else [0, 0]
++    require(config.get("expected_exits") == expected_exits, "Explicit phase expected_exits are required")
++    require(config.get("environment_overrides", {}) in ({}, {"CARGO_BUILD_JOBS": "1"}),
++            "Unexpected environment override")
++    limits = admission["resources"]
++    require(limits.get("status") == "ROOT_ADMITTED", "Resource/time settings are UNBOUND")
++    require(limits.get("cargo_build_jobs") == 1, "Cargo jobs must remain 1")
++    cpus = limits["cpu_affinity"]
++    require(isinstance(cpus, list) and cpus and all(isinstance(cpu, int) and not isinstance(cpu, bool)
++            and cpu >= 0 for cpu in cpus) and len(cpus) == len(set(cpus))
++            and set(cpus) <= os.sched_getaffinity(0), "Invalid CPU affinity")
++    for name in ("rust_test_threads", "rayon_num_threads"):
++        require(isinstance(limits[name], int) and not isinstance(limits[name], bool) and limits[name] > 0,
++                "Unbound thread count: " + name)
++    for name in ("step_timeout_seconds", "terminate_grace_seconds", "kill_grace_seconds"):
++        positive(limits[name], name)
++    require(limits["memory_enforcement"] in ("none", "per_process_rlimit_as"), "Unbound memory policy")
++    if limits["memory_enforcement"] == "per_process_rlimit_as":
++        positive(limits["address_space_limit_bytes"], "address_space_limit_bytes")
++        require(isinstance(limits["address_space_limit_bytes"], int), "Address-space limit must be an integer")
++    else:
++        require(limits["address_space_limit_bytes"] is None, "Memory policy/limit disagree")
++    require(hasattr(os, "WNOWAIT") and hasattr(os, "waitid"), "Linux waitid/WNOWAIT required")
++    name = config["name"]
++    require(isinstance(name, str) and name and Path(name).name == name and name not in (".", ".."),
++            "Invalid run name")
++    out = AREA / "runs" / name
++    out.mkdir(parents=True, exist_ok=False)
++    env = {key: value for key, value in os.environ.items() if key not in {
++        "RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER",
++        "GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE"}}
++    require(pinned(admission["inherited_environment"]) == OLD_ENV.resolve(), "Wrong inherited environment file")
++    env.update(read_json(OLD_ENV)["environment"])
++    # Apply the exact owned target after inheritance; never reuse historical target-ui.
++    env.update(CARGO_TARGET_DIR=str(TARGET), CARGO_BUILD_JOBS="1",
++               RUST_TEST_THREADS=str(limits["rust_test_threads"]),
++               RAYON_NUM_THREADS=str(limits["rayon_num_threads"]), PYTHONOPTIMIZE="0")
++    for key, directory in (("XDG_CACHE_HOME", "cache"), ("XDG_CONFIG_HOME", "config"),
++                           ("XDG_DATA_HOME", "data"), ("XDG_RUNTIME_DIR", "rt")):
++        path = out / "environment" / directory
++        path.mkdir(parents=True)
++        path.chmod(0o700)
++        env[key] = str(path)
++    env["GIT_NO_LAZY_FETCH"] = "1"
++    def git(*args):
++        return subprocess.check_output(["git", *args], cwd=WORK, env=env)
++    def source():
++        paths = git("ls-files", "--cached", "--others", "--exclude-standard", "-z").decode().split("\0")
++        files = {name: sha(WORK / name) if (WORK / name).is_file() else None
++                 for name in sorted(set(paths) - {""})}
++        encoded = json.dumps(files, sort_keys=True, separators=(",", ":")).encode()
++        return {"head": git("rev-parse", "HEAD").decode().strip(),
++                "sha256": hashlib.sha256(encoded).hexdigest(), "files": files}
++    def guard():
++        require(git("rev-parse", "HEAD").decode().strip() == config["expected_head"], "HEAD changed")
++        require(git("write-tree").decode().strip() == config["tree"], "Index differs from admitted tree")
++        subprocess.run(["git", "diff", "--quiet"], cwd=WORK, env=env, check=True)
++        require(not git("ls-files", "--others", "--exclude-standard"), "Unexpected untracked source")
++        actual = source()
++        require(actual == manifest, "Full source differs from admitted manifest")
++        return actual
++    result = {"config": config, "runner_sha256": runner_hash, "admission_sha256": sha(admission_path),
++              "resources": limits, "started": time.time(), "steps": [], "status": "RUNNING",
++              "semantic_acceptance": "NOT_EVALUATED; expected exits alone do not qualify the 13 tests"}
++    locks = []
++    try:
++        for lock_name in LOCK_NAMES:
++            handle = (ROOT / ".git/codex/r61/builds" / lock_name).open("a+")
++            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
++            locks.append(handle)
++        before = guard()
++        save(out / "source-before.json", before)
++        subprocess.run(["python", "-B", str(ROOT / ".git/codex/r76/verify-source-tree.py"),
++                        config["tree"], str(out / "source-before.json"), str(out / "tree-audit.json")],
++                       cwd=ROOT, env=env, check=True, stdout=subprocess.DEVNULL)
++        save(out / "result.json", result)
++        for number, argv in enumerate(commands, 1):
++            require(STOP is None, "Interrupted before command launch")
++            step = execute(argv, number, expected_exits[number - 1], env, limits, out)
++            result["steps"].append(step)
++            save(out / "result.json", result)
++            if step["status"] != "EXPECTED_EXIT_OBSERVED":
++                break
++        after = guard()
++        save(out / "source-after.json", after)
++        result.update(source_before=before["sha256"], source_after=after["sha256"])
++        result["status"] = ("EXPECTED_COMMAND_EXITS_OBSERVED" if len(result["steps"]) == len(commands)
++                            and all(step["status"] == "EXPECTED_EXIT_OBSERVED" for step in result["steps"])
++                            and before == after and STOP is None else "FAILED")
++    except Exception as error:
++        result.update(status="ERROR", error=repr(error))
++    finally:
++        result["ended"] = time.time()
++        save(out / "result.json", result)
++        print(json.dumps({key: value for key, value in result.items() if key != "config"}), flush=True)
++        for handle in reversed(locks):
++            handle.close()
++
++if __name__ == "__main__":
++    signal.signal(signal.SIGINT, on_signal)
++    signal.signal(signal.SIGTERM, on_signal)
++    main()

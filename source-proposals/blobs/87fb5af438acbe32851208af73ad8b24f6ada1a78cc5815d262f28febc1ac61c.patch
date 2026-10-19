@@ -1,0 +1,59 @@
+diff --git a/crates/ui-egui/src/dialogs/color_picker.rs b/crates/ui-egui/src/dialogs/color_picker.rs
+index 39d3758c..683a8f6c 100644
+--- a/crates/ui-egui/src/dialogs/color_picker.rs
++++ b/crates/ui-egui/src/dialogs/color_picker.rs
+@@ -361,7 +361,7 @@ fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel, mode: Option<ColorMod
+                             }
+                         });
+                     }
+-                } else if let Some(c) = widgets::hex_field(ui, "cp-hex", &hex_digits(&p.color)).as_deref().and_then(parse_hex) {
++                } else if let Some(c) = widgets::color_picker_hex_field(ui, "cp-hex", &hex_digits(&p.color)).as_deref().and_then(parse_hex) {
+                     edit = Some(Picked::of(c));
+                 }
+                 ui.end_row();
+diff --git a/crates/ui-egui/src/widgets.rs b/crates/ui-egui/src/widgets.rs
+index 945c2c3d..f3324efe 100644
+--- a/crates/ui-egui/src/widgets.rs
++++ b/crates/ui-egui/src/widgets.rs
+@@ -1492,16 +1492,30 @@ pub fn channel_slider(
+ /// A hex colour field (`E67828`, no `#`) after a `#` label. Returns the text on commit when it
+ /// was typed into the field and differs from `hex`.
+ pub fn hex_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &str) -> Option<String> {
++    hex_field_impl(ui, id, hex, false)
++}
++
++/// Keep a typed Color Picker hex edit when an earlier field takes focus.
++pub(crate) fn color_picker_hex_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &str) -> Option<String> {
++    hex_field_impl(ui, id, hex, true)
++}
++
++fn hex_field_impl(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &str, retain_on_focus_handoff: bool) -> Option<String> {
+     let t = Tokens::get(ui.ctx());
+     ui.label(egui::RichText::new("#").size(15.0).color(t.text));
+     let id = ui.id().with(id);
+     let editing = ui.memory(|m| m.has_focus(id));
++    // Only the Color Picker keeps a typed edit when an earlier field already took focus.
++    // Escape still discards it; the edited flag keeps untouched fields following hex.
++    let focus_id = id.with("had-focus");
++    let had_focus =
++        retain_on_focus_handoff && ui.data_mut(|d| d.get_temp::<bool>(focus_id)).unwrap_or(false) && !ui.input(|i| i.key_pressed(egui::Key::Escape));
+     // Until the user types into it, the field shows `hex` as it is now, also while it has the
+     // focus. Tab can give it the focus in the frame another field commits an edit, before the edit
+     // changes `hex`; the text from before that edit is not committed when the focus moves on
+     // (#1692).
+     let edited_id = id.with("edited");
+-    let edited = editing && ui.data_mut(|d| d.get_temp::<bool>(edited_id)).unwrap_or(false);
++    let edited = (editing || had_focus) && ui.data_mut(|d| d.get_temp::<bool>(edited_id)).unwrap_or(false);
+     let mut buf: String = if edited { ui.data_mut(|d| d.get_temp::<String>(id)).unwrap_or_else(|| hex.to_string()) } else { hex.to_string() };
+     let resp = egui::Frame::NONE
+         .fill(t.input)
+@@ -1526,6 +1540,9 @@ pub fn hex_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &
+     let focused = ui.memory(|m| m.has_focus(id));
+     ui.data_mut(|d| {
+         d.insert_temp(id, buf.clone());
++        if retain_on_focus_handoff {
++            d.insert_temp(focus_id, focused);
++        }
+         d.insert_temp(edited_id, (edited || resp.changed()) && focused);
+     });
+     commit.then_some(buf)

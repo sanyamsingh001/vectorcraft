@@ -1,0 +1,304 @@
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/baseline-config.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/positive-config.json
+@@ -19,11 +19,11 @@
+     "CARGO_BUILD_JOBS": "1"
+   },
+   "expected_exits": [
+-    101
++    0
+   ],
+   "expected_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+-  "name": "r82-pr3004-wrap-baseline-b6e58-01",
+-  "phase": "baseline",
+-  "tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985",
++  "name": "r82-pr3004-wrap-positive-b6e58-01",
++  "phase": "candidate",
++  "tree": "c06069718653f5073798eac5c2fd25d608c0e816",
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/admission.UNBOUND.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/admission.UNBOUND.json
+@@ -1,24 +1,24 @@
+ {
+   "assertion_contract": {
+-    "bytes": 2401,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/assertion-contract.json",
+-    "sha256": "130259cfb951b4b106fda1f20e4897fd8a9853b0e3d8533e7d9402a873ad1fb5"
++    "bytes": 3183,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/assertion-contract.json",
++    "sha256": "cf8d7a27305cf570430ac938289ce32e67f839179c331e96743fa6e9e2de843a"
+   },
+   "cases": {
+-    "baseline": {
+-      "canonical_source_digest": "0ed326a67cc21ee6f9d0144d480bee63295e5ab82d71d2765d5d940927da2499",
++    "candidate": {
++      "canonical_source_digest": "dc9a3944e45ca08157bdf5671054966150ce47dd8e8527087775770f83943ad0",
+       "config": {
+-        "bytes": 711,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/baseline-config.json",
+-        "sha256": "1d2ac7df5950d0414f0ce91454e2e376ab83471da29ae66b991f976ce4c38f98"
++        "bytes": 710,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/positive-config.json",
++        "sha256": "c0d4f543501b8f306e3510def8c2e8e6e6b571c50c955cf6d689bf46036346fe"
+       },
+       "expected_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+       "source_manifest": {
+         "bytes": 193557,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/runtime-source-manifest.json",
+-        "sha256": "04d3a47253ef756639edea3b5beb466d4fbdcedddccd2f96cfbfd9701c85ee93"
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runtime-source-manifest.json",
++        "sha256": "bd593636aa8a4660186bd8fb5c36948b8de1b9674c3f0349dc275628e23a4d14"
+       },
+-      "tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985"
++      "tree": "c06069718653f5073798eac5c2fd25d608c0e816"
+     }
+   },
+   "independent_review": {
+@@ -30,9 +30,9 @@
+     "sha256": "97c01f80d25b1f6f45a2bbea802a6689f04acb22862c9485f8080fd18b5792fc"
+   },
+   "outer_environment_binding": {
+-    "bytes": 12145,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json",
+-    "sha256": "598adc782d8170fd30c06fde4f996bc6dd2e3ea3cc518944bbe1d5c1d75966d4"
++    "bytes": 12122,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/output-environment.json",
++    "sha256": "71ef33fbf05b26743f7876ca503addba25cca9bf5a2efb6dfdf5a3ef9229dbed"
+   },
+   "owner_review": {
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/owner-review-v1.json",
+@@ -56,12 +56,12 @@
+     "terminate_grace_seconds": 10
+   },
+   "runner_sha256": "2faba37df44851611e1f56f4a0ea77c09f65d09e584296173f4c04e31c3b2584",
+-  "runtime_admission_required": "Fresh root grant plus the existing process/resource/source/lock controls before the closed797 execution to published-b6e58 one-test transition. This binding performs no transition or run.",
+-  "source_binding_note": "Exactly one accepted wrapped Type test. Historical runner11-test metadata is provenance only; TYPE_WRAP_PRE_ASSERT_READY and the first actual Right assertion control applicability.",
++  "runtime_admission_required": "Fresh root grant plus the original process/resource/source/lock controls before the closed wrapped-baseline to wrapped-positive one-production-file transition. This preparation performs no transition or runtime.",
++  "source_binding_note": "Exactly the same private wrapped Type diagnostic, unchanged bytes/assertions/font policy. The actual1pass and original Right18/Left6 completion control semantic acceptance; inherited11-test runner metadata is provenance only.",
+   "source_materialization": {
+-    "bytes": 4105,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/result.json",
+-    "sha256": "802c9c45daaf3f8895534b16e272fcf124805da7f48e902c6399aef79fb07f0e"
++    "bytes": 4882,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/result.json",
++    "sha256": "fdd97940b279b025bb2451c8178d814bf07d1e8e0767dabda56170e7b390d865"
+   },
+   "status": "UNBOUND",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated",
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/output-environment.json
+@@ -12,14 +12,14 @@
+   },
+   "at": "2026-10-18T07:24:57.154995+00:00",
+   "binding_update": {
+-    "at": "2026-10-19T01:36:37.692931+00:00",
++    "at": "2026-10-19T02:58:31.608945+00:00",
+     "original": {
+-      "bytes": 11570,
+-      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/output-environment.json",
+-      "sha256": "4072f7f0f96d403c765b537501b2c34f7bd6adcddf3e156619fa32e6827c451c"
++      "bytes": 12145,
++      "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json",
++      "sha256": "598adc782d8170fd30c06fde4f996bc6dd2e3ea3cc518944bbe1d5c1d75966d4"
+     },
+     "runtime": null,
+-    "scope": "Only the new per-run XDG output paths; original direct-toolchain/owned homes/profile/cache bindings retained. Historical protected/version observations remain provenance only."
++    "scope": "Only positive per-run XDG output paths; original direct toolchain/owned homes/profile/cache bindings retained. Historical observations remain provenance only."
+   },
+   "cache_copy_performed": false,
+   "compiled_artifact_seeding": false,
+@@ -48,10 +48,10 @@
+     "TMP": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/tmp",
+     "TMPDIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r61/tmp",
+     "VECTORCRAFT_NO_PREFS": "1",
+-    "XDG_CACHE_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/cache",
+-    "XDG_CONFIG_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/config",
+-    "XDG_DATA_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/data",
+-    "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/environment/rt"
++    "XDG_CACHE_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-positive-b6e58-01/environment/cache",
++    "XDG_CONFIG_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-positive-b6e58-01/environment/config",
++    "XDG_DATA_HOME": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-positive-b6e58-01/environment/data",
++    "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-positive-b6e58-01/environment/rt"
+   },
+   "existing_cache": {
+     "bytes": 9349,
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/assertion-contract.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/assertion-contract.json
+@@ -1,13 +1,30 @@
+ {
++  "actual_source_marker_prefixes": [
++    "TYPE_WRAP_FONT",
++    "TYPE_WRAP_PRE_ASSERT_READY",
++    "TYPE_WRAP_CASE_COMPLETE"
++  ],
++  "baseline_result": {
++    "bytes": 3136,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/result.json",
++    "sha256": "dd2da990d7fe14dd9790597783c8f7f5bdda1528ac1e34f3d40081965bb3d49b"
++  },
++  "completion_marker_source": "Extracted from the exact unchanged6440B accepted test; no marker added or inferred from another test.",
++  "correction_receipt": {
++    "bytes": 2291,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/accepted-correction-receipt.json",
++    "sha256": "a82c4cce27f5a696e603f30b5ece5b3418d3e0e1208b63d1d349206b233733d6"
++  },
+   "early_failure_policy": "Missing-font capability skip, setup/route/font/layout failures or any assertion before TYPE_WRAP_PRE_ASSERT_READY do not establish the reported fallback defect. Preserve the first actual assertion and full marker line.",
+   "exact_test_name": "text::tests::type_arrows_keep_devanagari_clusters_across_wrapped_lines",
+-  "expected_baseline_exit": 101,
++  "expected_candidate_exit": 0,
+   "expected_exit_alone_is_not_semantic_acceptance": true,
+-  "first_intended_behavioral_failure": "After the accepted actual wrapped-layout and font prerequisites, real Type Right from collapsed byte6 must reach the unchanged caret/anchor18 assertion. Source predicts actual12; no runtime result is claimed.",
+   "font_evidence_scope": "The exact accepted installed-family/coverage policy and within-run selected/used Hindi face identity remain unchanged; no earlier private-pair font/runtime credit transfer.",
+   "ordinary_input_scope": "One existing-harness Type regression, using actual key handling. No OS or physical-input claim.",
++  "required_actual_result": "Exactly1pass0fail for the same named test with both existing real Type Right caret/anchor18 and subsequent Left caret/anchor6 assertions reached. Expected0 or a capability skip alone is insufficient.",
+   "required_order": [
+-    "TYPE_WRAP_PRE_ASSERT_READY"
++    "TYPE_WRAP_PRE_ASSERT_READY",
++    "TYPE_WRAP_CASE_COMPLETE"
+   ],
+   "runtime": null,
+   "source_owner": {
+@@ -30,8 +47,5 @@
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/accepted-test.rs",
+     "sha256": "e0b400ac76f0af70cbd73144c86725a75c8514847efd88ad3cebcf48e50e1dc5"
+   },
+-  "test_count": 1,
+-  "unreached_after_expected_failure": [
+-    "Left assertion returning to byte6"
+-  ]
++  "test_count": 1
+ }
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/transition.UNBOUND.json
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/transition.UNBOUND.json
+@@ -2,23 +2,28 @@
+   "after_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+   "after_manifest": {
+     "bytes": 193557,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runtime-source-manifest.json",
++    "sha256": "bd593636aa8a4660186bd8fb5c36948b8de1b9674c3f0349dc275628e23a4d14"
++  },
++  "after_tree": "c06069718653f5073798eac5c2fd25d608c0e816",
++  "assertion_contract": {
++    "bytes": 3183,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/assertion-contract.json",
++    "sha256": "cf8d7a27305cf570430ac938289ce32e67f839179c331e96743fa6e9e2de843a"
++  },
++  "baseline_result": {
++    "bytes": 3136,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01/result.json",
++    "sha256": "dd2da990d7fe14dd9790597783c8f7f5bdda1528ac1e34f3d40081965bb3d49b"
++  },
++  "before_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++  "before_index_sha256": "8c2a503c21b13a469f8b41c41ba6338ef6da2b3c92e418882255e47301146e98",
++  "before_manifest": {
++    "bytes": 193557,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/materialization-02/runtime-source-manifest.json",
+     "sha256": "04d3a47253ef756639edea3b5beb466d4fbdcedddccd2f96cfbfd9701c85ee93"
+   },
+-  "after_tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985",
+-  "assertion_contract": {
+-    "bytes": 2401,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/assertion-contract.json",
+-    "sha256": "130259cfb951b4b106fda1f20e4897fd8a9853b0e3d8533e7d9402a873ad1fb5"
+-  },
+-  "before_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
+-  "before_index_sha256": "05f639c091e740355b100c0bd58018bcce7afb834d7e06d69a8137c716e7c7e3",
+-  "before_manifest": {
+-    "bytes": 193557,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/source-before.actual.json",
+-    "sha256": "9dc1f122e048c73e905a4c874d16d24cbddd594ed07f88bb969b07d316f444d5"
+-  },
+-  "before_tree": "7abbe28c9a942c9e81f28f196a78308290228b42",
++  "before_tree": "8884ec4fc0f59adf9bf1728d3e6e12b771d0e985",
+   "cache_input_binding": {
+     "bytes": 12775,
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text73f-craft-docpath-cache-01/result.json",
+@@ -32,27 +37,27 @@
+   "changed_path_count": 1,
+   "changed_paths": [
+     {
+-      "after_sha256": "b5df6db009228c6d5a806910e978c004f8275dcbd1ceaa58a0e1f09d3d797db0",
+-      "before_sha256": "2e6f81876f5a7a51d555ddf84834a5f448afca4b3d67af566c0e113a7b693711",
+-      "path": "crates/tools/src/text_tests.rs",
+-      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-baseline-b6e58-01/crates/tools/src/text_tests.rs"
++      "after_sha256": "289782f35e9c1b9cd705e66f4069396fa79232648b4636fdad3eb7625f178f5a",
++      "before_sha256": "ba2e6340bbe4a3180bddfd5d532eda39d34f7eb586ddd252c9f1aba04f902c7c",
++      "path": "crates/text/src/lib.rs",
++      "source": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-positive-b6e58-01/crates/text/src/lib.rs"
+     }
+   ],
+   "dispatcher_execution": false,
+   "execution_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated",
+   "fresh_admission_required": true,
+-  "isolated_source_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-baseline-b6e58-01",
++  "isolated_source_worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr3004-wrap-positive-b6e58-01",
+   "last_owned_runtime_closure": {
+-    "bytes": 10040,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-ui-render-797-capture-launch-02/terminal-closure-01/receipt.json",
+-    "sha256": "31f45ab706518ce1c2f8d564e8e5f013d6eab73d38e8e0a660bce525fa4e10bc"
++    "bytes": 7477,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/dispatch-01/terminal-closure-01/closure.json",
++    "sha256": "819d0a61a9a9ddf6f1d56a4c487fee750688e39d71ede94cd868f35c6b2d8c86"
+   },
+   "launch_argv": [
+     "/usr/bin/python",
+     "-B",
+     "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/picker-runner-v1.py",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/baseline-config.json",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/admission.bound.json"
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/positive-config.json",
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/admission.bound.json"
+   ],
+   "outer_environment_application": "Apply every outer_environment_required entry to runner Popen env after inherited outer environment; do not reset PATH afterward. The unchanged runner then applies pinned r75 environment and its existing per-run target/XDG overrides. No validator launch performed.",
+   "outer_environment_required": {
+@@ -72,14 +77,19 @@
+     "XDG_RUNTIME_DIR": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-e6ae-01/runner-binding-01/output-environment-02/runtime"
+   },
+   "output_environment_binding": {
+-    "bytes": 12145,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/runner-binding-01/output-environment.json",
+-    "sha256": "598adc782d8170fd30c06fde4f996bc6dd2e3ea3cc518944bbe1d5c1d75966d4"
++    "bytes": 12122,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-positive-b6e58-01/runner-binding-01/output-environment.json",
++    "sha256": "71ef33fbf05b26743f7876ca503addba25cca9bf5a2efb6dfdf5a3ef9229dbed"
+   },
+   "predecessor_compute_release": {
+-    "bytes": 1125,
+-    "path": "/mnt/downloads/dev/artcraft/.codex-coordinator-20261016/vector-type797-corrected-root-compute-release-20261019T002612Z.json",
+-    "sha256": "85e34f318d43ef2090a7f05ba1f7a26f4b52725f8e010ef39181bceec4d8df88"
++    "bytes": 1051,
++    "path": "/mnt/downloads/dev/artcraft/.codex-coordinator-20261016/vector-wrapped-baseline-root-compute-release-20261019T024347Z.json",
++    "sha256": "9865cf01b6dd5a0a760ab9756467208a6a462208b2376c0064ecce9682ca289d"
++  },
++  "preserved_baseline_artifacts": {
++    "bytes": 15282,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-wrap-fallback-baseline-b6e58-01/independent-terminal-review-01/artifact-archive.json",
++    "sha256": "961f743ea21de94e925adb3497ec6906447b8e3db3059918b00c0613c3ef054f"
+   },
+   "preserved_normal_artifacts": {
+     "bytes": 18327,
+@@ -110,7 +120,7 @@
+   },
+   "root_guard": {
+     "candidate_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
+-    "candidate_index": "5c19703379e605f5c82883a6a98320f6c65b5dbc5e0d5a728f96621084700ecf",
++    "candidate_index": "a085efcb62d891f45c5eca46527cbf328ac0e656e184749a73f72e77ae309317",
+     "refs": "b96fe8c968395bc9b1ca3fb703d5bd6ad84398ade07c7fa313aa9a60794ac208",
+     "refs_domain": "sha256 of git show-ref raw stdout, including the actual publication tracking ref",
+     "root_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
+@@ -119,11 +129,11 @@
+       "dev": 66310,
+       "ino": 865301590
+     },
+-    "work_head": "797e899c56957d292fe6140b4af18366d3cf0eb2",
+-    "work_index": "05f639c091e740355b100c0bd58018bcce7afb834d7e06d69a8137c716e7c7e3"
++    "work_head": "b6e58adbb2863e9672ab93fc4b18f1635831d3d8",
++    "work_index": "8c2a503c21b13a469f8b41c41ba6338ef6da2b3c92e418882255e47301146e98"
+   },
+-  "run_output": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-baseline-b6e58-01",
+-  "source_preservation_required": "Preserve actual closed797 full source/preimage/index and the published/normal/capture artifacts. Only the accepted one-test file transitions; no compiled artifact seeding.",
++  "run_output": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/runs/r82-pr3004-wrap-positive-b6e58-01",
++  "source_preservation_required": "Preserve closed wrapped-baseline physical source/index/preimages, exact paired fixture and baseline/normal/capture artifacts. Only text/lib.rs transitions; no compiled-artifact seeding.",
+   "status": "PREPARED_DATA_ONLY_UNBOUND_UNRUN",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated"
+ }

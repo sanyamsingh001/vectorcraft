@@ -1,0 +1,218 @@
+--- a/pr1919-publication-action.py
++++ b/type797-publication-action.py
+@@ -1,44 +1,50 @@
+-import os,sys,json,hashlib,subprocess,runpy,datetime
++import os,sys,json,hashlib,subprocess,runpy,datetime,urllib.request,urllib.error,urllib.parse
+ from pathlib import Path
+ if sys.flags.optimize:raise RuntimeError('Assertions must remain enabled')
+ R=Path('/mnt/downloads/dev/artcraft/vectorcraft')
+ A=R/'.git/codex/r82/consolidation-20261016'
+-W=R/'.git/codex/worktrees/r82-pr1919-publication8bc-01'
+-N=R/'.git/worktrees/r82-pr1919-publication8bc-01'
+-S=[R/'.git/codex/worktrees/r82-pr1919-main8bc-consolidated',R/'.git/codex/worktrees/r82-pr1919-validation06b-consolidated']
+-O=A/'pr1919-publication-action-01'
+-E=Path('/home/a/js/codex-tracked/remote-threads/.tmp/consolidation-20261016/coordinator/review-exports/vector/pr1919-publication-action-01')
++W=R/'.git/codex/worktrees/r82-text-caret-publication797-01'
++N=R/'.git/worktrees/r82-text-caret-publication797-01'
++P=A/'text-cluster-caret-publishable-797-01'
++S=[R/'.git/codex/worktrees/r82-text-cluster-caret-797-publishable-01']
++O=P/'publication-action-01'
+ H=R/'.git/codex/review-artifacts/pr-feedback-r60/leibniz/publish_r60_proposal.py'
+ HPIN='ccf9dea97d78bbd3125d866c19385af0a4f1c3721a5b0a62d3213a4aab27eb0d'
+-BASE='8bc65329286dc1b84aa392997bb205613c3e96cb';TREE='0f832e324269c9bec26b55d14e4ef15d13fe5675'
+-OLD='88cd5c2b0226cda33c797aff5a0dd357f0a23212';REF='refs/heads/codex/r65-guide-modifiers'
+-INDEX='84d2cab1398f994bc851d5b0a86192d8a60f7ad953ce7b9cc4126d1263de06fe'
+-QUAL='1c6b9b04233a2ef1ee3eda19f66697e00101d09b8cf49911d836bc85da4b8708'
+-SOURCE='4be554cdf11a64b53ea7867106e3526805e52fa561dab3e7838f8452d843f21f'
+-FILES={'crates/engine/src/lib.rs':'13c7eb857126e81b4219c115685a26566e171d1da5fe962d6a10cb1f839db2cb','crates/tools/src/rulerguide.rs':'3fc560e27a94aad4fa1599c6d66f55588f333460d4417a23ff713b56f0c553c9','crates/ui-egui/src/canvas.rs':'5e9f1638e39f90694f04fd5e91cc733ed2cbf4bce05cbc90f0874b13955a636e'}
++BASE='797e899c56957d292fe6140b4af18366d3cf0eb2';TREE='7abbe28c9a942c9e81f28f196a78308290228b42'
++EXPECTED_MAIN='a466625c8987550635cda951ebf36e08e1e80a56'
++OLD='';BRANCH='codex/r82-type-grapheme-boundaries';REF='refs/heads/'+BRANCH
++INDEX='04fbbddc2207b434912ecda888569aef1ee76d484404200d2284c1dcb85dc185'
++QUAL='c4093e05f8d3fdcbc6cfca34ac6f823881f82c9856d79f1978dde1911ddff7d2'
++SOURCE='7b8f6b80501b03bc4aec0dd16e4234116f607c4caba9eee2d0db15ee64d22002'
++FILES={'crates/text/src/lib.rs':'ba2e6340bbe4a3180bddfd5d532eda39d34f7eb586ddd252c9f1aba04f902c7c','crates/text/src/tests_devanagari.rs':'7abc64f6712380a73540f8ecbb4e582a772c38230c8982c12e3517a90737ac88','crates/tools/src/text.rs':'c137876ec463ccd03a81d4eaea65c163ad745e28116ee08b3df128fb62c481c6','crates/tools/src/text_tests.rs':'2e6f81876f5a7a51d555ddf84834a5f448afca4b3d67af566c0e113a7b693711'}
+ UP='/repos/storytold/vectorcraft';FORK='/repos/sanyamsingh001/vectorcraft';URL='https://github.com/sanyamsingh001/vectorcraft.git'
+ NAME='sanyamsingh001';EMAIL='314051937+sanyamsingh001@users.noreply.github.com'
+-MESSAGE='fix: refresh guide drags on modifier changes and release (#1919)\n\nCo-authored-by: Codex <noreply@openai.com>\n'
++MESSAGE='fix: keep Type arrows on grapheme boundaries\n\nCo-authored-by: Codex <noreply@openai.com>\n'
+ def sha(b):return hashlib.sha256(b).hexdigest()
+ if len(sys.argv)!=2 or sys.argv[1]=='UNBOUND':raise RuntimeError('Publication bindings are UNBOUND')
+ B=json.loads(Path(sys.argv[1]).read_text())
+ if 'UNBOUND' in json.dumps(B) or 'PENDING' in json.dumps(B):raise RuntimeError('Publication bindings remain incomplete')
+-if B['lease']!=OLD or B['tree']!=TREE or B['source_sha256']!=SOURCE or not B['owner_release']:raise RuntimeError('Publication identity/authority mismatch')
++if B['lease']!=OLD or B['branch']!=BRANCH or B['tree']!=TREE or B['source_sha256']!=SOURCE or not B['owner_release']:raise RuntimeError('Publication identity/authority mismatch')
+ if B['qualification']['sha256']!=QUAL or sha(Path(B['qualification']['path']).read_bytes())!=QUAL:raise RuntimeError('Qualified CI receipt mismatch')
+-if not B['visual']['accepted'] or len(B['visual']['scenes'])!=3 or not all(x['name'] and x['observation'] for x in B['visual']['scenes']):raise RuntimeError('Actual three-scene visual acceptance missing')
++if not B['visual']['accepted'] or len(B['visual']['scenes'])!=1 or not all(x['name'] and x['observation'] for x in B['visual']['scenes']):raise RuntimeError('Actual original one-scene visual acceptance missing')
+ if sha(Path(B['visual']['receipt']).read_bytes())!=B['visual']['sha256']:raise RuntimeError('Visual acceptance receipt mismatch')
+-for field in ['title','body','reply']:
++for field in ['title','body']:
+  text=B[field].replace('{{COMMIT}}','COMMIT_BOUND_AFTER_CREATION')
+  if not text.strip() or any(x in text for x in ['{{','}}','/mnt/','/home/']):raise RuntimeError('Incomplete or private publication text')
+ if B['base_proof_mode'] not in ['fresh-negotiate','receipt']:raise RuntimeError('Destination base proof mode unset')
+ if sha(H.read_bytes())!=HPIN:raise RuntimeError('Pinned helper changed')
+-owned=[];token='';seq=0;calls=0;phase='preflight';new=None;push_attempted=False;remote=None
++for field in ('preflight','source_manifest','render_qualification','draft_receipt'):
++ ref=B[field]
++ if sha(Path(ref['path']).read_bytes())!=ref['sha256']:raise RuntimeError('Pinned '+field+' changed')
++manifest=json.loads(Path(B['source_manifest']['path']).read_bytes())
++if manifest['head']!=BASE or manifest['sha256']!=SOURCE or len(manifest['files'])!=1785:raise RuntimeError('Wrong qualified source manifest')
++owned=[];token='';seq=0;calls=0;phase='preflight';new=None;push_attempted=False;create_attempted=False;remote=None;pr_number=None
+ def clean(b):return b.replace(token.encode(),b'[REDACTED]') if token else b
+ def save(name,value):
+  b=value if isinstance(value,bytes) else (json.dumps(value,indent=2,sort_keys=True)+'\n').encode()
+  for p in owned:
+   with (p/name).open('xb') as f:f.write(clean(b))
+-def git(p,*args,ok=(0,),stdin=None,timeout=30):
++def git(p,*args,ok=(0,),stdin=None,timeout=60):
+  global seq
+  seq+=1;stem='git-%02d'%seq
+  cmd=['git','-c','maintenance.auto=false','-C',str(p),*args]
+@@ -48,22 +54,39 @@
+  save(stem+'.stdout',cp.stdout);save(stem+'.stderr',cp.stderr);save(stem+'.json',{'argv':cmd,'exit':cp.returncode})
+  if cp.returncode not in ok:raise RuntimeError(stem+' exit '+str(cp.returncode))
+  return cp.stdout
+-def api(method,path,obj=None,etag=None):
++def api(method,path,obj=None,etag=None,allow404=False):
+  global calls
+  if calls>=18:raise RuntimeError('Bounded API budget exhausted')
+- calls+=1
+- try:value,tag=remote.api(method,path,obj,etag)
++ calls+=1;stem='api-%02d'%calls
++ data=None if obj is None else json.dumps(obj,ensure_ascii=False).encode()
++ if data is not None:save(stem+'.request.json',data)
++ headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'vectorcraft-r82-reviewed-publication'}
++ if data is not None:headers['Content-Type']='application/json'
++ if etag:headers['If-Match']=etag
++ request=urllib.request.Request('https://api.github.com'+path,data=data,headers=headers,method=method)
++ try:
++  with remote.opener.open(request,timeout=60) as response:raw=response.read();code=response.status;tag=response.headers.get('ETag')
++ except urllib.error.HTTPError as exc:
++  raw=exc.read();save(stem+'.http-body',raw);save(stem+'-error.json',{'method':method,'path':path,'status':exc.code})
++  if allow404 and exc.code==404:return None,None
++  raise RuntimeError(method+' '+path+' HTTP '+str(exc.code)) from None
+  except BaseException as exc:
+-  save('api-%02d-error.json'%calls,{'method':method,'path':path,'error':type(exc).__name__+': '+str(exc)});raise
+- save('api-%02d.json'%calls,{'method':method,'path':path,'etag':tag,'response':value})
++  save(stem+'-error.json',{'method':method,'path':path,'error':type(exc).__name__+': '+str(exc)});raise
++ save(stem+'.http-body',raw);value=json.loads(raw)
++ save(stem+'.json',{'method':method,'path':path,'status':code,'etag':tag,'response':value})
+  return value,tag
+ def optional_file(p):return sha(p.read_bytes()) if p.is_file() else None
+ def protected():
+- return {'head':git(R,'rev-parse','HEAD').decode().strip(),'branch':git(R,'symbolic-ref','--short','HEAD').decode().strip(),'index':sha((R/'.git/index').read_bytes()),'tracked':git(R,'status','--porcelain=v1','-z','--untracked-files=no').hex(),'untracked':git(R,'ls-files','--others','--exclude-standard','-z').hex(),'refs':git(R,'for-each-ref','--format=%(refname) %(objectname)').decode(),'FETCH_HEAD':optional_file(R/'.git/FETCH_HEAD'),'shallow':optional_file(R/'.git/shallow'),'sources':{str(p):{'head':git(p,'rev-parse','HEAD').decode().strip(),'files':{f:sha((p/f).read_bytes()) for f in FILES}} for p in S}}
++ source={str(p):{'head':git(p,'rev-parse','HEAD').decode().strip(),'files':{f:sha((p/f).read_bytes()) for f in FILES},'source_digest':sha(json.dumps({f:sha((p/f).read_bytes()) for f in manifest['files']},sort_keys=True,separators=(',',':')).encode())} for p in S}
++ return {'head':git(R,'rev-parse','HEAD').decode().strip(),'branch':git(R,'symbolic-ref','--short','HEAD').decode().strip(),'index':sha((R/'.git/index').read_bytes()),'tracked':git(R,'status','--porcelain=v1','-z','--untracked-files=no').hex(),'refs':git(R,'for-each-ref','--format=%(refname) %(objectname)').decode(),'FETCH_HEAD':optional_file(R/'.git/FETCH_HEAD'),'shallow':optional_file(R/'.git/shallow'),'sources':source,'candidate_ordinary_index':sha((R/'.git/worktrees/r82-text-cluster-caret-797-publishable-01/index').read_bytes()),'candidate_private_index':sha((P/'candidate.index').read_bytes())}
+ def check_pr(pr,head):
+- if pr['number']!=1919 or pr['state']!='open' or pr['head']['sha']!=head or pr['head']['ref']!='codex/r65-guide-modifiers' or pr['head']['repo']['full_name']!='sanyamsingh001/vectorcraft' or pr['base']['repo']['id']!=1398097510 or pr['base']['ref']!='main':raise RuntimeError('PR route/head guard failed')
++ if pr['state']!='open' or pr['head']['sha']!=head or pr['head']['ref']!=BRANCH or pr['head']['repo']['full_name']!='sanyamsingh001/vectorcraft' or pr['base']['repo']['id']!=1398097510 or pr['base']['ref']!='main':raise RuntimeError('PR route/head guard failed')
++def heads():
++ rows,_=api('GET',UP+'/pulls?'+urllib.parse.urlencode({'state':'all','head':NAME+':'+BRANCH,'base':'main','per_page':100}))
++ if len(rows)>=100:raise RuntimeError('Exact-head PR query incomplete')
++ return rows
+ try:
+- for p in (O,E):p.mkdir();owned.append(p)
++ for p in (O,):p.mkdir();owned.append(p)
+  save('bindings.json',B)
+  token=(R.parent/'sanyamsingh001.token').read_text().strip()
+  remote=runpy.run_path(str(H))['Remote'](token)
+@@ -72,19 +95,25 @@
+   env.pop(key,None)
+  for key in list(env):
+   if key.startswith('GIT_TRACE') or key=='GIT_CURL_VERBOSE':env.pop(key,None)
+- env.update(GIT_NO_LAZY_FETCH='1',GIT_OPTIONAL_LOCKS='0',GIT_TERMINAL_PROMPT='0',GIT_AUTHOR_NAME=NAME,GIT_AUTHOR_EMAIL=EMAIL,GIT_COMMITTER_NAME=NAME,GIT_COMMITTER_EMAIL=EMAIL)
++ env.update(GIT_NO_LAZY_FETCH='1',GIT_OPTIONAL_LOCKS='0',GIT_NO_REPLACE_OBJECTS='1',GIT_TERMINAL_PROMPT='0',GIT_AUTHOR_NAME=NAME,GIT_AUTHOR_EMAIL=EMAIL,GIT_COMMITTER_NAME=NAME,GIT_COMMITTER_EMAIL=EMAIL,PYTHONDONTWRITEBYTECODE='1',PYTHONOPTIMIZE='0',TMPDIR=str(R/'.git/codex/r61/tmp'),TMP=str(R/'.git/codex/r61/tmp'),TEMP=str(R/'.git/codex/r61/tmp'))
+  actor,_=api('GET','/user')
+  if (actor['login'],actor['id'])!=(NAME,314051937):raise RuntimeError('Designated actor mismatch')
++ upstream,_=api('GET',UP);fork,_=api('GET',FORK)
++ if upstream['id']!=1398097510 or upstream['full_name']!='storytold/vectorcraft' or fork['full_name']!='sanyamsingh001/vectorcraft' or fork['owner']['login']!=NAME or not fork['fork'] or fork['parent']['id']!=upstream['id']:raise RuntimeError('Repository destination identity mismatch')
+  main,_=api('GET',UP+'/git/ref/heads/main')
+- ref,_=api('GET',FORK+'/git/ref/heads/codex/r65-guide-modifiers')
+- pr,_=api('GET',UP+'/pulls/1919');check_pr(pr,OLD)
+- if main['object']['sha']!=BASE or ref['object']['sha']!=OLD or sha((pr.get('body') or '').encode())!=B['expected_pr_body_sha256']:raise RuntimeError('Fresh main/lease/body guard failed')
++ ref,_=api('GET',FORK+'/git/ref/heads/'+BRANCH,allow404=True)
++ if main['object']['sha']!=EXPECTED_MAIN or ref is not None:raise RuntimeError('Fresh current-main/new-ref guard failed')
++ if heads():raise RuntimeError('Existing focused PR requires reconciliation before publication')
++ for query in ['repo:storytold/vectorcraft is:pr author:'+NAME+' "'+B['title']+'" in:title','repo:storytold/vectorcraft is:pr author:'+NAME+' "caret_horizontal_cluster" in:body']:
++  found,_=api('GET','/search/issues?'+urllib.parse.urlencode({'q':query,'per_page':100}))
++  if found.get('incomplete_results') or found['total_count']!=len(found['items']) or found['items']:raise RuntimeError('Targeted PR dedup requires reconciliation')
++ if git(R,'for-each-ref','--format=%(refname)','refs/heads/'+BRANCH).strip():raise RuntimeError('Local intended branch appeared')
+  before=protected();save('protected-before.json',before)
+- if before['head']!=BASE or before['branch']!='main' or before['index']!=INDEX or before['tracked'] or any(v['head']!=BASE or v['files']!=FILES for v in before['sources'].values()):raise RuntimeError('Protected source/root guard failed')
++ if before['head']!=BASE or before['branch']!='main' or before['index']!=INDEX or before['tracked'] or any(v['head']!=BASE or v['files']!=FILES or v['source_digest']!=SOURCE for v in before['sources'].values()) or before['candidate_ordinary_index']!='9651f7d3bbec066d148e85eb0729cb158eef4545d24a67bfa1f449b5897b917d' or before['candidate_private_index']!='89c266f652c038a8b687d628e449cb41feefe9a69998b397343608ed347cd7b0':raise RuntimeError('Protected source/root guard failed')
+  if Path(git(W,'rev-parse','--path-format=absolute','--git-path','index').decode().strip()).resolve()!=N/'index' or (W/'.git').read_text().strip()!='gitdir: '+str(N):raise RuntimeError('Publication private-index/gitdir identity changed')
+  if git(W,'symbolic-ref','-q','HEAD',ok=(0,1)).strip() or git(W,'rev-parse','HEAD').decode().strip()!=BASE or git(W,'write-tree').decode().strip()!=TREE:raise RuntimeError('Detached candidate/index mismatch')
+  git(W,'diff','--quiet')
+- if {f:sha((W/f).read_bytes()) for f in FILES}!=FILES:raise RuntimeError('Publication source bytes changed')
++ if {f:sha((W/f).read_bytes()) for f in FILES}!=FILES or {f:sha((W/f).read_bytes()) for f in manifest['files']}!=manifest['files']:raise RuntimeError('Publication source bytes changed')
+  if git(W,'config','--show-origin','--get','core.hooksPath',ok=(0,1)).strip():raise RuntimeError('Hook path changed since owner inspection')
+  hooks=R/'.git/hooks'
+  if any((hooks/n).is_file() and os.access(hooks/n,os.X_OK) for n in ['pre-commit','prepare-commit-msg','commit-msg','post-commit','pre-push']):raise RuntimeError('Executable publication hook needs its own actual inspection')
+@@ -114,38 +143,47 @@
+  phase='lease_push';push_attempted=True
+  git(W,'-c','push.negotiate=true','push','--porcelain','--force-with-lease='+REF+':'+OLD,URL,new+':'+REF,timeout=180)
+  phase='independent_pushed_head_readback'
+- pushed,_=api('GET',FORK+'/git/ref/heads/codex/r65-guide-modifiers')
++ pushed,_=api('GET',FORK+'/git/ref/heads/'+BRANCH)
+  commit,_=api('GET',FORK+'/git/commits/'+new)
+- current,etag=api('GET',UP+'/pulls/1919');check_pr(current,new)
+  if pushed['object']['sha']!=new or commit['sha']!=new or commit['tree']['sha']!=TREE or [x['sha'] for x in commit['parents']]!=[BASE] or any(commit[k]['name']!=NAME or commit[k]['email']!=EMAIL for k in ['author','committer']) or commit['message'].strip()!=MESSAGE.strip():raise RuntimeError('Independent remote commit/ref verification failed')
+- if (current.get('body') or '')!=(pr.get('body') or ''):raise RuntimeError('PR body changed during publication')
+- body=B['body'].replace('{{COMMIT}}',new);reply=B['reply'].replace('{{COMMIT}}',new)
+- for text in [body,reply]:
+-  if any(x in text for x in ['UNBOUND','PENDING','{{','}}','/mnt/','/home/']):raise RuntimeError('Unbound/private final text')
+- phase='body_update'
+- updated,_=api('PATCH',UP+'/pulls/1919',{'title':B['title'],'body':body},etag);check_pr(updated,new)
+- if updated['title']!=B['title'] or updated['body']!=body:raise RuntimeError('Body update response mismatch')
+- phase='review_reply'
+- posted,_=api('POST',UP+'/issues/1919/comments',{'body':reply})
+- save('posted-reply.json',{'id':posted['id'],'url':posted['html_url']})
++ save('qualified-pushed-head.json',{'commit':new,'tree':TREE,'base':BASE,'owned_ref':REF,'fork':URL})
++ body=B['body']
++ if any(x in body for x in ['UNBOUND','PENDING','{{','}}','/mnt/','/home/']):raise RuntimeError('Unbound/private final text')
++ rows=heads()
++ if rows:
++  if len(rows)!=1:raise RuntimeError('Multiple exact-head PRs')
++  created=rows[0];check_pr(created,new)
++  if created['title']!=B['title'] or (created.get('body') or '')!=body:raise RuntimeError('Existing PR metadata differs; preserve without overwrite')
++  save('existing-pull-reused.json',created)
++ else:
++  phase='create_pull';create_attempted=True
++  created,_=api('POST',UP+'/pulls',{'title':B['title'],'body':body,'head':NAME+':'+BRANCH,'base':'main','draft':False})
++  check_pr(created,new)
++  save('created-pull.json',created)
++ pr_number=created['number'];save('pull-identity.json',{'number':pr_number,'url':created['html_url'],'head':new})
+  phase='independent_metadata_readback'
+- final,_=api('GET',UP+'/pulls/1919');check_pr(final,new)
+- comment,_=api('GET',UP+'/issues/comments/'+str(posted['id']))
++ final,_=api('GET',UP+'/pulls/'+str(pr_number));check_pr(final,new)
++ final_ref,_=api('GET',FORK+'/git/ref/heads/'+BRANCH)
+  main_after,_=api('GET',UP+'/git/ref/heads/main')
+  checks,_=api('GET',UP+'/commits/'+new+'/check-runs?per_page=100')
+  statuses,_=api('GET',UP+'/commits/'+new+'/statuses?per_page=100')
+- if final['title']!=B['title'] or final['body']!=body or comment['body']!=reply or comment['user']['login']!=NAME:raise RuntimeError('Independent metadata readback mismatch')
++ if final_ref['object']['sha']!=new or final['title']!=B['title'] or final['body']!=body:raise RuntimeError('Independent metadata readback mismatch')
+  after=protected();save('protected-after.json',after)
+  if after!=before:raise RuntimeError('Protected root/source/ref preservation failed')
+- save('result.json',{'status':'PUBLISHED_AND_READ_BACK','at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'new_commit':new,'tree':TREE,'base':BASE,'main_after':main_after['object']['sha'],'reply_url':comment['html_url'],'api_calls':calls,'root_source_refs_preserved':True,'hosted_check_runs':checks,'hosted_statuses':statuses,'review_resolution_claimed':False})
++ save('result.json',{'status':'PUBLISHED_AND_READ_BACK','at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'new_commit':new,'tree':TREE,'base':BASE,'main_after':main_after['object']['sha'],'pull_number':pr_number,'pull_url':final['html_url'],'api_calls':calls,'root_source_refs_preserved':True,'hosted_check_runs':checks,'hosted_statuses':statuses,'mergeable':final.get('mergeable'),'mergeable_state':final.get('mergeable_state'),'review_resolution_claimed':False,'current_main_runtime_claimed':False})
+  save('manifest.json',{p.name:{'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())} for p in O.iterdir() if p.is_file()})
+- print(json.dumps({'status':'PUBLISHED_AND_READ_BACK','new_commit':new,'private':str(O),'static':str(E),'result_sha256':sha((O/'result.json').read_bytes()),'manifest_sha256':sha((O/'manifest.json').read_bytes())},indent=2))
++ print(json.dumps({'status':'PUBLISHED_AND_READ_BACK','new_commit':new,'pull_number':pr_number,'pull_url':final['html_url'],'private':str(O),'result_sha256':sha((O/'result.json').read_bytes()),'manifest_sha256':sha((O/'manifest.json').read_bytes())},indent=2))
+ except BaseException as exc:
+- failure={'status':'STOPPED_PRESERVE_NO_REPLAY','phase':phase,'error':type(exc).__name__+': '+str(exc),'new_commit':new,'push_attempted':push_attempted}
++ failure={'status':'STOPPED_PRESERVE_NO_REPLAY','phase':phase,'error':type(exc).__name__+': '+str(exc),'new_commit':new,'push_attempted':push_attempted,'create_attempted':create_attempted,'pull_number':pr_number}
+  if owned:
+   if push_attempted and remote is not None:
+-   try:failure['destination_readback']=api('GET',FORK+'/git/ref/heads/codex/r65-guide-modifiers')[0]
++   try:failure['destination_readback']=api('GET',FORK+'/git/ref/heads/'+BRANCH,allow404=True)[0]
+    except BaseException as read_error:failure['readback_error']=type(read_error).__name__+': '+str(read_error)
++  if create_attempted and remote is not None:
++    try:
++     rows=heads();failure['ambiguous_create_head_readback']=rows
++     failure['qualified_existing_prs']=[{'number':p['number'],'url':p['html_url'],'head':p['head']['sha']} for p in rows if p['head']['sha']==new and p['head']['repo']['full_name']=='sanyamsingh001/vectorcraft' and p['head']['ref']==BRANCH and p['base']['repo']['id']==1398097510 and p['base']['ref']=='main']
++    except BaseException as read_error:failure['create_readback_error']=type(read_error).__name__+': '+str(read_error)
+   save('failure.json',failure)
+  print(clean(json.dumps(failure,indent=2).encode()).decode())
+  raise SystemExit(1)

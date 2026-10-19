@@ -1,0 +1,38 @@
+diff --git a/crates/engine/src/lib.rs b/crates/engine/src/lib.rs
+index 293aa6ef601ba70dd8ad856bc4b5b1b2cba1331b..2a36d38153989f55921b310bfdff28f8b99d6dec 100644
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -257,6 +257,8 @@ pub(crate) struct PreviewCopies {
+ pub struct UndoGroup {
+     /// The document before the group's first edit, as the undo step that edit recorded keeps it.
+     first: Option<Arc<Document>>,
++    /// The Redo branch replaced by the recorded step, kept until commit or cancellation.
++    saved_redo: Vec<HistoryEntry>,
+     /// The journal's length when the group began: a cancelled group drops the entries after it.
+     journal: usize,
+     /// The undo step's name; else the first edit's.
+@@ -463,6 +465,7 @@ impl DocState {
+                 return;
+             }
+             g.first = Some(doc.clone());
++            g.saved_redo = std::mem::take(&mut self.history.redo);
+             if let Some(l) = &g.label {
+                 label = l.clone();
+             }
+@@ -1740,7 +1743,7 @@ impl Session {
+         if let Some(st) = self.active_mut()
+             && st.undo_group.is_none()
+         {
+-            st.undo_group = Some(UndoGroup { first: None, journal, label });
++            st.undo_group = Some(UndoGroup { first: None, saved_redo: vec![], journal, label });
+         }
+     }
+ 
+@@ -1758,6 +1761,7 @@ impl Session {
+             {
+                 st.doc = e.doc;
+                 st.selection = Arc::unwrap_or_clone(e.selection);
++                st.history.redo = g.saved_redo;
+                 st.revision += 1;
+                 journal = Some(g.journal);
+             }

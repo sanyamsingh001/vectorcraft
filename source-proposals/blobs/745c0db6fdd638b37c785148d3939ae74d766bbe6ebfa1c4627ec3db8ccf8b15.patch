@@ -1,0 +1,48 @@
+--- .git/codex/r80/runtime/accept-eight-stage.py
++++ .git/codex/r81/current-main-publication-preparation-01/accept-nine-stage.py
+@@ -10,7 +10,7 @@
+ assert r['status']=='PASSED' and r['config']==c and len(r['steps'])==len(c['commands'])
+ bf=D/'source-before.json';af=D/'source-after.json';a=D/'tree-audit.json'
+ b=json.loads(bf.read_text());after=json.loads(af.read_text());audit=json.loads(a.read_text())
+-assert b==after and b['head']==x.get('head','0a33cff3f6e2a1e9e672f4c3816f58cd8d3d032e')
++assert b==after and b['head']==x.get('head','8770d2a96c276ec01c55f052078f71d0f528b42e')
+ assert hashlib.sha256(json.dumps(b['files'],sort_keys=True,separators=(',',':')).encode()).hexdigest()==b['sha256']
+ assert r['source_before']==r['source_after']==b['sha256']
+ assert audit['status']=='EXACT_TREE_SOURCE_MANIFEST_VERIFIED' and audit['tree']==c['tree'] and audit['head']==b['head']
+@@ -30,8 +30,8 @@
+ if x['mode']=='ci':
+  assert c['commands']==[['cargo','xtask','ci']]
+  stages=re.findall(r'^=== ci: ([a-z-]+) ===$',logs[0],re.M)
+- assert stages==['fmt','clippy','test','pdf-deps','assets','brands','layers','wasm']
+- status='ALL_EIGHT_CI_STAGES_PASSED'
++ assert stages==['fmt','clippy','test','no-bundled-fonts','pdf-deps','assets','brands','layers','wasm']
++ status='ALL_NINE_CI_STAGES_PASSED'
+ else:
+  ep=loc(x['contract']);assert sha(ep)==x['contract_sha256'];e=json.loads(ep.read_text())
+  assert e['tree']==c['tree'] and len(e['commands'])==len(logs)
+--- .git/codex/r80/existing-pr-publisher-01/publish-v2.py
++++ .git/codex/r81/current-main-publication-preparation-01/publish-v3.py
+@@ -27,8 +27,8 @@
+ assert prior['number']==N and prior['head']['sha']==OLD and prior['head']['ref']==BRANCH
+ assert prior['user']['login']=='sanyamsingh001' and prior['state']=='open' and not prior['merged']
+ ci_path=pinned(m['ci_receipt']);ci=json.loads(ci_path.read_text())
+-assert ci['status']=='ALL_EIGHT_CI_STAGES_PASSED' and ci['tree']==TREE and ci['head']==BASE
+-assert ci['counts']['failed']==0 and ci['ci_stages']==['fmt','clippy','test','pdf-deps','assets','brands','layers','wasm']
++assert ci['status']=='ALL_NINE_CI_STAGES_PASSED' and ci['tree']==TREE and ci['head']==BASE
++assert ci['counts']['failed']==0 and ci['ci_stages']==['fmt','clippy','test','no-bundled-fonts','pdf-deps','assets','brands','layers','wasm']
+ assert ci['required_named_tests_verified']==required_names
+ check=ci_path.parent
+ required_raw_pins={str((check/name).relative_to(R)) for name in ['result.json','source-before.json','source-after.json','step-1.log']}
+--- .git/codex/r80/remaining-rebase-body-preparation-01/pr-1919-body-template.md
++++ .git/codex/r81/current-main-publication-preparation-01/pr-1919-body-template.md
+@@ -4,8 +4,8 @@
+ 
+ Thirteen added regressions cover both axes, release-only changes, selected guides, artwork preservation, Undo/Redo and ruler drops. Regression coverage includes final Move/Copy history labels and touch cancellation. Two additional custom-origin integration checks belong to the historical combined-source validation below.
+ 
+-Historical validation: a full-CI retry on five-unit tree `9090ee00` (base `a0671777`) passed all seven stages with 6,613 test outcomes on 2026-10-14. All thirteen guide-modifier/touch regressions and two custom-origin integration checks passed on that combined tree. Those integration checks are separate from this standalone PR's thirteen-check inventory. The original 1280×960 headless capture from combined tree `555aef58` (base `b076025a`) was reviewed for stationary-guide Shift/Alt previews only. Source review established scene applicability to historical tree `9090ee00`; this is not a b12 capture or native-OS validation.
++Historical validation: a full-CI retry on five-unit tree `9090ee00` (base `a0671777`) passed all seven stages with 6,613 test outcomes on 2026-10-14. All thirteen guide-modifier/touch regressions and two custom-origin integration checks passed on that combined tree. Those integration checks are separate from this standalone PR's thirteen-check inventory. The original 1280×960 headless capture from combined tree `555aef58` (base `b076025a`) was reviewed for stationary-guide Shift/Alt previews only. Source review established scene applicability to historical tree `9090ee00`; this is not a capture of the current rebase or native-OS validation.
+ 
+-Rebase validation on base `b12a52f7`, standalone tree `fa913fe7`: full-CI result **UNFILLED_CI_STATUS**; **UNFILLED_CI_PASSED** passed, **UNFILLED_CI_FAILED** failed and **UNFILLED_CI_IGNORED** ignored; **UNFILLED_CI_STAGE_COUNT** of eight required stages, including `pdf-deps`; all 13 scoped named checks **UNFILLED_NAMED_CHECK_STATUS**. This rebase preserves the published feature/test changes and incoming upstream PDF content.
++Rebase validation on base `8770d2a9`, standalone tree `1a45e1b4`: full-CI result **UNFILLED_CI_STATUS**; **UNFILLED_CI_PASSED** passed, **UNFILLED_CI_FAILED** failed and **UNFILLED_CI_IGNORED** ignored; **UNFILLED_CI_STAGE_COUNT** of nine required stages (`fmt`, `clippy`, `test`, `no-bundled-fonts`, `pdf-deps`, `assets`, `brands`, `layers`, `wasm`); all 13 scoped named checks **UNFILLED_NAMED_CHECK_STATUS**. Changes are limited to `crates/engine/src/lib.rs`, `crates/tools/src/rulerguide.rs`, and `crates/ui-egui/src/canvas.rs`; progress docs are unchanged.
+ 
+ An earlier full-CI run on the same historical five-unit tree panicked in the randomized `ai_mutated_save_never_panics` test. Its ordinary complete retry used no test exclusions or seed selection. The cause remains unresolved; this PR does not claim to repair that failure.

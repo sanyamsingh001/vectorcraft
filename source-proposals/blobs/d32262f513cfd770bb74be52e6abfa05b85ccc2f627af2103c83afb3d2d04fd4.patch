@@ -1,0 +1,1384 @@
+diff --git a/crates/engine/src/cmd/path.rs b/crates/engine/src/cmd/path.rs
+index bf1dcc10..992bc7d5 100644
+--- a/crates/engine/src/cmd/path.rs
++++ b/crates/engine/src/cmd/path.rs
+@@ -1,5 +1,7 @@
+ //! Path editing commands (used by the Pen and Direct Selection tools and Object → Path).
+ 
++mod average_join;
++
+ use std::collections::BTreeSet;
+ 
+ use serde_json::{Value, json};
+@@ -77,6 +79,15 @@ pub fn specs() -> Vec<CommandSpec> {
+             has_selection,
+             average
+         ),
++        cmd!(
++            "path.averageJoin",
++            "Average and Join…",
++            ["Object", "Path"],
++            Some("Cmd+Alt+Shift+J"),
++            "{kind?: \"corner\"|\"smooth\" (default corner)} average exactly two direct-selected open-path endpoints in both axes and merge as one undo step; the two ends of one open subpath close it, or two open subpaths join. Interior and closed-path anchors are excluded. Corner retains the surviving handles; Smooth uses the neighboring anchors. The first selected path keeps its appearance; other subpaths remain. → {id, subpath, anchor}",
++            average_join::enabled,
++            average_join::run
++        ),
+         cmd!(
+             "path.convertAnchors",
+             "Convert Anchor Points",
+diff --git a/crates/engine/src/cmd/path/average_join.rs b/crates/engine/src/cmd/path/average_join.rs
+new file mode 100644
+index 00000000..646d05c7
+--- /dev/null
++++ b/crates/engine/src/cmd/path/average_join.rs
+@@ -0,0 +1,160 @@
++//! Average exactly two picked anchors and join them in one history entry.
++//! Coordinates and handles are already in document space.
++use std::collections::BTreeSet;
++
++use serde_json::{Value, json};
++use vectorcraft_doc::NodeId;
++use vectorcraft_geom::{AnchorKind, PathData, Point, SubPath};
++
++use super::path_mut;
++use crate::cmd::bad;
++use crate::{Result, Session};
++
++const COMMAND: &str = "path.averageJoin";
++const PICK_TWO: &str = "select exactly two open-path endpoints with Direct Selection";
++
++#[derive(Clone, Copy)]
++struct Pick {
++    id: NodeId,
++    subpath: usize,
++    anchor: usize,
++}
++
++fn picks(s: &Session) -> Result<[Pick; 2]> {
++    let st = s.doc()?;
++    if !st.selection.guides.is_empty() || !st.selection.slices.is_empty() {
++        return Err(bad(COMMAND, PICK_TWO));
++    }
++    let mut picks = Vec::with_capacity(2);
++    // A whole object or a segment is not a request to choose its nearest endpoints.
++    for &id in &st.selection.objects {
++        if st.selection.segments.contains_key(&id) {
++            return Err(bad(COMMAND, PICK_TWO));
++        }
++        // Toggling an object's last anchor can leave an empty entry: do not silently skip it.
++        let anchors = st.selection.anchors.get(&id).filter(|anchors| !anchors.is_empty()).ok_or_else(|| bad(COMMAND, PICK_TWO))?;
++        for &(subpath, anchor) in anchors {
++            if picks.len() == 2 {
++                return Err(bad(COMMAND, PICK_TWO));
++            }
++            picks.push(Pick { id, subpath, anchor });
++        }
++    }
++    let [a, b] = picks.as_slice() else { return Err(bad(COMMAND, PICK_TWO)) };
++    for pick in [a, b] {
++        let sp = st.doc.node(pick.id).and_then(|n| n.path_data()).and_then(|p| p.subpaths.get(pick.subpath));
++        if !sp.is_some_and(|sp| !sp.closed && sp.anchors.len() >= 2 && (pick.anchor == 0 || pick.anchor == sp.anchors.len() - 1)) {
++            return Err(bad(COMMAND, PICK_TWO));
++        }
++        if a.id == b.id && a.subpath == b.subpath && sp.is_some_and(|sp| sp.anchors.len() <= 2) {
++            return Err(bad(COMMAND, "joining must leave at least two anchors"));
++        }
++    }
++    Ok([*a, *b])
++}
++
++pub(super) fn enabled(s: &Session) -> std::result::Result<(), String> {
++    picks(s).map(|_| ()).map_err(|e| e.to_string())
++}
++
++fn path(s: &Session, id: NodeId) -> Result<PathData> {
++    s.doc()?.doc.node(id).and_then(|n| n.path_data()).cloned().ok_or_else(|| bad(COMMAND, "selected object is not a path"))
++}
++
++fn subpath(path: &PathData, pick: Pick) -> Result<SubPath> {
++    path.subpaths
++        .get(pick.subpath)
++        .filter(|sp| sp.anchors.get(pick.anchor).is_some())
++        .cloned()
++        .ok_or_else(|| bad(COMMAND, "selected anchor no longer exists"))
++}
++
++fn midpoint(a: Point, b: Point) -> Point {
++    Point::new(a.x / 2.0 + b.x / 2.0, a.y / 2.0 + b.y / 2.0)
++}
++
++/// Close an open path at the averaged endpoints, retaining its incoming and outgoing handles.
++fn close(sp: &mut SubPath) -> Result<()> {
++    let first = sp.anchors.first().copied().ok_or_else(|| bad(COMMAND, "empty subpath"))?;
++    let mut last = sp.anchors.last().copied().ok_or_else(|| bad(COMMAND, "empty subpath"))?;
++    let center = midpoint(first.p, last.p);
++    last.translate(center - last.p);
++    let first = sp.anchors.first_mut().ok_or_else(|| bad(COMMAND, "empty subpath"))?;
++    first.translate(center - first.p);
++    first.h_in = last.h_in;
++    first.kind = AnchorKind::Corner;
++    sp.anchors.pop();
++    sp.closed = true;
++    Ok(())
++}
++
++pub(super) fn run(s: &mut Session, params: &Value) -> Result<Value> {
++    let smooth = match params.get("kind") {
++        None => false,
++        Some(Value::String(kind)) if kind == "corner" => false,
++        Some(Value::String(kind)) if kind == "smooth" => true,
++        _ => return Err(bad(COMMAND, "kind must be corner or smooth")),
++    };
++    let [a, b] = picks(s)?;
++    let mut left = path(s, a.id)?;
++    let mut right = path(s, b.id)?;
++    let mut x = subpath(&left, a)?;
++    let mut y = subpath(&right, b)?;
++    let same_subpath = a.id == b.id && a.subpath == b.subpath;
++    let joined;
++    if same_subpath {
++        close(&mut x)?;
++        joined = 0;
++    } else {
++        let endpoint = |sp: &SubPath, i: usize| !sp.closed && sp.anchors.len() >= 2 && (i == 0 || i == sp.anchors.len() - 1);
++        if !endpoint(&x, a.anchor) || !endpoint(&y, b.anchor) {
++            return Err(bad(COMMAND, "joining different subpaths requires two open endpoints"));
++        }
++        if a.anchor == 0 {
++            x.reverse();
++        }
++        if b.anchor != 0 {
++            y.reverse();
++        }
++        let last = x.anchors.last_mut().ok_or_else(|| bad(COMMAND, "empty first subpath"))?;
++        let first = y.anchors.first_mut().ok_or_else(|| bad(COMMAND, "empty second subpath"))?;
++        let center = midpoint(last.p, first.p);
++        last.translate(center - last.p);
++        first.translate(center - first.p);
++        last.h_out = first.h_out;
++        last.kind = AnchorKind::Corner;
++        joined = x.anchors.len() - 1;
++        x.anchors.extend(y.anchors.into_iter().skip(1));
++    }
++    // Use the app's existing Smooth convention, rather than inventing a target-app algorithm.
++    if smooth && !x.smooth_anchor(joined) {
++        return Err(bad(COMMAND, "the joined anchor has no distinct neighbors to define a smooth direction"));
++    }
++    *left.subpaths.get_mut(a.subpath).ok_or_else(|| bad(COMMAND, "missing first subpath"))? = x;
++    let mut selected_subpath = a.subpath;
++    if !same_subpath {
++        if a.id == b.id {
++            left.subpaths.remove(b.subpath); // validated by subpath() before any mutation
++            if b.subpath < selected_subpath {
++                selected_subpath -= 1;
++            }
++        } else {
++            right.subpaths.remove(b.subpath);
++        }
++    }
++    s.edit("Average and Join", |d, sel| {
++        *path_mut(d, a.id)? = left;
++        if a.id != b.id {
++            if right.subpaths.is_empty() {
++                d.remove(b.id)?;
++            } else {
++                d.node_mut(b.id).ok_or(crate::EngineError::NoNode(b.id))?.pin_gradients();
++                *path_mut(d, b.id)? = right;
++            }
++        }
++        sel.set([a.id]);
++        sel.anchors.insert(a.id, BTreeSet::from([(selected_subpath, joined)]));
++        Ok(())
++    })?;
++    Ok(json!({"id": a.id.0, "subpath": selected_subpath, "anchor": joined}))
++}
+diff --git a/crates/engine/tests/average_join.rs b/crates/engine/tests/average_join.rs
+new file mode 100644
+index 00000000..10c8844a
+--- /dev/null
++++ b/crates/engine/tests/average_join.rs
+@@ -0,0 +1,307 @@
++#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
++//! Original geometry fixtures for the one-step Average and Join command.
++use serde_json::{Value, json};
++use vectorcraft_doc::NodeId;
++use vectorcraft_engine::Session;
++use vectorcraft_geom::{AnchorKind, PathData, Point};
++
++fn session() -> Session {
++    let mut s = Session::new();
++    s.execute("file.new", &json!({"width": 600, "height": 400})).unwrap();
++    s
++}
++fn path(s: &Session, id: NodeId) -> PathData {
++    s.doc().unwrap().doc.node(id).unwrap().path_data().unwrap().clone()
++}
++fn make(s: &mut Session, anchors: Value, closed: bool) -> NodeId {
++    NodeId(s.execute("path.create", &json!({"anchors": anchors, "closed": closed})).unwrap()["id"].as_u64().unwrap())
++}
++fn pick(s: &mut Session, items: Value) {
++    s.execute("select.anchorsMany", &json!({"items": items})).unwrap();
++}
++fn pair(s: &mut Session) -> (NodeId, NodeId) {
++    let a = make(s, json!([{"x": 20, "y": 100}, {"x": 100, "y": 100, "in": [80, 60]}]), false);
++    let b = make(s, json!([{"x": 140, "y": 140, "out": [170, 150]}, {"x": 240, "y": 100}]), false);
++    pick(s, json!([{"id": a.0, "anchors": [[0,1]]}, {"id": b.0, "anchors": [[0,0]]}]));
++    (a, b)
++}
++
++#[test]
++fn average_join_corner_is_one_step_and_retains_handles_selection_and_saved_state() {
++    let mut s = session();
++    let (a, b) = pair(&mut s);
++    s.doc_mut().unwrap().mark_saved();
++    let before = s.doc().unwrap().doc.clone();
++    let selection = s.doc().unwrap().selection.clone();
++    let undo = s.doc().unwrap().history.undo.len();
++    s.execute("path.averageJoin", &json!({"kind": "corner"})).unwrap();
++    let p = path(&s, a);
++    let sp = &p.subpaths[0];
++    assert!(!sp.closed);
++    assert_eq!(sp.anchors.len(), 3);
++    let join = sp.anchors[1];
++    assert_eq!(join.p, Point::new(120.0, 120.0));
++    assert_eq!(join.h_in, Point::new(100.0, 80.0));
++    assert_eq!(join.h_out, Point::new(150.0, 130.0));
++    assert_eq!(join.kind, AnchorKind::Corner);
++    assert_eq!(sp.anchors[0], before.node(a).unwrap().path_data().unwrap().subpaths[0].anchors[0]);
++    assert_eq!(sp.anchors[2], before.node(b).unwrap().path_data().unwrap().subpaths[0].anchors[1]);
++    assert_eq!(s.doc().unwrap().doc.node(a).unwrap().appearance, before.node(a).unwrap().appearance);
++    assert!(s.doc().unwrap().doc.node(b).is_none());
++    assert_eq!(s.doc().unwrap().selection.anchors[&a], [(0, 1)].into());
++    assert_eq!(s.doc().unwrap().history.undo.len(), undo + 1);
++    assert!(s.doc().unwrap().is_dirty());
++    let after = s.doc().unwrap().doc.clone();
++    let after_sel = s.doc().unwrap().selection.clone();
++    s.execute("edit.undo", &json!({})).unwrap();
++    assert_eq!(s.doc().unwrap().doc, before);
++    assert_eq!(s.doc().unwrap().selection, selection);
++    assert!(!s.doc().unwrap().is_dirty());
++    s.execute("edit.redo", &json!({})).unwrap();
++    assert_eq!(s.doc().unwrap().doc, after);
++    assert_eq!(s.doc().unwrap().selection, after_sel);
++}
++
++#[test]
++fn average_join_smooth_uses_neighbor_direction_and_third_distance_handles() {
++    let mut s = session();
++    let (a, _) = pair(&mut s);
++    s.execute("path.averageJoin", &json!({"kind": "smooth"})).unwrap();
++    let p = path(&s, a);
++    let join = p.subpaths[0].anchors[1];
++    assert_eq!(join.p, Point::new(120.0, 120.0));
++    assert_eq!(join.kind, AnchorKind::Smooth);
++    assert_eq!(join.h_in.y, 120.0);
++    assert_eq!(join.h_out.y, 120.0);
++    assert!((join.p.distance(join.h_in) - 10400_f64.sqrt() / 3.0).abs() < 1e-9);
++    assert!((join.p.distance(join.h_out) - 14800_f64.sqrt() / 3.0).abs() < 1e-9);
++    assert!(join.h_in.x < join.p.x && join.h_out.x > join.p.x);
++}
++
++#[test]
++fn average_join_honors_all_four_endpoint_orientations() {
++    for first_a in [false, true] {
++        for first_b in [false, true] {
++            let mut s = session();
++            let (a, b) = pair(&mut s);
++            if first_a {
++                s.execute("path.reverse", &json!({"ids":[a.0]})).unwrap();
++            }
++            if !first_b {
++                s.execute("path.reverse", &json!({"ids":[b.0]})).unwrap();
++            }
++            pick(&mut s, json!([{"id":a.0,"anchors":[[0,if first_a {0} else {1}]]},{"id":b.0,"anchors":[[0,if first_b {0} else {1}]]}]));
++            s.execute("path.averageJoin", &json!({})).unwrap();
++            let p = path(&s, a);
++            assert_eq!(
++                p.subpaths[0].anchors.iter().map(|a| a.p).collect::<Vec<_>>(),
++                [Point::new(20.0, 100.0), Point::new(120.0, 120.0), Point::new(240.0, 100.0)]
++            );
++            assert_eq!(p.subpaths[0].anchors[1].h_in, Point::new(100.0, 80.0));
++            assert_eq!(p.subpaths[0].anchors[1].h_out, Point::new(150.0, 130.0));
++        }
++    }
++}
++
++#[test]
++fn average_join_closes_the_two_open_endpoints_at_their_midpoint() {
++    let mut s = session();
++    let a = make(&mut s, json!([{"x":20,"y":20},{"x":100,"y":20},{"x":100,"y":100},{"x":20,"y":100}]), false);
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,0],[0,3]]}]));
++    s.execute("path.averageJoin", &json!({})).unwrap();
++    let p = path(&s, a);
++    assert!(p.subpaths[0].closed);
++    assert_eq!(p.subpaths[0].anchors.iter().map(|a| (a.p.x, a.p.y)).collect::<Vec<_>>(), [(20.0, 60.0), (100.0, 20.0), (100.0, 100.0)]);
++}
++
++#[test]
++fn average_join_rejects_closed_and_interior_anchors_atomically() {
++    for (closed, indices) in [(true, [0, 3]), (true, [0, 1]), (false, [1, 2]), (false, [0, 1])] {
++        let mut s = session();
++        let a = make(&mut s, json!([{"x":20,"y":20},{"x":100,"y":20},{"x":100,"y":100},{"x":20,"y":100}]), closed);
++        pick(&mut s, json!([{"id":a.0,"anchors":[[0,indices[0]],[0,indices[1]]]}]));
++        s.doc_mut().unwrap().mark_saved();
++        let before = s.doc().unwrap().doc.clone();
++        let selection = s.doc().unwrap().selection.clone();
++        let undo = s.doc().unwrap().history.undo.len();
++        for kind in ["corner", "smooth"] {
++            assert!(s.execute("path.averageJoin", &json!({"kind":kind})).is_err());
++            assert_eq!(s.doc().unwrap().doc, before);
++            assert_eq!(s.doc().unwrap().selection, selection);
++            assert_eq!(s.doc().unwrap().history.undo.len(), undo);
++            assert!(!s.doc().unwrap().is_dirty());
++        }
++    }
++}
++
++#[test]
++fn average_join_preserves_other_subpaths_on_both_objects() {
++    let mut s = session();
++    let (a, b) = pair(&mut s);
++    for (id, main, extra) in [
++        (a, json!([{"x":20,"y":100},{"x":100,"y":100}]), json!([{"x":300,"y":300},{"x":400,"y":300}])),
++        (b, json!([{"x":140,"y":140},{"x":240,"y":100}]), json!([{"x":500,"y":200},{"x":550,"y":250}])),
++    ] {
++        s.execute(
++            "path.setAnchors",
++            &json!({"id":id.0,"subpaths":[
++                {"anchors":main,"closed":false},
++                {"anchors":extra,"closed":false}
++            ]}),
++        )
++        .unwrap();
++    }
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,1]]},{"id":b.0,"anchors":[[0,0]]}]));
++    let extra_a = path(&s, a).subpaths[1].clone();
++    let extra_b = path(&s, b).subpaths[1].clone();
++    assert_ne!(extra_a, extra_b, "distinct unselected contours expose accidental substitution");
++    s.execute("path.averageJoin", &json!({})).unwrap();
++    assert_eq!(path(&s, a).subpaths[1], extra_a);
++    assert_eq!(path(&s, b).subpaths, vec![extra_b]);
++    // Two different subpaths of one node: merge only those two, leaving the other object intact.
++    let b_before = s.doc().unwrap().doc.node(b).unwrap().clone();
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,2],[1,0]]}]));
++    s.execute("path.averageJoin", &json!({})).unwrap();
++    assert_eq!(path(&s, a).subpaths.len(), 1);
++    assert_eq!(path(&s, a).subpaths[0].anchors.len(), 4);
++    assert_eq!(s.doc().unwrap().doc.node(b).unwrap(), &b_before);
++}
++
++#[test]
++fn average_join_rejects_unsupported_selection_without_losing_redo_or_saved_state() {
++    let mut s = session();
++    let a = make(&mut s, json!([{"x":20,"y":20},{"x":100,"y":20},{"x":100,"y":100},{"x":20,"y":100}]), true);
++    s.execute("object.move", &json!({"dx":10,"dy":0})).unwrap();
++    s.execute("edit.undo", &json!({})).unwrap();
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,0],[0,2]]}]));
++    s.doc_mut().unwrap().mark_saved();
++    let before = s.doc().unwrap().doc.clone();
++    let sel = s.doc().unwrap().selection.clone();
++    let history = format!("{:?}", s.doc().unwrap().history);
++    assert!(s.execute("path.averageJoin", &json!({"kind":"corner"})).is_err());
++    assert_eq!(s.doc().unwrap().doc, before);
++    assert_eq!(s.doc().unwrap().selection, sel);
++    assert_eq!(format!("{:?}", s.doc().unwrap().history), history);
++    assert!(!s.doc().unwrap().is_dirty());
++}
++
++#[test]
++fn average_join_degenerate_smooth_rejects_before_averaging() {
++    let mut s = session();
++    let a = make(&mut s, json!([{"x":20,"y":20},{"x":100,"y":20},{"x":100,"y":100}]), false);
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,0],[0,2]]}]));
++    let before = s.doc().unwrap().doc.clone();
++    let undo = s.doc().unwrap().history.undo.len();
++    assert!(s.execute("path.averageJoin", &json!({"kind":"smooth"})).is_err());
++    assert_eq!(s.doc().unwrap().doc, before);
++    assert_eq!(s.doc().unwrap().history.undo.len(), undo);
++}
++
++#[test]
++fn average_join_coincident_smooth_inputs_keep_independent_handles_for_corner() {
++    let mut s = session();
++    let first = json!([{"x":20,"y":100},{"x":100,"y":100,"in":[80,60],"out":[120,140],"smooth":true}]);
++    let a = make(&mut s, first.clone(), false);
++    let b = make(&mut s, json!([{"x":100,"y":100,"in":[70,90],"out":[130,110],"smooth":true},{"x":240,"y":100}]), false);
++    // Identical geometry in a different, unselected object must not become the join target.
++    let duplicate = make(&mut s, first, false);
++    let duplicate_before = s.doc().unwrap().doc.node(duplicate).unwrap().clone();
++    assert_ne!(a, duplicate);
++    assert_eq!(path(&s, a).subpaths[0].anchors[1].kind, AnchorKind::Smooth);
++    assert_eq!(path(&s, b).subpaths[0].anchors[0].kind, AnchorKind::Smooth);
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,1]]},{"id":b.0,"anchors":[[0,0]]}]));
++    s.execute("path.averageJoin", &json!({"kind":"corner"})).unwrap();
++    let p = path(&s, a);
++    let join = p.subpaths[0].anchors[1];
++    assert_eq!(join.p, Point::new(100.0, 100.0));
++    assert_eq!(join.h_in, Point::new(80.0, 60.0));
++    assert_eq!(join.h_out, Point::new(130.0, 110.0));
++    assert_eq!(join.kind, AnchorKind::Corner);
++    assert_eq!(s.doc().unwrap().doc.node(duplicate).unwrap(), &duplicate_before);
++    assert!(s.doc().unwrap().doc.node(b).is_none());
++    assert_eq!(s.doc().unwrap().selection.objects, vec![a]);
++}
++
++#[test]
++fn average_join_uses_picked_far_ends_after_document_space_transforms() {
++    for (command, params) in [
++        ("object.move", json!({"dx":30,"dy":50})),
++        ("object.rotate", json!({"angle":37,"origin":[0,0]})),
++        ("object.scale", json!({"sx":170,"sy":60,"origin":[0,0]})),
++        ("object.reflect", json!({"axis":"vertical","origin":[0,0]})),
++    ] {
++        let mut s = session();
++        let (a, b) = pair(&mut s);
++        s.execute("select.set", &json!({"ids":[a.0,b.0]})).unwrap();
++        s.execute(command, &params).unwrap();
++        let (pa, pb) = (path(&s, a), path(&s, b));
++        let (a0, b1) = (pa.subpaths[0].anchors[0], pb.subpaths[0].anchors[1]);
++        let center = Point::new((a0.p.x + b1.p.x) / 2.0, (a0.p.y + b1.p.y) / 2.0);
++        pick(&mut s, json!([{"id":a.0,"anchors":[[0,0]]},{"id":b.0,"anchors":[[0,1]]}]));
++        s.execute("path.averageJoin", &json!({"kind":"corner"})).unwrap();
++        let p = path(&s, a);
++        let join = p.subpaths[0].anchors[1];
++        assert!(join.p.distance(center) < 1e-9, "{command}");
++        assert!(join.h_in.distance(a0.h_out + (center - a0.p)) < 1e-9, "{command}");
++        assert!(join.h_out.distance(b1.h_in + (center - b1.p)) < 1e-9, "{command}");
++        assert_eq!(p.subpaths[0].anchors[0].p, pa.subpaths[0].anchors[1].p);
++        assert_eq!(p.subpaths[0].anchors[2].p, pb.subpaths[0].anchors[0].p);
++    }
++}
++
++#[test]
++fn average_join_rejects_empty_anchor_member_after_last_anchor_toggle() {
++    let mut s = session();
++    s.select_tool("directSelection", Default::default()).unwrap();
++    let (a, b) = pair(&mut s);
++    let c = make(&mut s, json!([{"x":320,"y":20},{"x":380,"y":60}]), false);
++    // Keep a real Redo branch while normal selection commands produce the extra empty member.
++    s.execute("object.move", &json!({"dx":4,"dy":3})).unwrap();
++    s.execute("edit.undo", &json!({})).unwrap();
++    pick(
++        &mut s,
++        json!([
++            {"id":a.0,"anchors":[[0,1]]},
++            {"id":b.0,"anchors":[[0,0]]},
++            {"id":c.0,"anchors":[[0,0]]}
++        ]),
++    );
++    s.execute("select.anchors", &json!({"id":c.0,"anchors":[[0,0]],"mode":"toggle"})).unwrap();
++    let selection = &s.doc().unwrap().selection;
++    assert_eq!(selection.objects, vec![a, b, c]);
++    assert_eq!(selection.anchors[&a].len(), 1);
++    assert_eq!(selection.anchors[&b].len(), 1);
++    assert!(selection.anchors[&c].is_empty(), "last-anchor toggle left the ordinary empty entry");
++    assert!(selection.segments.is_empty());
++    // The predicate is shared by command execution and menu enablement.
++    let command = vectorcraft_engine::find_command("path.averageJoin").unwrap();
++    assert!((command.enabled)(&s).is_err(), "an empty anchor member must not be silently ignored");
++    s.doc_mut().unwrap().mark_saved();
++    let before = s.doc().unwrap().doc.clone();
++    let before_selection = s.doc().unwrap().selection.clone();
++    let history = |s: &Session| {
++        let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
++            items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
++        };
++        let h = &s.doc().unwrap().history;
++        (entries(&h.undo), entries(&h.redo))
++    };
++    let before_history = history(&s);
++    assert!(!before_history.1.is_empty(), "selection commands retained the Redo branch");
++    for kind in ["corner", "smooth"] {
++        assert!(s.execute("path.averageJoin", &json!({"kind":kind})).is_err());
++        assert_eq!(s.doc().unwrap().doc, before);
++        assert_eq!(s.doc().unwrap().selection, before_selection);
++        assert_eq!(history(&s), before_history);
++        assert!(!s.doc().unwrap().is_dirty());
++    }
++    // Empty segment selection clears normally, rather than leaving a stale segment-map entry.
++    s.execute("select.segments", &json!({"id":c.0,"segments":[]})).unwrap();
++    let selection = &s.doc().unwrap().selection;
++    assert!(selection.objects.is_empty() && selection.anchors.is_empty() && selection.segments.is_empty());
++    pick(&mut s, json!([{"id":a.0,"anchors":[[0,1]]},{"id":b.0,"anchors":[[0,0]]}]));
++    assert!((command.enabled)(&s).is_ok(), "a clean pair is still eligible");
++    assert_eq!(s.doc().unwrap().doc, before);
++    assert_eq!(history(&s), before_history);
++    assert!(!s.doc().unwrap().is_dirty());
++}
+diff --git a/crates/engine/tests/average_join_gradient.rs b/crates/engine/tests/average_join_gradient.rs
+new file mode 100644
+index 00000000..07944d20
+--- /dev/null
++++ b/crates/engine/tests/average_join_gradient.rs
+@@ -0,0 +1,166 @@
++#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
++//! Original finite artwork: Average and Join must preserve a retained B contour's rendered fill.
++//! Public commands/direct-anchor selection only; no UI or arbitrary-gradient-type claim.
++
++use serde_json::json;
++use std::sync::Arc;
++use vectorcraft_color::Paint;
++use vectorcraft_doc::{Document, NodeId, NodeKind, Selection};
++use vectorcraft_engine::{HistoryEntry, Session};
++use vectorcraft_geom::{Affine, PathData, Point, SubPath};
++use vectorcraft_render::{RenderOptions, Renderer};
++
++type Entries = Vec<(String, Arc<Document>, Arc<Selection>)>;
++
++fn entries(items: &[HistoryEntry]) -> Entries {
++    items.iter().map(|entry| (entry.label.clone(), entry.doc.clone(), entry.selection.clone())).collect()
++}
++
++struct Snapshot {
++    doc: Arc<Document>,
++    selection: Selection,
++    undo: Entries,
++    redo: Entries,
++    dirty: bool,
++}
++
++impl Snapshot {
++    fn of(s: &Session) -> Self {
++        let st = s.doc().unwrap();
++        Self {
++            doc: st.doc.clone(),
++            selection: st.selection.clone(),
++            undo: entries(&st.history.undo),
++            redo: entries(&st.history.redo),
++            dirty: st.is_dirty(),
++        }
++    }
++
++    fn assert_unchanged(&self, s: &Session) {
++        let st = s.doc().unwrap();
++        assert_eq!(st.doc, self.doc);
++        assert_eq!(st.selection, self.selection);
++        assert_eq!(entries(&st.history.undo), self.undo);
++        assert_eq!(entries(&st.history.redo), self.redo);
++        assert_eq!(st.is_dirty(), self.dirty);
++    }
++}
++
++fn make(s: &mut Session, d: &str) -> NodeId {
++    NodeId(s.execute("path.create", &json!({"d": d})).unwrap()["id"].as_u64().unwrap())
++}
++
++fn path(s: &Session, id: NodeId) -> PathData {
++    s.doc().unwrap().doc.node(id).unwrap().path_data().unwrap().clone()
++}
++
++// This only edits an independent expected-document clone, never the live fixture.
++fn expected_path(doc: &mut Document, id: NodeId, value: PathData) {
++    let NodeKind::Path { path, .. } = &mut doc.node_mut(id).unwrap().kind else { panic!("expected fixture is a path") };
++    *path = value;
++}
++
++#[test]
++fn average_join_preserves_retained_contour_gradient_pixels() {
++    let mut s = Session::new();
++    s.execute("file.new", &json!({"width": 600, "height": 400, "colorMode": "rgb"})).unwrap();
++    s.select_tool("directSelection", Default::default()).unwrap();
++    let a = make(&mut s, "M0 0L10 0");
++    s.execute("paint.setStroke", &json!({"color": "#2468d8"})).unwrap();
++    let b = make(&mut s, "M12 0L20 0 M100 100L120 100L110 120Z");
++    // Ordinary opaque linear fill: red plateau, transition, then blue plateau.
++    // The original interior sample is literal blue, away from interpolation and edge rounding.
++    s.execute(
++        "paint.setFill",
++        &json!({"gradient": {"kind": "linear", "angle": 0, "stops": [
++            {"offset": 0.0, "color": "#ff0000"},
++            {"offset": 0.6, "color": "#ff0000"},
++            {"offset": 0.8, "color": "#0000ff"},
++            {"offset": 1.0, "color": "#0000ff"}
++        ]}}),
++    )
++    .unwrap();
++    s.execute("paint.setStroke", &json!({"none": true})).unwrap();
++    let unrelated = make(&mut s, "M300 200L330 210L315 240Z");
++    s.execute("paint.setFill", &json!({"color": "#23854a"})).unwrap();
++    s.execute("object.move", &json!({"dx": 3, "dy": 7})).unwrap();
++    s.execute("edit.undo", &json!({})).unwrap();
++    s.execute("select.anchorsMany", &json!({"items": [{"id": a.0, "anchors": [[0, 1]]}, {"id": b.0, "anchors": [[0, 0]]}]})).unwrap();
++    s.doc_mut().unwrap().mark_saved();
++    let before = Snapshot::of(&s);
++    assert_eq!(before.redo.len(), 1, "AVERAGE_JOIN_GRADIENT_SETUP_HISTORY");
++    assert!(!before.dirty, "AVERAGE_JOIN_GRADIENT_SETUP_SAVED");
++    assert_eq!(before.selection.objects, [a, b], "AVERAGE_JOIN_GRADIENT_SETUP_SELECTION");
++    assert_eq!(before.selection.anchors[&a], [(0, 1)].into(), "AVERAGE_JOIN_GRADIENT_SETUP_A_PICK");
++    assert_eq!(before.selection.anchors[&b], [(0, 0)].into(), "AVERAGE_JOIN_GRADIENT_SETUP_B_PICK");
++    assert!(before.selection.segments.is_empty() && before.selection.guides.is_empty() && before.selection.slices.is_empty());
++    let command = vectorcraft_engine::find_command("path.averageJoin").unwrap();
++    assert!((command.enabled)(&s).is_ok(), "AVERAGE_JOIN_GRADIENT_SETUP_ELIGIBLE");
++    let Paint::Gradient(initial_gradient) = before.doc.node(b).unwrap().appearance.fill_paint() else {
++        panic!("AVERAGE_JOIN_GRADIENT_SETUP_PAINT: B must have a gradient")
++    };
++    assert!(initial_gradient.geom.is_none(), "AVERAGE_JOIN_GRADIENT_SETUP_PAINT: fresh bounds-fitted fill");
++    let retained = PathData::new(vec![SubPath::polyline(&[(100.0, 100.0), (120.0, 100.0), (110.0, 120.0)].map(Point::from), true)]);
++    let pb = path(&s, b);
++    assert_eq!(pb.subpaths.len(), 2, "AVERAGE_JOIN_GRADIENT_SETUP_CONTOURS");
++    assert_eq!(pb.subpaths[1], retained.subpaths[0], "AVERAGE_JOIN_GRADIENT_SETUP_TRIANGLE");
++
++    // Public CPU render at identity view. This pixel lies wholly inside the untouched triangle.
++    // Fresh renderer instances avoid a stale-cache pass; no gradient helper computes the oracle.
++    let pixel = |s: &Session| Renderer::new().render(&s.doc().unwrap().doc, 160, 160, Affine::IDENTITY, &RenderOptions::default()).pixel(110, 110);
++    assert_eq!(pixel(&s), [0, 0, 255, 255], "AVERAGE_JOIN_GRADIENT_SETUP_PIXEL: literal original blue");
++    eprintln!("AVERAGE_JOIN_GRADIENT_SETUP_READY");
++
++    s.execute("path.averageJoin", &json!({"kind": "corner"})).expect("AVERAGE_JOIN_GRADIENT_COMMAND: valid picked endpoints");
++    eprintln!("AVERAGE_JOIN_GRADIENT_COMMAND_COMPLETED");
++    assert!(s.doc().unwrap().doc.node(b).is_some(), "AVERAGE_JOIN_GRADIENT_B_MISSING: retained contour owner was deleted");
++    eprintln!("AVERAGE_JOIN_GRADIENT_B_EXISTS");
++    assert_eq!(path(&s, b), retained, "AVERAGE_JOIN_GRADIENT_B_GEOMETRY: retained triangle changed");
++    let joined = PathData::new(vec![SubPath::polyline(&[(0.0, 0.0), (11.0, 0.0), (20.0, 0.0)].map(Point::from), false)]);
++    assert_eq!(path(&s, a), joined, "AVERAGE_JOIN_GRADIENT_A_GEOMETRY: independent literal averaged midpoint");
++    let mut expected_selection = before.selection.clone();
++    expected_selection.set([a]);
++    expected_selection.anchors.insert(a, [(0, 1)].into());
++    assert_eq!(s.doc().unwrap().selection, expected_selection, "AVERAGE_JOIN_GRADIENT_JOINED_SELECTION");
++    eprintln!("AVERAGE_JOIN_GRADIENT_GEOMETRY_PRESERVED");
++
++    let mut expected = before.doc.clone();
++    let d = Arc::make_mut(&mut expected);
++    expected_path(d, a, joined);
++    expected_path(d, b, retained);
++    // Placement storage may change to preserve appearance. Only this representation is exempt
++    // from the structural comparison; literal rendered blue independently constrains its effect.
++    let Paint::Gradient(actual_gradient) = s.doc().unwrap().doc.node(b).unwrap().appearance.fill_paint() else {
++        panic!("AVERAGE_JOIN_GRADIENT_PAINT_KIND: B lost its gradient")
++    };
++    let Paint::Gradient(expected_gradient) = &mut d.node_mut(b).unwrap().appearance.fill_mut().unwrap().paint else {
++        panic!("AVERAGE_JOIN_GRADIENT_EXPECTED_PAINT: fixture lost its gradient")
++    };
++    expected_gradient.geom = actual_gradient.geom;
++    assert_eq!(s.doc().unwrap().doc, expected, "AVERAGE_JOIN_GRADIENT_DOCUMENT: unrelated fields changed");
++    assert_eq!(s.doc().unwrap().doc.node(unrelated), before.doc.node(unrelated), "AVERAGE_JOIN_GRADIENT_UNRELATED_ART");
++    eprintln!("AVERAGE_JOIN_GRADIENT_DOCUMENT_PRESERVED");
++
++    assert_eq!(pixel(&s), [0, 0, 255, 255], "AVERAGE_JOIN_GRADIENT_RECOLOR: retained B interior must remain original blue");
++    eprintln!("AVERAGE_JOIN_GRADIENT_PIXEL_PRESERVED");
++    let after = Snapshot::of(&s);
++    assert_eq!(after.undo.len(), before.undo.len() + 1, "Average and Join is one edit");
++    assert_eq!(&after.undo[..before.undo.len()], before.undo.as_slice());
++    assert_eq!(after.undo.last().unwrap(), &("Average and Join".into(), before.doc.clone(), Arc::new(before.selection.clone())));
++    assert!(after.redo.is_empty(), "successful edit replaces the old Redo branch");
++    assert!(after.dirty);
++
++    assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["undone"], "Average and Join");
++    let undone = Snapshot::of(&s);
++    assert_eq!(undone.doc, before.doc);
++    assert_eq!(undone.selection, before.selection);
++    assert_eq!(undone.undo, before.undo);
++    assert_eq!(undone.redo, vec![("Average and Join".into(), after.doc.clone(), Arc::new(after.selection.clone()))]);
++    assert_eq!(undone.dirty, before.dirty);
++    assert_eq!(pixel(&s), [0, 0, 255, 255], "AVERAGE_JOIN_GRADIENT_UNDO_PIXEL");
++
++    assert_eq!(s.execute("edit.redo", &json!({})).unwrap()["redone"], "Average and Join");
++    after.assert_unchanged(&s);
++    assert_eq!(pixel(&s), [0, 0, 255, 255], "AVERAGE_JOIN_GRADIENT_REDO_PIXEL");
++    eprintln!("AVERAGE_JOIN_GRADIENT_HISTORY_PRESERVED");
++}
+diff --git a/crates/ui-egui/src/dialogs/form.rs b/crates/ui-egui/src/dialogs/form.rs
+index 08e78914..13f5a311 100644
+--- a/crates/ui-egui/src/dialogs/form.rs
++++ b/crates/ui-egui/src/dialogs/form.rs
+@@ -103,6 +103,7 @@ fn choices(kind: &str, key: &str) -> Vec<(&'static str, &'static str)> {
+     match (kind, key) {
+         ("offsetPath", "joins") => vec![("miter", tl!("Miter")), ("round", tl!("Round")), ("bevel", tl!("Bevel"))],
+         ("average", "axis") => vec![axis("horizontal", "Horizontal"), axis("vertical", "Vertical"), axis("both", "Both")],
++        ("averageJoin", "kind") => vec![("corner", tl!("Corner")), ("smooth", tl!("Smooth"))],
+         ("reflect", "axis") => vec![axis("horizontal", "Horizontal"), axis("vertical", "Vertical"), axis("angle", "Angle")],
+         ("shear", "axis") => vec![axis("horizontal", "Horizontal"), axis("vertical", "Vertical")],
+         _ => vec![],
+diff --git a/crates/ui-egui/src/dialogs/mod.rs b/crates/ui-egui/src/dialogs/mod.rs
+index 22b02386..c9968224 100644
+--- a/crates/ui-egui/src/dialogs/mod.rs
++++ b/crates/ui-egui/src/dialogs/mod.rs
+@@ -215,7 +215,7 @@ registry! {
+     NewDocument: [new_document::KIND] => new_document::SPEC,
+     Shape: ["rectangle", "roundedRectangle", "ellipse", "polygon", "star", "lineSegment", "rectangularGrid", "polarGrid"] => shapes::SPEC,
+     Transform: ["move", "rotate", "scale", "reflect", "shear"] => transform::SPEC,
+-    PathOp: ["average", "offsetPath", "simplify", "splitIntoGrid"] => path_ops::SPEC,
++    PathOp: ["average", "averageJoin", "offsetPath", "simplify", "splitIntoGrid"] => path_ops::SPEC,
+     DocumentSetup: ["documentSetup"] => document_setup::SPEC,
+     ArtboardOptions: [artboard_options::KIND] => artboard_options::SPEC,
+     ExportForScreens: ["exportForScreens"] => export_for_screens::SPEC,
+@@ -559,3 +559,6 @@ mod tests_rectangular_grid;
+ 
+ #[cfg(test)]
+ mod tests_shortcut_import;
++
++#[cfg(test)]
++mod tests_average_join;
+diff --git a/crates/ui-egui/src/dialogs/path_ops.rs b/crates/ui-egui/src/dialogs/path_ops.rs
+index c2c35af3..97be2890 100644
+--- a/crates/ui-egui/src/dialogs/path_ops.rs
++++ b/crates/ui-egui/src/dialogs/path_ops.rs
+@@ -1,4 +1,4 @@
+-//! Path dialogs: Average, and Offset Path, Simplify and Split Into Grid with Preview.
++//! Path dialogs: Average, Average and Join, and Offset Path, Simplify and Split Into Grid with Preview.
+ 
+ use serde_json::{Value, json};
+ use vectorcraft_doc::Unit;
+@@ -12,6 +12,7 @@ pub(super) const SPEC: DialogSpec = DialogSpec { heading: |d| title(&d.kind).int
+ fn title(kind: &str) -> &'static str {
+     match kind {
+         "average" => tl!("Average"),
++        "averageJoin" => tl!("Average and Join"),
+         "offsetPath" => tl!("Offset Path"),
+         "simplify" => tl!("Simplify"),
+         _ => tl!("Split Into Grid"),
+@@ -22,6 +23,7 @@ fn title(kind: &str) -> &'static str {
+ fn command(d: &Dialog) -> (&'static str, Value) {
+     match d.kind.as_str() {
+         "average" => ("path.average", json!({"axis": d.str("axis")})),
++        "averageJoin" => ("path.averageJoin", json!({"kind": d.str("kind")})),
+         "offsetPath" => {
+             ("object.path.offsetPath", json!({"offset": d.f64("offset", 10.0), "joins": d.str("joins"), "miterLimit": d.f64("miterLimit", 4.0)}))
+         }
+@@ -30,7 +32,7 @@ fn command(d: &Dialog) -> (&'static str, Value) {
+     }
+ }
+ 
+-/// The undo label of the dialogs that preview on the canvas (all but Average).
++/// The undo label of the dialogs that preview on the canvas (neither Average command does).
+ fn previewed(kind: &str) -> Option<&'static str> {
+     match kind {
+         "offsetPath" => Some("Offset Path"),
+diff --git a/crates/ui-egui/src/dialogs/tests_average_join.rs b/crates/ui-egui/src/dialogs/tests_average_join.rs
+new file mode 100644
+index 00000000..fe722519
+--- /dev/null
++++ b/crates/ui-egui/src/dialogs/tests_average_join.rs
+@@ -0,0 +1,391 @@
++//! The real menu dialog, dropdown, Cancel and OK controls, driven headlessly.
++use super::*;
++use egui::{Event, Pos2, Rect, vec2};
++use serde_json::json;
++use vectorcraft_engine::Session;
++
++fn frame(ctx: &egui::Context, app: &mut VectorcraftApp, events: Vec<Event>) -> Vec<(String, Rect)> {
++    let mut out = ctx
++        .run_ui(egui::RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1000.0, 700.0))), events, ..Default::default() }, |ui| {
++            show(app, ui.ctx())
++        });
++    out.textures_delta.clear();
++    fn collect(s: &egui::Shape, out: &mut Vec<(String, Rect)>) {
++        match s {
++            egui::Shape::Text(t) => out.push((t.galley.text().to_string(), t.visual_bounding_rect())),
++            egui::Shape::Vec(v) => v.iter().for_each(|s| collect(s, out)),
++            _ => {}
++        }
++    }
++    let mut text = vec![];
++    for s in out.shapes {
++        collect(&s.shape, &mut text);
++    }
++    text
++}
++fn at(text: &[(String, Rect)], label: &str) -> Pos2 {
++    text.iter().find(|(t, _)| t == label).unwrap_or_else(|| panic!("missing {label}: {text:?}")).1.center()
++}
++fn click(ctx: &egui::Context, app: &mut VectorcraftApp, p: Pos2) -> Vec<(String, Rect)> {
++    for pressed in [true, false] {
++        frame(
++            ctx,
++            app,
++            vec![
++                Event::PointerMoved(p),
++                Event::PointerButton { pos: p, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() },
++            ],
++        );
++    }
++    frame(ctx, app, vec![])
++}
++#[test]
++fn average_join_dialog_cancel_and_smooth_confirm_use_real_controls() {
++    let ctx = egui::Context::default();
++    crate::theme::install_fonts(&ctx);
++    crate::theme::apply(&ctx, Default::default());
++    let mut app = VectorcraftApp::new(Session::new(), Default::default());
++    app.run("file.new", json!({"width":400,"height":300})).unwrap();
++    let a = app.run("shape.line", json!({"x1":20,"y1":100,"x2":100,"y2":100})).unwrap()["id"].clone();
++    let b = app.run("shape.line", json!({"x1":140,"y1":140,"x2":240,"y2":100})).unwrap()["id"].clone();
++    app.run("select.anchorsMany", json!({"items":[{"id":a,"anchors":[[0,1]]},{"id":b,"anchors":[[0,0]]}]})).unwrap();
++    app.session.doc_mut().unwrap().mark_saved();
++    let before = app.session.doc().unwrap().doc.clone();
++    let undo = app.session.doc().unwrap().history.undo.len();
++    crate::menus::invoke(&mut app, "path.averageJoin", json!({}));
++    assert_eq!(app.ui.dialog.as_ref().unwrap().kind, "averageJoin");
++    for _ in 0..5 {
++        frame(&ctx, &mut app, vec![]);
++    }
++    let text = frame(&ctx, &mut app, vec![]);
++    let corner = at(&text, "Corner");
++    let text = click(&ctx, &mut app, corner);
++    let smooth = at(&text, "Smooth");
++    let text = click(&ctx, &mut app, smooth);
++    assert_eq!(app.ui.dialog.as_ref().unwrap().fields["kind"], json!("smooth"));
++    let cancel = at(&text, "Cancel");
++    click(&ctx, &mut app, cancel);
++    assert!(app.ui.dialog.is_none());
++    assert_eq!(app.session.doc().unwrap().doc, before);
++    assert_eq!(app.session.doc().unwrap().history.undo.len(), undo);
++    assert!(!app.session.doc().unwrap().is_dirty());
++    crate::menus::invoke(&mut app, "path.averageJoin", json!({}));
++    for _ in 0..5 {
++        frame(&ctx, &mut app, vec![]);
++    }
++    let text = frame(&ctx, &mut app, vec![]);
++    let corner = at(&text, "Corner");
++    let text = click(&ctx, &mut app, corner);
++    let smooth = at(&text, "Smooth");
++    let text = click(&ctx, &mut app, smooth);
++    let ok = at(&text, "OK");
++    click(&ctx, &mut app, ok);
++    assert!(app.ui.dialog.is_none());
++    let id = vectorcraft_doc::NodeId(a.as_u64().unwrap());
++    let p = app.session.doc().unwrap().doc.node(id).unwrap().path_data().unwrap();
++    assert_eq!(p.subpaths[0].anchors.len(), 3);
++    assert_eq!(p.subpaths[0].anchors[1].p, vectorcraft_geom::Point::new(120.0, 120.0));
++    assert_eq!(p.subpaths[0].anchors[1].kind, vectorcraft_geom::AnchorKind::Smooth);
++    assert_eq!(app.session.doc().unwrap().history.undo.len(), undo + 1);
++    app.run("edit.undo", json!({})).unwrap();
++    assert_eq!(app.session.doc().unwrap().doc, before);
++}
++
++#[test]
++fn average_join_menu_disables_single_line_and_enables_two_lines() {
++    let mut app = VectorcraftApp::new(Session::new(), Default::default());
++    app.run("file.new", json!({"width":400,"height":300})).unwrap();
++    let a = app.run("shape.line", json!({"x1":20,"y1":100,"x2":100,"y2":100})).unwrap()["id"].clone();
++    app.run("select.anchors", json!({"id":a,"anchors":[[0,0],[0,1]],"mode":"set"})).unwrap();
++    let id = vectorcraft_doc::NodeId(a.as_u64().unwrap());
++    assert_eq!(app.session.doc().unwrap().selection.anchors[&id].len(), 2, "both endpoints explicitly selected through the command");
++    let command = vectorcraft_engine::find_command("path.averageJoin").unwrap();
++    assert!((command.enabled)(&app.session).is_err(), "averaging this line would leave only one anchor");
++    assert!(!crate::menus::enabled(&app, "path.averageJoin"));
++    app.session.doc_mut().unwrap().mark_saved();
++    let before = app.session.doc().unwrap().doc.clone();
++    let selection = app.session.doc().unwrap().selection.clone();
++    let undo = app.session.doc().unwrap().history.undo.len();
++    assert!(app.run("path.averageJoin", json!({})).is_err());
++    assert_eq!(app.session.doc().unwrap().doc, before);
++    assert_eq!(app.session.doc().unwrap().selection, selection);
++    assert_eq!(app.session.doc().unwrap().history.undo.len(), undo);
++    assert!(!app.session.doc().unwrap().is_dirty());
++    let b = app.run("shape.line", json!({"x1":140,"y1":140,"x2":240,"y2":100})).unwrap()["id"].clone();
++    app.run("select.anchorsMany", json!({"items":[{"id":a,"anchors":[[0,1]]},{"id":b,"anchors":[[0,0]]}]})).unwrap();
++    assert!((command.enabled)(&app.session).is_ok(), "one endpoint from each separate two-point line is eligible");
++    assert!(crate::menus::enabled(&app, "path.averageJoin"));
++    app.run("path.averageJoin", json!({})).unwrap();
++    assert_eq!(app.session.doc().unwrap().doc.node(id).unwrap().path_data().unwrap().subpaths[0].anchors.len(), 3);
++}
++
++/// Exercise the ordinary full-app shortcut route with an existing Redo branch.
++fn average_join_shortcut_case(selection_kind: &str, eligible: bool) {
++    let ctx = egui::Context::default();
++    crate::theme::install_fonts(&ctx);
++    crate::theme::apply(&ctx, Default::default());
++    let mut app = VectorcraftApp::new(Session::new(), Default::default());
++    app.run("file.new", json!({"width":400,"height":300})).unwrap();
++    let a = app.run("shape.line", json!({"x1":20,"y1":100,"x2":100,"y2":100})).unwrap()["id"].clone();
++    let b = app.run("shape.line", json!({"x1":140,"y1":140,"x2":240,"y2":100})).unwrap()["id"].clone();
++    app.select_tool("directSelection");
++    app.run("object.move", json!({"dx":5,"dy":0})).unwrap();
++    app.run("edit.undo", json!({})).unwrap();
++    match selection_kind {
++        "empty" => app.run("select.none", json!({})).unwrap(),
++        "single_line" => app.run("select.anchors", json!({"id":a,"anchors":[[0,0],[0,1]],"mode":"set"})).unwrap(),
++        "two_lines" => app.run("select.anchorsMany", json!({"items":[{"id":a,"anchors":[[0,1]]},{"id":b,"anchors":[[0,0]]}]})).unwrap(),
++        _ => panic!("unknown fixture"),
++    };
++    app.session.doc_mut().unwrap().mark_saved();
++    let run = |app: &mut VectorcraftApp, mut events: Vec<Event>, modifiers: egui::Modifiers| {
++        events.insert(0, Event::ModifiersChanged(modifiers));
++        let input = egui::RawInput {
++            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1600.0, 900.0))),
++            time: Some(ctx.input(|i| i.time) + 0.1),
++            events,
++            ..Default::default()
++        };
++        let mut out = ctx.run_ui(input, |ui| {
++            app.logic(ui.ctx());
++            app.ui(ui);
++        });
++        out.textures_delta.clear();
++    };
++    for _ in 0..3 {
++        run(&mut app, vec![], egui::Modifiers::NONE);
++    }
++    assert!(app.ui.dialog.is_none());
++    assert_eq!(crate::menus::enabled(&app, "path.averageJoin"), eligible);
++    let before = app.session.doc().unwrap().doc.clone();
++    let selection = app.session.doc().unwrap().selection.clone();
++    let history = |app: &VectorcraftApp| {
++        let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
++            items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
++        };
++        let h = &app.session.doc().unwrap().history;
++        (entries(&h.undo), entries(&h.redo))
++    };
++    let before_history = history(&app);
++    assert!(!before_history.1.is_empty(), "fixture retains a usable Redo branch");
++    let modifiers = egui::Modifiers::COMMAND | egui::Modifiers::ALT | egui::Modifiers::SHIFT;
++    for pressed in [true, false] {
++        run(&mut app, vec![Event::Key { key: egui::Key::J, physical_key: None, pressed, repeat: false, modifiers }], modifiers);
++    }
++    assert_eq!(app.session.doc().unwrap().doc, before);
++    assert_eq!(app.session.doc().unwrap().selection, selection);
++    assert_eq!(history(&app), before_history);
++    assert!(!app.session.doc().unwrap().is_dirty());
++    assert!(!app.session.in_interaction());
++    if eligible {
++        let dialog = app.ui.dialog.as_ref().expect("eligible Average and Join shortcut must open the dialog");
++        assert_eq!(dialog.kind, "averageJoin");
++        assert_eq!(dialog.fields["kind"], json!("corner"));
++        for pressed in [true, false] {
++            run(
++                &mut app,
++                vec![Event::Key { key: egui::Key::Escape, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE }],
++                egui::Modifiers::NONE,
++            );
++        }
++    }
++    assert!(app.ui.dialog.is_none(), "disabled Average and Join shortcut must not open a dialog: {selection_kind}");
++    assert_eq!(app.session.doc().unwrap().doc, before);
++    assert_eq!(app.session.doc().unwrap().selection, selection);
++    assert_eq!(history(&app), before_history);
++    assert!(!app.session.doc().unwrap().is_dirty());
++}
++
++#[test]
++fn average_join_shortcut_rejects_empty_selection_without_editing() {
++    average_join_shortcut_case("empty", false);
++}
++
++#[test]
++fn average_join_shortcut_rejects_single_line_without_editing() {
++    average_join_shortcut_case("single_line", false);
++}
++
++#[test]
++fn average_join_shortcut_opens_for_two_lines_and_escape_keeps_state() {
++    average_join_shortcut_case("two_lines", true);
++}
++
++#[test]
++fn average_join_kind_keyboard_enter_opens_and_selects_without_accepting() {
++    fn key(ctx: &egui::Context, app: &mut VectorcraftApp, key: egui::Key) {
++        for pressed in [true, false] {
++            frame(
++                ctx,
++                app,
++                vec![
++                    Event::ModifiersChanged(egui::Modifiers::NONE),
++                    Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE },
++                ],
++            );
++        }
++    }
++
++    fn tab_to(ctx: &egui::Context, app: &mut VectorcraftApp, label: &str, typ: egui::WidgetType) -> egui::Id {
++        fn collect(shape: &egui::Shape, clip: Rect, label: &str, out: &mut Vec<Rect>) {
++            match shape {
++                egui::Shape::Text(text) if text.galley.text() == label => {
++                    let rect = text.visual_bounding_rect();
++                    if clip.contains(rect.center()) {
++                        out.push(rect);
++                    }
++                }
++                egui::Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect(shape, clip, label, out)),
++                _ => {}
++            }
++        }
++        let mut observed = vec![];
++        for _ in 0..24 {
++            let mut target = None;
++            for pressed in [true, false] {
++                let events = vec![
++                    Event::ModifiersChanged(egui::Modifiers::NONE),
++                    Event::Key { key: egui::Key::Tab, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE },
++                ];
++                let mut out = ctx.run_ui(
++                    egui::RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1000.0, 700.0))), events, ..Default::default() },
++                    |ui| show(app, ui.ctx()),
++                );
++                out.textures_delta.clear();
++                let gained: Vec<_> = out
++                    .platform_output
++                    .events
++                    .iter()
++                    .filter_map(|event| match event {
++                        egui::output::OutputEvent::FocusGained(info) => Some(info),
++                        _ => None,
++                    })
++                    .collect();
++                observed.extend(gained.iter().map(|info| format!("{info:?}")));
++                // An Area can contain the label on the same layer: geometry alone is not identity.
++                let [info] = gained.as_slice() else { continue };
++                let named = match typ {
++                    egui::WidgetType::ComboBox => info.current_text_value.as_deref() == Some(label),
++                    egui::WidgetType::Button => info.label.as_deref() == Some(label),
++                    _ => false,
++                };
++                if !info.enabled || info.typ != typ || !named {
++                    continue;
++                }
++                let id = ctx.memory(|memory| memory.focused()).expect("AVG_JOIN_KEYBOARD_FOCUS: semantic focus must remain live");
++                let response = ctx.read_response(id).expect("AVG_JOIN_KEYBOARD_FOCUS: focused widget has a current response");
++                let mut matches = vec![];
++                for shape in &out.shapes {
++                    collect(&shape.shape, shape.clip_rect, label, &mut matches);
++                }
++                assert_eq!(matches.len(), 1, "AVG_JOIN_KEYBOARD_FOCUS: one visible {label} value");
++                let point = matches[0].center();
++                assert!(
++                    response.has_focus() && response.rect.contains(point) && response.interact_rect.contains(point),
++                    "AVG_JOIN_KEYBOARD_FOCUS: semantic {label} target must own the focused response"
++                );
++                assert_eq!(
++                    ctx.layer_id_at(point),
++                    Some(response.layer_id),
++                    "AVG_JOIN_KEYBOARD_FOCUS: semantic {label} target must be on the top visible layer"
++                );
++                target = Some((id, point, response.layer_id));
++            }
++            if let Some((id, point, layer)) = target {
++                assert_eq!(ctx.memory(|memory| memory.focused()), Some(id), "AVG_JOIN_KEYBOARD_FOCUS: focus survives Tab release");
++                let response = ctx.read_response(id).unwrap();
++                assert!(response.has_focus() && response.rect.contains(point) && response.interact_rect.contains(point));
++                assert_eq!(response.layer_id, layer);
++                assert_eq!(ctx.layer_id_at(point), Some(layer));
++                return id;
++            }
++        }
++        panic!("AVG_JOIN_KEYBOARD_FOCUS: Tab did not reach {typ:?} {label}; observed {observed:?}");
++    }
++
++    let snapshot = |app: &VectorcraftApp| {
++        let state = app.session.doc().unwrap();
++        let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
++            items.iter().map(|entry| (entry.label.clone(), entry.doc.clone(), entry.selection.clone())).collect::<Vec<_>>()
++        };
++        (
++            state.doc.clone(),
++            state.selection.clone(),
++            entries(&state.history.undo),
++            entries(&state.history.redo),
++            state.is_dirty(),
++            app.session.in_interaction(),
++        )
++    };
++    for accept in [false, true] {
++        let ctx = egui::Context::default();
++        crate::theme::install_fonts(&ctx);
++        crate::theme::apply(&ctx, Default::default());
++        let mut app = VectorcraftApp::new(Session::new(), Default::default());
++        app.run("file.new", json!({"width":400,"height":300})).unwrap();
++        let a = app.run("shape.line", json!({"x1":20,"y1":100,"x2":100,"y2":100})).unwrap()["id"].clone();
++        let b = app.run("shape.line", json!({"x1":140,"y1":140,"x2":240,"y2":100})).unwrap()["id"].clone();
++        app.run("object.move", json!({"dx":5,"dy":0})).unwrap();
++        let moved = app.session.doc().unwrap().doc.clone();
++        app.run("edit.undo", json!({})).unwrap();
++        app.run("select.anchorsMany", json!({"items":[{"id":a,"anchors":[[0,1]]},{"id":b,"anchors":[[0,0]]}]})).unwrap();
++        app.session.doc_mut().unwrap().mark_saved();
++        let before = snapshot(&app);
++        assert_eq!(before.3.len(), 1, "fixture keeps an ordinary Redo branch");
++        assert!(!before.4 && !before.5);
++        assert!(crate::menus::enabled(&app, "path.averageJoin"));
++        crate::menus::invoke(&mut app, "path.averageJoin", json!({}));
++        for _ in 0..5 {
++            frame(&ctx, &mut app, vec![]);
++        }
++        let combo = tab_to(&ctx, &mut app, "Corner", egui::WidgetType::ComboBox);
++        assert!(!egui::ComboBox::is_open(&ctx, combo));
++        assert_eq!(app.ui.dialog.as_ref().unwrap().str("kind"), "corner");
++        assert_eq!(snapshot(&app), before, "focus traversal must not edit the selection");
++        key(&ctx, &mut app, egui::Key::Enter);
++        assert!(app.ui.dialog.is_some(), "AVG_JOIN_KIND_ENTER_OPEN: opening the choices must not accept Average and Join");
++        assert!(egui::ComboBox::is_open(&ctx, combo), "AVG_JOIN_KIND_LIST_OPEN: Enter must open the focused combo");
++        assert_eq!(app.ui.dialog.as_ref().unwrap().str("kind"), "corner");
++        assert_eq!(snapshot(&app), before, "opening choices preserves document, selection, both history stacks and saved state");
++
++        let option = tab_to(&ctx, &mut app, "Smooth", egui::WidgetType::Button);
++        assert_ne!(option, combo, "focus must reach the option, not remain on the combo button");
++        assert!(egui::ComboBox::is_open(&ctx, combo));
++        assert_eq!(app.ui.dialog.as_ref().unwrap().str("kind"), "corner", "Tab alone must not choose an option");
++        assert_eq!(snapshot(&app), before);
++        key(&ctx, &mut app, egui::Key::Enter);
++        assert!(app.ui.dialog.is_some(), "AVG_JOIN_KIND_ENTER_CHOICE: choosing Smooth must not accept Average and Join");
++        // First prove that the focused option was activated; popup closure alone is insufficient.
++        assert_eq!(app.ui.dialog.as_ref().unwrap().str("kind"), "smooth", "AVG_JOIN_KIND_CHOICE_APPLIED: Enter must choose Smooth");
++        assert!(!egui::ComboBox::is_open(&ctx, combo), "AVG_JOIN_KIND_POPUP_CLOSED: choosing Smooth closes only the list");
++        assert_eq!(snapshot(&app), before, "choosing a kind is not a document edit or preview");
++
++        let text = frame(&ctx, &mut app, vec![]);
++        let target = at(&text, if accept { "OK" } else { "Cancel" });
++        click(&ctx, &mut app, target);
++        assert!(app.ui.dialog.is_none() && !app.session.in_interaction());
++        if accept {
++            let joined = snapshot(&app);
++            let id = vectorcraft_doc::NodeId(a.as_u64().unwrap());
++            let path = joined.0.node(id).unwrap().path_data().unwrap();
++            assert_eq!(path.subpaths[0].anchors.len(), 3);
++            assert_eq!(path.subpaths[0].anchors[1].p, vectorcraft_geom::Point::new(120.0, 120.0));
++            assert_eq!(path.subpaths[0].anchors[1].kind, vectorcraft_geom::AnchorKind::Smooth);
++            assert_eq!(joined.2.len(), before.2.len() + 1);
++            assert_eq!(&joined.2[..before.2.len()], before.2.as_slice());
++            assert!(joined.3.is_empty() && joined.4);
++            app.run("edit.undo", json!({})).unwrap();
++            let undone = snapshot(&app);
++            assert_eq!(undone.0, before.0);
++            assert_eq!(undone.1, before.1);
++            assert_eq!(undone.2, before.2);
++            assert!(!undone.4 && !undone.5);
++            app.run("edit.redo", json!({})).unwrap();
++            assert_eq!(snapshot(&app), joined);
++        } else {
++            assert_eq!(snapshot(&app), before, "Cancel retains the untouched selection and Redo branch");
++            app.run("edit.redo", json!({})).unwrap();
++            assert_eq!(app.session.doc().unwrap().doc, moved, "the pre-dialog Redo remains usable");
++        }
++    }
++}
+diff --git a/crates/ui-egui/src/i18n/cs.tsv b/crates/ui-egui/src/i18n/cs.tsv
+index be90eb47..b071e294 100644
+--- a/crates/ui-egui/src/i18n/cs.tsv
++++ b/crates/ui-egui/src/i18n/cs.tsv
+@@ -4808,3 +4808,6 @@ mark-style	Japanese	Japonské
+ 	Softness	Měkkost
+ 	Ambient Light	Okolní světlo
+ 	Light behind the object	Světlo za objektem
++
++	Average and Join	Zprůměrovat a spojit
++	Average and Join…	Zprůměrovat a spojit…
+diff --git a/crates/ui-egui/src/i18n/de.tsv b/crates/ui-egui/src/i18n/de.tsv
+index e99f2e4b..3a92f310 100644
+--- a/crates/ui-egui/src/i18n/de.tsv
++++ b/crates/ui-egui/src/i18n/de.tsv
+@@ -4335,3 +4335,6 @@ theme	Appearance	Erscheinungsbild
+ 	Softness	Weichheit
+ 	Ambient Light	Umgebungslicht
+ 	Light behind the object	Licht hinter dem Objekt
++
++	Average and Join	Mitteln und verbinden
++	Average and Join…	Mitteln und verbinden…
+diff --git a/crates/ui-egui/src/i18n/es.tsv b/crates/ui-egui/src/i18n/es.tsv
+index 375f464a..8842e5eb 100644
+--- a/crates/ui-egui/src/i18n/es.tsv
++++ b/crates/ui-egui/src/i18n/es.tsv
+@@ -4749,3 +4749,6 @@ mark-style	Japanese	Japonesas
+ 	Softness	Suavidad
+ 	Ambient Light	Luz ambiental
+ 	Light behind the object	Luz detrás del objeto
++
++	Average and Join	Promediar y unir
++	Average and Join…	Promediar y unir…
+diff --git a/crates/ui-egui/src/i18n/fr.tsv b/crates/ui-egui/src/i18n/fr.tsv
+index e7b53bd2..4f9a2e66 100644
+--- a/crates/ui-egui/src/i18n/fr.tsv
++++ b/crates/ui-egui/src/i18n/fr.tsv
+@@ -4808,3 +4808,6 @@ theme	Appearance	Apparence
+ 	Softness	Douceur
+ 	Ambient Light	Lumière ambiante
+ 	Light behind the object	Lumière derrière l'objet
++
++	Average and Join	Moyenne et jonction
++	Average and Join…	Moyenne et jonction…
+diff --git a/crates/ui-egui/src/i18n/hu.tsv b/crates/ui-egui/src/i18n/hu.tsv
+index 4a22f544..3f1a45a2 100644
+--- a/crates/ui-egui/src/i18n/hu.tsv
++++ b/crates/ui-egui/src/i18n/hu.tsv
+@@ -4775,3 +4775,6 @@ imageTrace	Outline	Körvonal
+ 	Softness	Lágyság
+ 	Ambient Light	Környezeti fény
+ 	Light behind the object	Fény az objektum mögött
++
++	Average and Join	Átlagolás és összekapcsolás
++	Average and Join…	Átlagolás és összekapcsolás…
+diff --git a/crates/ui-egui/src/i18n/it.tsv b/crates/ui-egui/src/i18n/it.tsv
+index 815a5941..30b59dbf 100644
+--- a/crates/ui-egui/src/i18n/it.tsv
++++ b/crates/ui-egui/src/i18n/it.tsv
+@@ -4380,3 +4380,6 @@ lighting	Light	Luce
+ 	Softness	Morbidezza
+ 	Ambient Light	Luce ambientale
+ 	Light behind the object	Luce dietro l'oggetto
++
++	Average and Join	Media e unione
++	Average and Join…	Media e unione…
+diff --git a/crates/ui-egui/src/i18n/ja.tsv b/crates/ui-egui/src/i18n/ja.tsv
+index b32e5be3..c2e39c7a 100644
+--- a/crates/ui-egui/src/i18n/ja.tsv
++++ b/crates/ui-egui/src/i18n/ja.tsv
+@@ -4374,3 +4374,6 @@ lighting	Light	ライト
+ 	Softness	柔らかさ
+ 	Ambient Light	環境光
+ 	Light behind the object	オブジェクトの背後のライト
++
++	Average and Join	平均化して連結
++	Average and Join…	平均化して連結…
+diff --git a/crates/ui-egui/src/i18n/ko.tsv b/crates/ui-egui/src/i18n/ko.tsv
+index 8d7262a0..f9557cfe 100644
+--- a/crates/ui-egui/src/i18n/ko.tsv
++++ b/crates/ui-egui/src/i18n/ko.tsv
+@@ -4344,3 +4344,6 @@ lighting	Light	광원
+ 	Softness	부드러움
+ 	Ambient Light	주변광
+ 	Light behind the object	개체 뒤의 조명
++
++	Average and Join	평균화 및 연결
++	Average and Join…	평균화 및 연결…
+diff --git a/crates/ui-egui/src/i18n/pl.tsv b/crates/ui-egui/src/i18n/pl.tsv
+index 05ccaf1f..3016d5de 100644
+--- a/crates/ui-egui/src/i18n/pl.tsv
++++ b/crates/ui-egui/src/i18n/pl.tsv
+@@ -4651,3 +4651,6 @@ mark-style	Japanese	Japońskie
+ 	Softness	Miękkość
+ 	Ambient Light	Światło otoczenia
+ 	Light behind the object	Światło za obiektem
++
++	Average and Join	Uśrednij i połącz
++	Average and Join…	Uśrednij i połącz…
+diff --git a/crates/ui-egui/src/i18n/pt-br.tsv b/crates/ui-egui/src/i18n/pt-br.tsv
+index c39b61c7..a327111c 100644
+--- a/crates/ui-egui/src/i18n/pt-br.tsv
++++ b/crates/ui-egui/src/i18n/pt-br.tsv
+@@ -260,6 +260,8 @@
+ 	Automatically	Automaticamente
+ 	Automatically Save Recovery Data	Salvar Dados de Recuperação Automaticamente
+ 	Average	Média
++	Average and Join	Calcular Média e Unir
++	Average and Join…	Calcular Média e Unir…
+ 	Average…	Média…
+ 	BLANK DOCUMENT PRESETS	PREDEFINIDOS DE DOCUMENTO EM BRANCO
+ 	Background Color:	Cor do Plano de Fundo:
+diff --git a/crates/ui-egui/src/i18n/ru.tsv b/crates/ui-egui/src/i18n/ru.tsv
+index b531a6b9..6563106b 100644
+--- a/crates/ui-egui/src/i18n/ru.tsv
++++ b/crates/ui-egui/src/i18n/ru.tsv
+@@ -4376,3 +4376,6 @@ lighting	Light	Свет
+ 	Softness	Мягкость
+ 	Ambient Light	Окружающий свет
+ 	Light behind the object	Свет позади объекта
++
++	Average and Join	Усреднить и соединить
++	Average and Join…	Усреднить и соединить…
+diff --git a/crates/ui-egui/src/i18n/uk.tsv b/crates/ui-egui/src/i18n/uk.tsv
+index c1fe4d1e..eb62e723 100644
+--- a/crates/ui-egui/src/i18n/uk.tsv
++++ b/crates/ui-egui/src/i18n/uk.tsv
+@@ -4360,3 +4360,6 @@ lighting	Light	Світло
+ 	Softness	М'якість
+ 	Ambient Light	Навколишнє світло
+ 	Light behind the object	Світло позаду об'єкта
++
++	Average and Join	Усереднити та з’єднати
++	Average and Join…	Усереднити та з’єднати…
+diff --git a/crates/ui-egui/src/i18n/vi.tsv b/crates/ui-egui/src/i18n/vi.tsv
+index 0a8e6e63..b7582963 100644
+--- a/crates/ui-egui/src/i18n/vi.tsv
++++ b/crates/ui-egui/src/i18n/vi.tsv
+@@ -4362,3 +4362,6 @@ theme	Appearance	Giao diện
+ 	Softness	Độ mềm
+ 	Ambient Light	Ánh sáng môi trường
+ 	Light behind the object	Ánh sáng phía sau đối tượng
++
++	Average and Join	Lấy trung bình và nối
++	Average and Join…	Lấy trung bình và nối…
+diff --git a/crates/ui-egui/src/i18n/zh-hans.tsv b/crates/ui-egui/src/i18n/zh-hans.tsv
+index 5467f497..e411d8d1 100644
+--- a/crates/ui-egui/src/i18n/zh-hans.tsv
++++ b/crates/ui-egui/src/i18n/zh-hans.tsv
+@@ -3957,3 +3957,6 @@ lighting	Light	光源
+ 	Softness	柔和度
+ 	Ambient Light	环境光
+ 	Light behind the object	光源位于对象后方
++
++	Average and Join	平均并连接
++	Average and Join…	平均并连接…
+diff --git a/crates/ui-egui/src/i18n/zh-hant.tsv b/crates/ui-egui/src/i18n/zh-hant.tsv
+index 814a0b84..6b0178aa 100644
+--- a/crates/ui-egui/src/i18n/zh-hant.tsv
++++ b/crates/ui-egui/src/i18n/zh-hant.tsv
+@@ -3741,3 +3741,6 @@ lighting	Light	光源
+ 	Softness	柔和度
+ 	Ambient Light	環境光
+ 	Light behind the object	光源位於物件後方
++
++	Average and Join	平均並連接
++	Average and Join…	平均並連接…
+diff --git a/crates/ui-egui/src/menus.rs b/crates/ui-egui/src/menus.rs
+index 7f32ab48..633550a4 100644
+--- a/crates/ui-egui/src/menus.rs
++++ b/crates/ui-egui/src/menus.rs
+@@ -588,7 +588,7 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
+         "ui.menuDialog",
+         "Menu Dialog",
+         "",
+-        "{command: object.move|object.rotate|object.scale|object.reflect|object.shear|object.transformEach|path.average|object.path.offsetPath|object.path.simplify|object.path.splitIntoGrid|object.vectorHalftone|artboard.rearrange|object.envelope.makeWithWarp|object.envelope.resetWithWarp|object.envelope.makeWithMesh|object.envelope.resetWithMesh|object.envelope.options} open the dialog that command's menu item opens (dialog kind: move, rotate, scale, reflect, shear, transformEach, …, vectorHalftone, rearrangeArtboards, envelopeWarp, envelopeMesh, envelopeOptions; Scale and Transform Each have `corners` and `strokes`, from the preferences, which OK updates; the envelope dialogs start from the selected envelope, Make opens as Reset (`reset: true`) while one is selected)",
++        "{command: object.move|object.rotate|object.scale|object.reflect|object.shear|object.transformEach|path.average|path.averageJoin|object.path.offsetPath|object.path.simplify|object.path.splitIntoGrid|object.vectorHalftone|artboard.rearrange|object.envelope.makeWithWarp|object.envelope.resetWithWarp|object.envelope.makeWithMesh|object.envelope.resetWithMesh|object.envelope.options} open the dialog that command's menu item opens (dialog kind: move, rotate, scale, reflect, shear, transformEach, …, vectorHalftone, rearrangeArtboards, envelopeWarp, envelopeMesh, envelopeOptions; Scale and Transform Each have `corners` and `strokes`, from the preferences, which OK updates; the envelope dialogs start from the selected envelope, Make opens as Reset (`reset: true`) while one is selected)",
+     ),
+     (
+         "ui.widthPointEdit",
+@@ -2272,6 +2272,7 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
+                     vec![
+                         c("Join", "path.join"),
+                         c("Average…", "path.average"),
++                        c("Average and Join…", "path.averageJoin"),
+                         Sep,
+                         c("Outline Stroke", "object.path.outlineStroke"),
+                         c("Offset Path…", "object.path.offsetPath"),
+@@ -2791,7 +2792,7 @@ pub fn context_items(app: &VectorcraftApp) -> Vec<Item> {
+         }
+         let paths = any(|k| matches!(k, NodeKind::Path { .. }));
+         if paths {
+-            v.extend([c("Join", "path.join"), c("Average…", "path.average")]);
++            v.extend([c("Join", "path.join"), c("Average…", "path.average"), c("Average and Join…", "path.averageJoin")]);
+         }
+         if !st.selection.anchors.is_empty() {
+             v.extend([c("Remove Anchor Points", "path.removeAnchors"), c("Cut Path at Selected Anchor Points", "path.cutAtAnchors")]);
+@@ -3070,6 +3071,7 @@ fn menu_dialog(app: &VectorcraftApp, id: &str) -> Option<(&'static str, Value)>
+         "object.reflect" => ("reflect", json!({"axis": "vertical", "angle": 90})),
+         "object.shear" => ("shear", json!({"angle": 0, "axis": "horizontal"})),
+         "path.average" => ("average", json!({"axis": "both"})),
++        "path.averageJoin" if enabled(app, id) => ("averageJoin", json!({"kind": "corner"})),
+         // Offset Path opens on the values it was last confirmed with.
+         "object.path.offsetPath" if app.ui.offset_path.is_object() => ("offsetPath", app.ui.offset_path.clone()),
+         "object.path.offsetPath" => ("offsetPath", json!({"offset": "10 pt", "joins": "miter", "miterLimit": 4})),
+diff --git a/crates/ui-egui/src/widgets.rs b/crates/ui-egui/src/widgets.rs
+index e03c4a96..b467d043 100644
+--- a/crates/ui-egui/src/widgets.rs
++++ b/crates/ui-egui/src/widgets.rs
+@@ -667,6 +667,7 @@ pub fn dropdown_names(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, c
+         for (i, o) in options.iter().enumerate() {
+             if ui.add(egui::Button::selectable(*o == current, *o)).clicked() {
+                 chosen = Some(i);
++                ui.close();
+             }
+         }
+         chosen
+@@ -713,13 +714,19 @@ pub(crate) fn combo<R>(
+             if searchable {
+                 return searchable_combo(ui, ui.id().with(id), current, width - 4.0, list);
+             }
+-            egui::ComboBox::from_id_salt(ui.id().with(id))
++            let id = ui.id().with(id);
++            let button_id = ui.make_persistent_id(egui::IdSalt::new(id));
++            let enter_for_combo = ui.memory(|m| m.has_focus(button_id)) || egui::ComboBox::is_open(ui.ctx(), button_id);
++            let response = egui::ComboBox::from_id_salt(id)
+                 .selected_text(egui::RichText::new(current).size(12.0))
+                 .width(width - 4.0)
+                 .height(ui.spacing().combo_height)
+-                .show_ui(ui, list)
+-                .inner
+-                .flatten()
++                .show_ui(ui, list);
++            // The button or open list handles Enter before the modal can accept it.
++            if enter_for_combo {
++                ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter));
++            }
++            response.inner.flatten()
+         })
+         .inner
+ }

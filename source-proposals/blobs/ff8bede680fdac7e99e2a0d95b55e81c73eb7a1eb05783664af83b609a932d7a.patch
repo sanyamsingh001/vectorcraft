@@ -1,0 +1,43 @@
+--- a466/ci-dispatch.py
++++ 320b/ci-dispatch.py
+@@ -3,15 +3,15 @@
+ R=Path('/mnt/downloads/dev/artcraft/vectorcraft')
+ A=R/'.git/codex/r82/consolidation-20261016'
+ V=A
+-D=A/'guide-current-maina466-typef196-01/ci-dispatch-01'
++D=A/'guide-current-main320b-typef196-01/ci-dispatch-01'
+ E=D/'export-copy'
+ W=R/'.git/codex/worktrees/r82-pr1919-validation06b-consolidated'
+ T=R/'.git/codex/targets/r82-pr1919-validation06b-consolidated'
+-P=A/'guide-current-maina466-typef196-01/ci-binding-01'
++P=A/'guide-current-main320b-typef196-01/ci-binding-01'
+ G=Path(sys.argv[1])
+ H=lambda b:hashlib.sha256(b).hexdigest()
+-BASE='a466625c8987550635cda951ebf36e08e1e80a56'
+-ROOT_BASE='a466625c8987550635cda951ebf36e08e1e80a56'
++BASE='320bffb8adede9eeff0efcd22145fe5a3128bf6e'
++ROOT_BASE='320bffb8adede9eeff0efcd22145fe5a3128bf6e'
+ OLD_BASE='b6e58adbb2863e9672ab93fc4b18f1635831d3d8'
+ GUIDE='66b7a03bcf5ef3a8a4922e21c9a317cabeebe47ecc871c2fb039d4fed63f3753'
+ state={'status':'PREFLIGHT','started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'samples':[],'source_transition_started':False,'runner_launched':False}
+@@ -130,9 +130,9 @@
+         if i<2:time.sleep(1)
+     changes=sorted(k for k in set(before['files'])|set(manifest['files']) if before['files'].get(k)!=manifest['files'].get(k))
+     entries=transition['changed_paths']
+-    assert [e['path'] for e in entries]==changes and len(changes)==150 and len(manifest['files'])==1792
++    assert [e['path'] for e in entries]==changes and len(changes)==180 and len(manifest['files'])==1798
+     added=set(manifest['files'])-set(before['files']);removed=set(before['files'])-set(manifest['files'])
+-    assert len(added)==7 and len(removed)==0 and len(changes)-len(added)-len(removed)==143
++    assert len(added)==13 and len(removed)==0 and len(changes)-len(added)-len(removed)==167
+     incoming={}
+     for entry in entries:
+         rel=entry['path'];assert not Path(rel).is_absolute() and '..' not in Path(rel).parts
+@@ -161,7 +161,7 @@
+     assert git(W,'diff','--name-only')==b'' and not git(W,'ls-files','--others','--exclude-standard','-z')
+     assert (R/'.git/index').read_bytes()==rootidx and git(R,'rev-parse','HEAD').decode().strip()==ROOT_BASE and H(git(R,'show-ref'))==refs
+     save('source-after-transition.json',after)
+-    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1785,'after_entries':1792,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':7,'modified':143,'removed':0},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
++    save('transition.json',{'before_source':before['sha256'],'after_source':after['sha256'],'tree':tree,'paths':changes,'original_index_sha256':H(wi),'execution_index_after_sha256':H(ip.read_bytes()),'root_index_unchanged':H(rootidx),'refs_unchanged':refs,'target_device':T.stat().st_dev,'target_inode':T.stat().st_ino,'before_entries':1785,'after_entries':1798,'all_entries_matched':True,'before_head':OLD_BASE,'after_head':BASE,'boot_id':boot,'changes':{'added':13,'modified':167,'removed':0},'preserved_before_index':str(D/'preserved-before-index'),'preserved_before_files':str(D/'preserved-before-files')})
+     expired();sample();assert Path('/proc/sys/kernel/random/boot_id').read_text().strip()==boot
+     admission['status']='ROOT_ADMITTED';admission['resources']['status']='ROOT_ADMITTED'
+     admission['coordinator_grant']={'path':str(G),'raw_sha256':H(gb),'grant_id':grant['grant_id'],'slot':grant['slot'],'launch_expires_utc':grant['launch_only_expires_at'],'allowed_phases':['ci'],'ci_command_count':1,'ci_stage_count':10}

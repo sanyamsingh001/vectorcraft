@@ -1,0 +1,125 @@
+--- a/crates/ui-egui/src/dialogs/color_picker.rs
++++ b/crates/ui-egui/src/dialogs/color_picker.rs
+@@ -657,4 +657,121 @@
+         super::super::confirm(&mut app).unwrap();
+         assert!(matches!(crate::panels::current_paints(&app).0.color(), Some(Color::Cmyk { .. })));
+     }
+-}
++
++    /// Characterization only: passing observes an unavailable-confirmation error, not correctness.
++    /// Public-command opening does not exercise the toolbar or palette entry route.
++    #[test]
++    fn no_document_fill_ok_characterizes_unavailable_confirmation_error() {
++        use egui::{Event, Id, LayerId, Modifiers, Order, PointerButton, Pos2, Shape};
++
++        fn frame(app: &mut VectorcraftApp, ctx: &egui::Context, time: &mut f64, events: Vec<Event>) -> Vec<Rect> {
++            *time += 0.05;
++            let input = egui::RawInput {
++                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1600.0, 900.0))),
++                time: Some(*time),
++                focused: true,
++                events,
++                ..Default::default()
++            };
++            let mut output = ctx.run_ui(input, |ui| {
++                app.logic(ui.ctx());
++                app.ui(ui);
++            });
++            output.textures_delta.clear();
++            fn collect(shape: &Shape, clip: Rect, labels: &mut Vec<Rect>) {
++                match shape {
++                    Shape::Text(text) if text.galley.text() == "OK" => {
++                        let rect = text.visual_bounding_rect();
++                        if clip.contains_rect(rect) {
++                            labels.push(rect);
++                        }
++                    }
++                    Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect(shape, clip, labels)),
++                    _ => {}
++                }
++            }
++            let mut labels = vec![];
++            for shape in &output.shapes {
++                collect(&shape.shape, shape.clip_rect, &mut labels);
++            }
++            labels
++        }
++
++        fn ok_target(ctx: &egui::Context, labels: &[Rect]) -> Rect {
++            let id = Id::new(("dialog", "colorPicker"));
++            let dialog = ctx.memory(|m| m.area_rect(id)).expect("SETUP_NO_DOC_OK: Color Picker window must be rendered");
++            let layer = LayerId::new(Order::Foreground, id);
++            let targets: Vec<_> =
++                labels.iter().copied().filter(|rect| dialog.contains_rect(*rect) && ctx.layer_id_at(rect.center()) == Some(layer)).collect();
++            assert_eq!(targets.len(), 1, "SETUP_NO_DOC_OK: require one unclipped OK label on the Color Picker foreground layer: {targets:?}");
++            let target = targets[0];
++            assert!(target.width() > 0.0 && target.height() > 0.0, "SETUP_NO_DOC_OK: nonempty painted label");
++            assert!(ctx.content_rect().contains_rect(target), "SETUP_NO_DOC_OK: the whole target is in the viewport");
++            target
++        }
++
++        let mut app = VectorcraftApp::new(Session::new(), Default::default());
++        app.session.prefs.interface_language = "en".into();
++        let ctx = egui::Context::default();
++        let mut time = 0.0;
++        assert!(app.session.documents().is_empty() && app.session.active().is_none(), "SETUP_NO_DOC_OK: no document created");
++        assert!(!app.session.in_interaction(), "SETUP_NO_DOC_OK: no preview");
++        for _ in 0..4 {
++            frame(&mut app, &ctx, &mut time, vec![]);
++        }
++        assert!(app.ui.status.is_empty(), "SETUP_NO_DOC_OK: clean initial status: {}", app.ui.status);
++        app.run("ui.colorPicker", json!({"stroke": false})).unwrap();
++        let mut labels = vec![];
++        for _ in 0..4 {
++            labels = frame(&mut app, &ctx, &mut time, vec![]);
++        }
++        let dialog = app.ui.dialog.as_ref().expect("SETUP_NO_DOC_OK: public opening retained the picker");
++        assert_eq!(dialog.kind, KIND, "SETUP_NO_DOC_OK: intended dialog");
++        assert!(!dialog.bool("stroke"), "SETUP_NO_DOC_OK: Fill only");
++        assert!(app.ui.status.is_empty(), "SETUP_NO_DOC_OK: opening produced no error: {}", app.ui.status);
++        assert!(app.session.documents().is_empty() && app.session.active().is_none(), "SETUP_NO_DOC_OK: still no document");
++        assert!(!app.session.in_interaction(), "SETUP_NO_DOC_OK: opening did not preview");
++        let before_paint = app.session.paint.clone();
++        let before_fill_active = app.session.fill_active;
++        let before_last_solid = app.session.last_solid;
++        let before_recent_colors = app.session.recent_colors.clone();
++        let target = ok_target(&ctx, &labels);
++        let at = target.center();
++
++        // No guessed coordinates, field edits, focus requests, Enter or direct confirmation call.
++        labels = frame(&mut app, &ctx, &mut time, vec![Event::ModifiersChanged(Modifiers::NONE), Event::PointerMoved(at)]);
++        assert_eq!(ok_target(&ctx, &labels), target, "SETUP_NO_DOC_OK: painted target is stable before the press");
++        assert_eq!(ctx.input(|i| i.pointer.latest_pos()), Some(at), "SETUP_NO_DOC_OK: real pointer reached OK");
++        assert!(!ctx.input(|i| i.pointer.any_down()), "SETUP_NO_DOC_OK: no button was already held");
++        assert!(app.ui.status.is_empty(), "SETUP_NO_DOC_OK: hover must not confirm: {}", app.ui.status);
++        let button = |pressed| Event::PointerButton { pos: at, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
++        labels = frame(&mut app, &ctx, &mut time, vec![button(true)]);
++        assert_eq!(ok_target(&ctx, &labels), target, "SETUP_NO_DOC_OK: the same foreground target is held");
++        assert!(ctx.input(|i| i.pointer.button_pressed(PointerButton::Primary) && i.pointer.primary_down()), "SETUP_NO_DOC_OK: actual primary press");
++        assert_eq!(ctx.input(|i| i.pointer.latest_pos()), Some(at), "SETUP_NO_DOC_OK: press remains at OK");
++        assert!(app.ui.status.is_empty(), "SETUP_NO_DOC_OK: error must not predate release: {}", app.ui.status);
++        assert_eq!(app.ui.dialog.as_ref().map(|d| d.kind.as_str()), Some(KIND), "SETUP_NO_DOC_OK: picker stays open through press");
++        eprintln!("NO_DOC_FILL_OK_INPUT_READY: one stable foreground OK target; primary press delivered; no error before release");
++
++        labels = frame(&mut app, &ctx, &mut time, vec![button(false)]);
++        assert!(
++            ctx.input(|i| i.pointer.button_released(PointerButton::Primary) && i.pointer.any_click() && !i.pointer.primary_down()),
++            "SETUP_NO_DOC_OK: actual primary release registered a click"
++        );
++        assert_eq!(ctx.input(|i| i.pointer.latest_pos()), Some(at), "SETUP_NO_DOC_OK: release remains at OK");
++        assert_eq!(ok_target(&ctx, &labels), target, "SETUP_NO_DOC_OK: release used the same foreground target");
++
++        // This expected failure is the observation. It is not a desired-behavior/GREEN assertion.
++        let expected = "command `paint.setFill` is not available right now: no document open";
++        assert_eq!(app.ui.status, expected, "OBSERVE_NO_DOC_OK: actual painted-OK click must report the exact unavailable-command error");
++        assert_eq!(app.ui.dialog.as_ref().map(|d| d.kind.as_str()), Some(KIND), "OBSERVE_NO_DOC_OK: failed confirmation retains the picker");
++        assert!(!app.ui.dialog.as_ref().unwrap().bool("stroke"), "OBSERVE_NO_DOC_OK: still the Fill picker");
++        assert!(app.session.documents().is_empty() && app.session.active().is_none(), "OBSERVE_NO_DOC_OK: zero documents");
++        assert!(!app.session.in_interaction(), "OBSERVE_NO_DOC_OK: no preview interaction");
++        assert_eq!(app.session.paint, before_paint, "OBSERVE_NO_DOC_OK: sampled paint defaults unchanged");
++        assert_eq!(app.session.fill_active, before_fill_active, "OBSERVE_NO_DOC_OK: active proxy unchanged");
++        assert_eq!(app.session.last_solid, before_last_solid, "OBSERVE_NO_DOC_OK: remembered solid unchanged");
++        assert_eq!(app.session.recent_colors, before_recent_colors, "OBSERVE_NO_DOC_OK: recent colors unchanged");
++        eprintln!("NO_DOC_FILL_OK_UNAVAILABLE_ERROR_OBSERVED: characterization passed by observing the error; NOT correctness or GREEN");
++    }
++}

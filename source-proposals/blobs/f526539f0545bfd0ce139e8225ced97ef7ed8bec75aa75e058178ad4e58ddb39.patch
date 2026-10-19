@@ -1,0 +1,529 @@
+--- a/crates/ui-egui/src/panels/layers.rs
++++ b/crates/ui-egui/src/panels/layers.rs
+@@ -43,7 +43,7 @@
+ use egui::{Color32, Sense, Stroke, StrokeKind, Ui, vec2};
+ use serde::{Deserialize, Serialize};
+ use serde_json::{Value, json};
+-use vectorcraft_doc::{Document, LiveShape, Node, NodeId, NodeKind};
++use vectorcraft_doc::{Document, LiveShape, Node, NodeId, NodeKind, Selection};
+ use vectorcraft_engine::OpenRows;
+ 
+ use crate::theme::Tokens;
+@@ -112,8 +112,13 @@
+ }
+ 
+ /// A drag down the eye or lock column: every row it passes takes `value`.
+-#[derive(Clone, Debug, Default)]
++#[derive(Clone, Debug)]
+ struct ColumnDrag {
++    /// The widget and document whose live preview this drag owns.
++    zone: egui::Id,
++    uid: u64,
++    /// Each interaction has a fresh selection snapshot, even if its document is unchanged.
++    interaction: Option<Weak<Selection>>,
+     /// The eye column (visibility), else the lock column.
+     eye: bool,
+     value: bool,
+@@ -485,6 +490,8 @@
+ /// Everything one frame of the panel reads.
+ struct View<'a> {
+     doc: &'a Arc<Document>,
++    uid: u64,
++    column_cancelled: bool,
+     /// Where the row thumbnails come from.
+     thumbs: ThumbSource<'a>,
+     sel: HashSet<NodeId>,
+@@ -515,7 +522,37 @@
+     toggle: Vec<(NodeId, bool)>,
+ }
+ 
++/// Retire a cancelled column before reading the document or collecting more row changes.
++fn cancel_column_drag(app: &mut VectorcraftApp, ui: &Ui) -> bool {
++    let Some(c) = ui.data(|d| d.get_temp::<ColumnDrag>(key("column"))) else { return false };
++    let owned = app.session.active().is_some_and(|st| {
++        st.uid == c.uid
++            && c.interaction
++                .as_ref()
++                .is_some_and(|owner| st.interaction.as_ref().is_some_and(|it| Weak::ptr_eq(owner, &Arc::downgrade(&it.selection))))
++    });
++    // egui stops the drag before other UI can consume Escape. A tool may also have already
++    // cancelled the interaction: neither case may leave a column to re-preview on motion/Up.
++    let stopped_held = ui.ctx().drag_stopped_id() == Some(c.zone) && ui.input(|i| i.pointer.primary_down());
++    let escape = owned && ui.input_mut(|i| i.consume_key(i.modifiers, egui::Key::Escape));
++    if owned && !escape && !stopped_held {
++        return false;
++    }
++    if owned {
++        if let Err(e) = app.session.cancel_interaction() {
++            app.status(e.to_string());
++        }
++        app.sync_views();
++    }
++    ui.data_mut(|d| d.remove::<ColumnDrag>(key("column")));
++    if app.session.active().is_some_and(|st| st.uid == c.uid) && ui.ctx().is_being_dragged(c.zone) {
++        ui.ctx().stop_dragging();
++    }
++    true
++}
++
+ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
++    let column_cancelled = cancel_column_drag(app, ui);
+     let t = Tokens::get(ui.ctx());
+     let Some(st) = app.session.active() else { return };
+     // A rename belongs to the document it started in (node ids are per document): drop it when
+@@ -580,6 +617,8 @@
+     let list = rows_of_doc(ui, st, &app.ui.layers_panel, &query, &app.ui.layers_filter);
+     let view = View {
+         doc: &doc,
++        uid: st.uid,
++        column_cancelled,
+         thumbs: ThumbSource::of(app, st, &doc),
+         sel: st.selection.objects.iter().copied().collect(),
+         guides: st.selection.guides.clone(),
+@@ -620,12 +659,19 @@
+     // The column drag: live while it lasts, one undo step when the button is released.
+     let released = ui.input(|i| i.pointer.any_released());
+     let changed = out.column.is_some();
+-    let column = out.column.take().unwrap_or_else(|| view.column.clone());
+-    if let Some(c) = column.as_ref().filter(|_| changed || released) {
++    let mut column = out.column.take().unwrap_or_else(|| view.column.clone());
++    // A newly started column must not borrow another control's live interaction.
++    if column.as_ref().is_some_and(|c| c.interaction.is_none()) && app.session.in_interaction() {
++        column = None;
++    }
++    if let Some(c) = column.as_mut().filter(|_| changed || released) {
+         let (prop, label) = if c.eye { ("visible", "Visibility") } else { ("locked", "Lock") };
+         let phase = if released { Live::Released } else { Live::Dragging };
+         let params = json!({"ids": c.ids, prop: c.value});
+         super::live_run(app, label, "layer.setProps", params, phase);
++        if c.interaction.is_none() {
++            c.interaction = app.session.active().and_then(|st| st.interaction.as_ref()).map(|it| Arc::downgrade(&it.selection));
++        }
+     }
+     ui.data_mut(|d| match column.filter(|_| !released) {
+         Some(c) => {
+@@ -1099,11 +1145,15 @@
+     } else if lr.clicked() {
+         out.actions.push(("layer.setProps".into(), json!({"ids": [n.id.0], "locked": !n.locked})));
+     }
++    // A cached drag_started response must not restart a column cancelled earlier this frame.
++    if view.column_cancelled {
++        return;
++    }
+     // Dragging down a column gives every row it passes this row's new state.
+     if er.drag_started() {
+-        out.column = Some(Some(ColumnDrag { eye: true, value: !n.visible, ids: vec![n.id.0] }));
++        out.column = Some(Some(ColumnDrag { zone: er.id, uid: view.uid, interaction: None, eye: true, value: !n.visible, ids: vec![n.id.0] }));
+     } else if lr.drag_started() {
+-        out.column = Some(Some(ColumnDrag { eye: false, value: !n.locked, ids: vec![n.id.0] }));
++        out.column = Some(Some(ColumnDrag { zone: lr.id, uid: view.uid, interaction: None, eye: false, value: !n.locked, ids: vec![n.id.0] }));
+     } else if let Some(c) = out.column.clone().unwrap_or_else(|| view.column.clone())
+         && !c.ids.contains(&n.id.0)
+         && ui.input(|i| i.pointer.primary_down() && i.pointer.interact_pos().is_some_and(|p| p.y >= r.top() && p.y < r.bottom()))
+@@ -2688,4 +2738,405 @@
+         app.session.active_mut().unwrap().active_layer = doc.layer_of(NodeId(rects[0]));
+         assert!(shown(&mut app, &top) && !shown(&mut app, &bottom), "the highlighted row keeps the view");
+     }
+-}
++
++    /// The actual shortcut route runs before the actual panel, as in the app's UI frame. The
++    /// painted target circles locate rows exactly as in `frame`; no drag state is injected.
++    fn column_escape_frame(app: &mut VectorcraftApp, ctx: &egui::Context, mut events: Vec<egui::Event>, kind: &str) -> Vec<egui::Pos2> {
++        events.insert(0, egui::Event::ModifiersChanged(egui::Modifiers::NONE));
++        let mut out = ctx.run_ui(egui::RawInput { events, ..Default::default() }, |ui| {
++            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
++                assert!(ui.input(|i| i.pointer.primary_down()), "Escape is pressed with the column still held");
++                assert!(ui.ctx().memory(|m| m.focused().is_none()), "no field owns keyboard focus");
++                assert!(!ui.ctx().egui_wants_keyboard_input());
++                assert!(app.ui.dialog.is_none() && !app.ui.palette_open);
++                assert!(app.ui.flyout.is_none() && !app.ui.tools_drawer);
++                assert_eq!(crate::scrub::phase(ui.ctx()), crate::scrub::Phase::Idle);
++                assert_eq!(app.session.tool_id(), "selection");
++                assert!(!app.session.tool_busy() && !app.session.tool_composing());
++                eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_ESCAPE_ROUTE_READY");
++            }
++            crate::shortcuts::handle(app, ui.ctx());
++            show(app, ui);
++        });
++        out.textures_delta.clear();
++        let mut circles: Vec<_> = out
++            .shapes
++            .iter()
++            .filter_map(|c| match &c.shape {
++                egui::Shape::Circle(cs) if cs.radius == 5.0 => Some(cs.center),
++                _ => None,
++            })
++            .collect();
++        circles.sort_by(|a, b| a.y.total_cmp(&b.y));
++        circles
++    }
++
++    fn column_escape_restores_state(eye: bool) {
++        let kind = if eye { "EYE" } else { "LOCK" };
++        let (mut app, [_, sub, g, b, a, c]) = nested();
++        app.select_tool("selection");
++        app.run("select.set", json!({"ids": [b.0, c.0]})).unwrap();
++        // A normal edit followed by Undo leaves a real, usable Redo branch. Both history stacks
++        // are compared by their public logical contents, not allocation/accounting fields.
++        app.run("object.move", json!({"dx": 7, "dy": 9})).unwrap();
++        let redo_state = app.session.doc().unwrap().clone();
++        app.run("edit.undo", json!({})).unwrap();
++        let ctx = egui::Context::default();
++        column_escape_frame(&mut app, &ctx, vec![], kind);
++        let circles = column_escape_frame(&mut app, &ctx, vec![], kind);
++        assert_eq!(circles.len(), 6, "the existing nested fixture's six visible rows");
++        let at = |i: usize| egui::pos2(if eye { 12.0 } else { 37.0 }, circles[i].y);
++        app.session.active_mut().unwrap().mark_saved();
++        let before = app.session.doc().unwrap().clone();
++        let journal = app.session.journal.clone();
++        let history = |st: &vectorcraft_engine::DocState| {
++            let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
++                items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
++            };
++            (entries(&st.history.undo), entries(&st.history.redo))
++        };
++        let history_before = history(&before);
++        assert!(!before.is_dirty());
++        assert!(before.interaction.is_none() && before.undo_group.is_none());
++        assert!(!before.history.undo.is_empty());
++        assert_eq!(before.history.redo.len(), 1);
++        assert_eq!(before.selection.objects, vec![b, c]);
++        assert_eq!(app.session.tool_id(), "selection");
++        assert!(!app.session.tool_busy());
++        for id in [sub, g, b, a, c] {
++            let n = before.doc.node(id).unwrap();
++            assert!(n.visible && !n.locked);
++        }
++        eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_SETUP_READY");
++
++        // Real press, movement beyond the click threshold, then into the second row. The group
++        // and its child are previewed, while the separately selected rectangle stays editable.
++        for events in [
++            vec![egui::Event::PointerMoved(at(2))],
++            vec![button(at(2), true)],
++            vec![egui::Event::PointerMoved(at(2) + vec2(0.0, 6.0))],
++            vec![egui::Event::PointerMoved(at(3))],
++        ] {
++            column_escape_frame(&mut app, &ctx, events, kind);
++        }
++        let st = app.session.doc().unwrap();
++        let interaction = st.interaction.as_ref().expect("real column motion started a live interaction");
++        assert_eq!(interaction.label, if eye { "Visibility" } else { "Lock" });
++        let preview = interaction.preview.as_ref().expect("the real layer.setProps preview succeeded");
++        assert_eq!(preview.0, "layer.setProps");
++        let prop = if eye { "visible" } else { "locked" };
++        assert_eq!(preview.1, json!({"ids": [g.0, b.0], prop: !eye}));
++        assert_eq!(interaction.doc, before.doc);
++        assert_eq!(*interaction.selection, before.selection);
++        assert_ne!(st.doc, before.doc, "the pointer gesture really changed the preview");
++        for id in [g, b] {
++            let n = st.doc.node(id).unwrap();
++            assert_eq!((n.visible, n.locked), if eye { (false, false) } else { (true, true) });
++        }
++        for id in [sub, a, c] {
++            assert_eq!(st.doc.node(id).unwrap().visible, before.doc.node(id).unwrap().visible);
++            assert_eq!(st.doc.node(id).unwrap().locked, before.doc.node(id).unwrap().locked);
++        }
++        assert_eq!(st.doc.node(c), before.doc.node(c), "unrelated art is untouched");
++        let mut preview_selection = before.selection.clone();
++        preview_selection.remove(b);
++        assert_eq!(st.selection, preview_selection, "the now-uneditable selected art was deselected");
++        assert_eq!(st.selection.objects, vec![c]);
++        assert_eq!(history(st), history_before);
++        assert!(st.is_dirty(), "the live preview differs from the saved checkpoint");
++        assert_eq!(app.session.journal, journal, "an uncommitted preview has not been journaled");
++        assert!(ctx.input(|i| i.pointer.primary_down()));
++        eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_PREVIEW_READY");
++
++        let key = |pressed| egui::Event::Key { key: egui::Key::Escape, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE };
++        column_escape_frame(&mut app, &ctx, vec![key(true)], kind);
++        let restored = |app: &VectorcraftApp, stage: &str| {
++            let st = app.session.doc().unwrap();
++            // This full-document assertion is the first intended late failure, after all setup
++            // proofs. A no-op gesture, compile error or earlier setup failure is not this oracle.
++            assert_eq!(st.doc, before.doc, "LAYERS_COLUMN_ESCAPE_RESTORES_DOCUMENT: {stage}");
++            assert_eq!(st.selection, before.selection, "{stage}: full selection");
++            assert_eq!(history(st), history_before, "{stage}: both logical history branches");
++            assert!(!st.is_dirty(), "{stage}: saved checkpoint restored");
++            assert_eq!(app.session.journal, journal, "{stage}: no cancelled command in journal");
++            assert!(st.interaction.is_none() && st.undo_group.is_none(), "{stage}: gesture is over");
++            assert_eq!(app.session.tool_id(), "selection");
++            assert!(!app.session.tool_busy());
++        };
++        restored(&app, "Escape while held");
++        assert!(ctx.input(|i| i.pointer.primary_down() && i.key_down(egui::Key::Escape)));
++        // Further held motion must not revive the cancelled column operation or affect row a.
++        column_escape_frame(&mut app, &ctx, vec![egui::Event::PointerMoved(at(4))], kind);
++        restored(&app, "further held motion");
++        column_escape_frame(&mut app, &ctx, vec![key(false), button(at(4), false)], kind);
++        column_escape_frame(&mut app, &ctx, vec![], kind);
++        restored(&app, "release after Escape");
++        assert!(!ctx.input(|i| i.pointer.primary_down()));
++
++        app.run("edit.redo", json!({})).unwrap();
++        let st = app.session.doc().unwrap();
++        assert_eq!(st.doc, redo_state.doc, "the pre-existing Redo still restores the real move");
++        assert_eq!(st.selection, redo_state.selection);
++        assert_eq!(history(st), history(&redo_state));
++        assert!(st.is_dirty());
++        app.run("edit.undo", json!({})).unwrap();
++        let st = app.session.doc().unwrap();
++        assert_eq!(st.doc, before.doc);
++        assert_eq!(st.selection, before.selection);
++        assert_eq!(history(st), history_before);
++        assert!(!st.is_dirty(), "Undo returns to the saved checkpoint");
++        let mut expected_journal = journal;
++        expected_journal.extend([("edit.redo".into(), json!({})), ("edit.undo".into(), json!({}))]);
++        assert_eq!(app.session.journal, expected_journal);
++        eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_RESTORATION_AND_REDO_VERIFIED");
++    }
++
++    #[test]
++    fn escape_cancels_eye_column_drag_restoring_document_selection_and_history() {
++        column_escape_restores_state(true);
++    }
++
++    #[test]
++    fn escape_cancels_lock_column_drag_restoring_document_selection_and_history() {
++        column_escape_restores_state(false);
++    }
++
++    /// Pending canvas typing must settle before the Layers column opens its own preview.
++    #[test]
++    fn pending_typing_full_app_visibility_drag_preserves_text_and_history() {
++        let (mut app, [_, _, group, child, _, _]) = nested();
++        for (id, name) in [(group, "Typing Group"), (child, "Typing Child")] {
++            app.run("layer.setProps", json!({"ids": [id.0], "name": name})).unwrap();
++        }
++        let text_id = NodeId(app.run("text.create", json!({"x": 160, "y": 200, "text": "Seed", "size": 24})).unwrap()["id"].as_u64().unwrap());
++        app.run("select.set", json!({"ids": [text_id.0]})).unwrap();
++        app.run("window.panel", json!({"panel": "layers"})).unwrap();
++        crate::dock::set_collapsed(&mut app, false);
++        let ctx = egui::Context::default();
++        let mut time = 0.0;
++        let mut shell = |app: &mut VectorcraftApp, mut events: Vec<egui::Event>, threshold: bool| {
++            time += 0.1;
++            events.insert(0, egui::Event::ModifiersChanged(egui::Modifiers::NONE));
++            let mut raw = egui::RawInput {
++                events,
++                time: Some(time),
++                screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, vec2(1600.0, 850.0))),
++                ..Default::default()
++            };
++            app.raw_input_hook(&mut raw);
++            let mut observed = false;
++            let mut out = ctx.run_ui(raw, |ui| {
++                app.logic(ui.ctx());
++                // Only the first layout pass: a successful first pass legitimately settles typing.
++                if threshold && !observed {
++                    assert!(ui.input(|i| i.pointer.primary_down()), "SETUP: threshold is held");
++                    assert!(ui.ctx().memory(|m| m.focused().is_none()), "SETUP: no egui field");
++                    assert!(!ui.ctx().egui_wants_keyboard_input(), "SETUP: Type tool owns text");
++                    assert!(app.ui.dialog.is_none() && !app.ui.palette_open && app.ui.flyout.is_none());
++                    assert!(!app.ui.tools_drawer && !app.session.tool_busy() && !app.session.tool_composing());
++                    assert_eq!(crate::scrub::phase(ui.ctx()), crate::scrub::Phase::Idle);
++                    assert_eq!(app.session.tool_id(), "type");
++                    assert!(app.session.tool_wants_text());
++                    assert_eq!(app.session.tool_options()["typing"], json!(true));
++                    let interaction = app.session.doc().unwrap().interaction.as_ref().expect("SETUP: pending Typing before Layers UI");
++                    assert_eq!(interaction.label, "Typing", "SETUP: earlier settlement is inconclusive");
++                    let preview = interaction.preview.as_ref().expect("SETUP: real typing preview");
++                    assert_eq!(preview.0, "text.editRange");
++                    assert_eq!(preview.1["id"], json!(text_id.0));
++                    eprintln!("LAYERS_PENDING_TYPING_THRESHOLD_BEFORE_UI");
++                    observed = true;
++                }
++                app.ui(ui);
++            });
++            assert!(!app.ui.status.starts_with("Internal error:"), "SETUP: shell reported {}", app.ui.status);
++            assert!(!threshold || observed, "SETUP: threshold frame reached the full shell");
++            out.textures_delta.clear();
++            out
++        };
++        for _ in 0..3 {
++            shell(&mut app, vec![], false);
++        }
++        let history = |st: &vectorcraft_engine::DocState| {
++            let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
++                items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
++            };
++            (entries(&st.history.undo), entries(&st.history.redo))
++        };
++        app.session.active_mut().unwrap().mark_saved();
++        let before = app.session.doc().unwrap().clone();
++        let h0 = history(&before);
++        let s0 = before.selection.clone();
++        assert_eq!(s0.objects, vec![text_id]);
++        assert!(h0.1.is_empty() && !before.is_dirty());
++        assert!(before.interaction.is_none() && before.undo_group.is_none());
++        assert!(!before.doc.ancestry(text_id).unwrap().contains(&group));
++        assert!(before.doc.node(group).unwrap().visible && before.doc.node(child).unwrap().visible);
++        let text = |doc: &vectorcraft_doc::Document| match &doc.node(text_id).unwrap().kind {
++            NodeKind::Text(t) => t.plain_text(),
++            _ => panic!("SETUP: public text.create made a text object"),
++        };
++        assert_eq!(text(&before.doc), "Seed");
++
++        // Enter the existing text through the actual canvas, with no tool action/preview seeding.
++        app.select_tool("type");
++        shell(&mut app, vec![], false);
++        let bounds = app.session.doc().unwrap().doc.node(text_id).unwrap().geometric_bounds().unwrap();
++        let canvas = app.canvas_rect.expect("SETUP: full shell laid out the canvas");
++        let at = crate::canvas::Xf::new(canvas, app.view().unwrap()).to_screen(bounds.center());
++        assert!(canvas.contains(at));
++        for events in [vec![egui::Event::PointerMoved(at)], vec![button(at, true)], vec![button(at, false)], vec![]] {
++            shell(&mut app, events, false);
++        }
++        assert_eq!(app.session.tool_id(), "type");
++        assert!(app.session.tool_wants_text() && !app.session.tool_busy());
++        assert!(!ctx.input(|i| i.pointer.primary_down()));
++        let options = app.session.tool_options();
++        assert_eq!(options["editing"], json!(text_id.0), "SETUP: canvas click entered the intended text");
++        let caret = options["caret"].as_u64().unwrap() as usize;
++        assert_eq!(options["start"], json!(caret));
++        assert_eq!(options["end"], json!(caret));
++        assert!(caret <= 4);
++        assert_eq!(app.session.doc().unwrap().doc, before.doc, "SETUP: text entry preserves D0");
++        assert_eq!(app.session.doc().unwrap().selection, s0, "SETUP: text entry preserves S0");
++        assert_eq!(history(app.session.doc().unwrap()), h0);
++        assert!(!app.session.in_interaction());
++        let mut expected_text = "Seed".to_string();
++        expected_text.insert(caret, 'X');
++        shell(&mut app, vec![egui::Event::Text("X".into())], false);
++        let out = shell(&mut app, vec![], false);
++        let typed = app.session.doc().unwrap().clone();
++        assert_eq!(text(&typed.doc), expected_text, "SETUP: raw text reached the Type tool");
++        assert_eq!(app.session.tool_options()["caret"], json!(caret + 1));
++        assert_eq!(app.session.tool_options()["typing"], json!(true));
++        assert_eq!(typed.selection, s0);
++        assert_eq!(history(&typed), h0, "SETUP: typing is still uncommitted after a full idle frame");
++        assert!(typed.is_dirty());
++        let typing = typed.interaction.as_ref().expect("SETUP: real Typing remains pending");
++        assert_eq!(typing.label, "Typing");
++        assert_eq!(typing.doc, before.doc);
++        assert_eq!(*typing.selection, s0);
++        assert_eq!(typing.preview.as_ref().unwrap().0, "text.editRange");
++        before.doc.walk(|n| {
++            // Ancestors contain the edited text; compare unrelated leaf art independently.
++            if n.id != text_id && n.children().is_none() {
++                assert_eq!(typed.doc.node(n.id), Some(n));
++            }
++        });
++        eprintln!("LAYERS_PENDING_TYPING_TEXT_READY");
++
++        // Reuse the existing widget inventory (toolbar::tests::widget_rects), retaining IDs.
++        // Painted custom names bind each row; live widget rects locate its eye and lock columns.
++        let canvas = app.canvas_rect.unwrap();
++        let eye = |name: &str| {
++            let labels: Vec<_> = out
++                .shapes
++                .iter()
++                .filter_map(|c| match &c.shape {
++                    egui::Shape::Text(t) if t.galley.job.text == name && t.pos.x > canvas.right() => Some(t.pos.y + t.galley.size().y * 0.5),
++                    _ => None,
++                })
++                .collect();
++            assert_eq!(labels.len(), 1, "SETUP: one visible dock row named {name}");
++            let y = labels[0];
++            let mut columns: Vec<_> = ctx.viewport(|vp| {
++                vp.prev_pass
++                    .widgets
++                    .layers()
++                    .flat_map(|(_, widgets)| widgets.iter())
++                    .filter(|w| {
++                        w.rect.size() == vec2(COLUMN, app.ui.layers_panel.row())
++                            && w.rect.left() > canvas.right()
++                            && w.rect.top() < y
++                            && y < w.rect.bottom()
++                    })
++                    .map(|w| (w.id, w.rect))
++                    .collect()
++            });
++            columns.sort_by(|a, b| a.1.left().total_cmp(&b.1.left()));
++            assert_eq!(columns.len(), 2, "SETUP: actual eye and lock widgets for {name}");
++            assert_eq!(columns[0].1.right(), columns[1].1.left());
++            let (id, rect) = columns[0];
++            let response = ctx.read_response(id).expect("SETUP: eye widget response");
++            assert!(response.enabled());
++            assert_eq!(response.rect, rect);
++            assert_eq!(ctx.layer_id_at(rect.center()), Some(response.layer_id), "SETUP: eye is not covered");
++            (id, rect)
++        };
++        let (eye_id, first) = eye("Typing Group");
++        let (_, second) = eye("Typing Child");
++        assert_eq!(first.bottom(), second.top(), "SETUP: group and child are adjacent visible rows");
++        assert!(!canvas.contains(first.center()) && !canvas.contains(second.center()));
++        assert!(first.contains(first.center() + vec2(0.0, 6.0)), "SETUP: threshold move stays in first eye");
++        eprintln!("LAYERS_PENDING_TYPING_EYE_WIDGETS_READY");
++
++        shell(&mut app, vec![egui::Event::PointerMoved(first.center())], false);
++        shell(&mut app, vec![button(first.center(), true)], false);
++        shell(&mut app, vec![egui::Event::PointerMoved(first.center() + vec2(0.0, 6.0))], true);
++        assert!(ctx.is_being_dragged(eye_id), "SETUP: actual group eye owns pointer capture");
++        let response = ctx.read_response(eye_id).expect("SETUP: captured eye response");
++        assert_eq!(response.rect, first);
++        assert!(response.dragged(), "SETUP: the eye response is a real drag, not a click");
++        eprintln!("LAYERS_PENDING_TYPING_EYE_CAPTURED");
++        shell(&mut app, vec![egui::Event::PointerMoved(second.center())], false);
++        assert!(ctx.is_being_dragged(eye_id), "SETUP: eye owns the held move into the child row");
++        let held = app.session.doc().unwrap().clone();
++        shell(&mut app, vec![button(second.center(), false)], false);
++        shell(&mut app, vec![], false);
++        assert!(!ctx.input(|i| i.pointer.primary_down()));
++        eprintln!("LAYERS_PENDING_TYPING_RELEASED");
++
++        // The expected document is independent of the preview/command under test.
++        let mut expected = typed.doc.clone();
++        for id in [group, child] {
++            std::sync::Arc::make_mut(&mut expected).node_mut(id).unwrap().visible = false;
++        }
++        let after = app.session.doc().unwrap().clone();
++        eprintln!("LAYERS_PENDING_TYPING_LATE_ORACLES");
++        assert_eq!(after.doc, expected, "LAYERS_PENDING_TYPING_VISIBILITY_DOCUMENT");
++        assert_eq!(text(&after.doc), expected_text);
++        assert_eq!(after.doc.node(text_id), typed.doc.node(text_id), "typed runs and all text attributes remain exact");
++        assert_eq!(after.selection, s0);
++        assert_eq!(after.uid, before.uid);
++        assert_eq!(after.active_layer, before.active_layer);
++        assert!(after.is_dirty() && after.interaction.is_none() && after.undo_group.is_none());
++        assert_eq!(app.session.tool_options()["typing"], json!(false));
++        let selection = std::sync::Arc::new(s0.clone());
++        let typing_entry = ("Typing".to_string(), before.doc.clone(), selection.clone());
++        let visibility_entry = ("Visibility".to_string(), typed.doc.clone(), selection.clone());
++        let mut h_typed = h0.clone();
++        h_typed.0.push(typing_entry);
++        let mut h_after = h_typed.clone();
++        h_after.0.push(visibility_entry);
++        assert_eq!(history(&after), h_after, "typing and visibility are separate logical steps");
++        assert_eq!(history(&held), h_typed, "only typing is committed while the column is held");
++        let live = held.interaction.as_ref().unwrap();
++        assert_eq!(live.label, "Visibility");
++        assert_eq!(live.doc, typed.doc);
++        assert_eq!(*live.selection, s0);
++        assert_eq!(live.preview, Some(("layer.setProps".into(), json!({"ids": [group.0, child.0], "visible": false}))));
++        assert_eq!(held.doc, expected);
++
++        let mut h_undo_visibility = h_typed.clone();
++        h_undo_visibility.1.push(("Visibility".into(), expected.clone(), selection.clone()));
++        let mut h_undo_typing = h0.clone();
++        h_undo_typing.1 = h_undo_visibility.1.clone();
++        h_undo_typing.1.push(("Typing".into(), typed.doc.clone(), selection));
++        for (command, label, doc, hist, dirty) in [
++            ("edit.undo", "Visibility", &typed.doc, &h_undo_visibility, true),
++            ("edit.undo", "Typing", &before.doc, &h_undo_typing, false),
++            ("edit.redo", "Typing", &typed.doc, &h_undo_visibility, true),
++            ("edit.redo", "Visibility", &expected, &h_after, true),
++        ] {
++            let result = app.run(command, json!({})).unwrap();
++            assert_eq!(result[if command == "edit.undo" { "undone" } else { "redone" }], json!(label));
++            let st = app.session.doc().unwrap();
++            assert_eq!(&st.doc, doc, "{command} {label}: complete document");
++            assert_eq!(st.selection, s0, "{command} {label}: complete selection");
++            assert_eq!(st.uid, before.uid);
++            assert_eq!(&history(st), hist, "{command} {label}: both logical history stacks");
++            assert_eq!(st.is_dirty(), dirty);
++            assert!(st.interaction.is_none() && st.undo_group.is_none());
++        }
++        eprintln!("LAYERS_PENDING_TYPING_HISTORY_VERIFIED");
++    }
++}

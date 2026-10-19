@@ -1,0 +1,12 @@
+diff --git a/crates/ui-egui/src/panels/layers.rs b/crates/ui-egui/src/panels/layers.rs
+index b7974e6c31893df8d109bd66408ed5fb9b5084b6..87fb74d5f6adbb9140f76b5ad056f049f0d33b22 100644
+--- a/crates/ui-egui/src/panels/layers.rs
++++ b/crates/ui-egui/src/panels/layers.rs
+@@ -898,6 +898,7 @@ fn row(ui: &mut Ui, view: &View, item: &Row, out: &mut Out) {
+     }
+     let is_sel = view.sel.contains(&n.id);
+     let child_sel = !is_sel
++        && !view.sel.is_empty()
+         && n.children().is_some_and(|_| {
+             let mut any = false;
+             n.walk(&mut |c| any |= c.id != n.id && view.sel.contains(&c.id));

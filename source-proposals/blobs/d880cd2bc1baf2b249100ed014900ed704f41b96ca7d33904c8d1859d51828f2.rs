@@ -1,0 +1,163 @@
+
+
+    /// The actual shortcut route runs before the actual panel, as in the app's UI frame. The
+    /// painted target circles locate rows exactly as in `frame`; no drag state is injected.
+    fn column_escape_frame(app: &mut VectorcraftApp, ctx: &egui::Context, mut events: Vec<egui::Event>, kind: &str) -> Vec<egui::Pos2> {
+        events.insert(0, egui::Event::ModifiersChanged(egui::Modifiers::NONE));
+        let mut out = ctx.run_ui(egui::RawInput { events, ..Default::default() }, |ui| {
+            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                assert!(ui.input(|i| i.pointer.primary_down()), "Escape is pressed with the column still held");
+                assert!(ui.ctx().memory(|m| m.focused().is_none()), "no field owns keyboard focus");
+                assert!(!ui.ctx().egui_wants_keyboard_input());
+                assert!(app.ui.dialog.is_none() && !app.ui.palette_open);
+                assert!(app.ui.flyout.is_none() && !app.ui.tools_drawer);
+                assert_eq!(crate::scrub::phase(ui.ctx()), crate::scrub::Phase::Idle);
+                assert_eq!(app.session.tool_id(), "selection");
+                assert!(!app.session.tool_busy() && !app.session.tool_composing());
+                eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_ESCAPE_ROUTE_READY");
+            }
+            crate::shortcuts::handle(app, ui.ctx());
+            show(app, ui);
+        });
+        out.textures_delta.clear();
+        let mut circles: Vec<_> = out
+            .shapes
+            .iter()
+            .filter_map(|c| match &c.shape {
+                egui::Shape::Circle(cs) if cs.radius == 5.0 => Some(cs.center),
+                _ => None,
+            })
+            .collect();
+        circles.sort_by(|a, b| a.y.total_cmp(&b.y));
+        circles
+    }
+
+    fn column_escape_restores_state(eye: bool) {
+        let kind = if eye { "EYE" } else { "LOCK" };
+        let (mut app, [_, sub, g, b, a, c]) = nested();
+        app.select_tool("selection");
+        app.run("select.set", json!({"ids": [b.0, c.0]})).unwrap();
+        // A normal edit followed by Undo leaves a real, usable Redo branch. Both history stacks
+        // are compared by their public logical contents, not allocation/accounting fields.
+        app.run("object.move", json!({"dx": 7, "dy": 9})).unwrap();
+        let redo_state = app.session.doc().unwrap().clone();
+        app.run("edit.undo", json!({})).unwrap();
+        let ctx = egui::Context::default();
+        column_escape_frame(&mut app, &ctx, vec![], kind);
+        let circles = column_escape_frame(&mut app, &ctx, vec![], kind);
+        assert_eq!(circles.len(), 6, "the existing nested fixture's six visible rows");
+        let at = |i: usize| egui::pos2(if eye { 12.0 } else { 37.0 }, circles[i].y);
+        app.session.active_mut().unwrap().mark_saved();
+        let before = app.session.doc().unwrap().clone();
+        let journal = app.session.journal.clone();
+        let history = |st: &vectorcraft_engine::DocState| {
+            let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
+                items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
+            };
+            (entries(&st.history.undo), entries(&st.history.redo))
+        };
+        let history_before = history(&before);
+        assert!(!before.is_dirty());
+        assert!(before.interaction.is_none() && before.undo_group.is_none());
+        assert!(!before.history.undo.is_empty());
+        assert_eq!(before.history.redo.len(), 1);
+        assert_eq!(before.selection.objects, vec![b, c]);
+        assert_eq!(app.session.tool_id(), "selection");
+        assert!(!app.session.tool_busy());
+        for id in [sub, g, b, a, c] {
+            let n = before.doc.node(id).unwrap();
+            assert!(n.visible && !n.locked);
+        }
+        eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_SETUP_READY");
+
+        // Real press, movement beyond the click threshold, then into the second row. The group
+        // and its child are previewed, while the separately selected rectangle stays editable.
+        for events in [
+            vec![egui::Event::PointerMoved(at(2))],
+            vec![button(at(2), true)],
+            vec![egui::Event::PointerMoved(at(2) + vec2(0.0, 6.0))],
+            vec![egui::Event::PointerMoved(at(3))],
+        ] {
+            column_escape_frame(&mut app, &ctx, events, kind);
+        }
+        let st = app.session.doc().unwrap();
+        let interaction = st.interaction.as_ref().expect("real column motion started a live interaction");
+        assert_eq!(interaction.label, if eye { "Visibility" } else { "Lock" });
+        let preview = interaction.preview.as_ref().expect("the real layer.setProps preview succeeded");
+        assert_eq!(preview.0, "layer.setProps");
+        let prop = if eye { "visible" } else { "locked" };
+        assert_eq!(preview.1, json!({"ids": [g.0, b.0], prop: !eye}));
+        assert_eq!(interaction.doc, before.doc);
+        assert_eq!(*interaction.selection, before.selection);
+        assert_ne!(st.doc, before.doc, "the pointer gesture really changed the preview");
+        for id in [g, b] {
+            let n = st.doc.node(id).unwrap();
+            assert_eq!((n.visible, n.locked), if eye { (false, false) } else { (true, true) });
+        }
+        for id in [sub, a, c] {
+            assert_eq!(st.doc.node(id).unwrap().visible, before.doc.node(id).unwrap().visible);
+            assert_eq!(st.doc.node(id).unwrap().locked, before.doc.node(id).unwrap().locked);
+        }
+        assert_eq!(st.doc.node(c), before.doc.node(c), "unrelated art is untouched");
+        let mut preview_selection = before.selection.clone();
+        preview_selection.remove(b);
+        assert_eq!(st.selection, preview_selection, "the now-uneditable selected art was deselected");
+        assert_eq!(st.selection.objects, vec![c]);
+        assert_eq!(history(st), history_before);
+        assert!(st.is_dirty(), "the live preview differs from the saved checkpoint");
+        assert_eq!(app.session.journal, journal, "an uncommitted preview has not been journaled");
+        assert!(ctx.input(|i| i.pointer.primary_down()));
+        eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_PREVIEW_READY");
+
+        let key = |pressed| egui::Event::Key { key: egui::Key::Escape, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE };
+        column_escape_frame(&mut app, &ctx, vec![key(true)], kind);
+        let restored = |app: &VectorcraftApp, stage: &str| {
+            let st = app.session.doc().unwrap();
+            // This full-document assertion is the first intended late failure, after all setup
+            // proofs. A no-op gesture, compile error or earlier setup failure is not this oracle.
+            assert_eq!(st.doc, before.doc, "LAYERS_COLUMN_ESCAPE_RESTORES_DOCUMENT: {stage}");
+            assert_eq!(st.selection, before.selection, "{stage}: full selection");
+            assert_eq!(history(st), history_before, "{stage}: both logical history branches");
+            assert!(!st.is_dirty(), "{stage}: saved checkpoint restored");
+            assert_eq!(app.session.journal, journal, "{stage}: no cancelled command in journal");
+            assert!(st.interaction.is_none() && st.undo_group.is_none(), "{stage}: gesture is over");
+            assert_eq!(app.session.tool_id(), "selection");
+            assert!(!app.session.tool_busy());
+        };
+        restored(&app, "Escape while held");
+        assert!(ctx.input(|i| i.pointer.primary_down() && i.key_down(egui::Key::Escape)));
+        // Further held motion must not revive the cancelled column operation or affect row a.
+        column_escape_frame(&mut app, &ctx, vec![egui::Event::PointerMoved(at(4))], kind);
+        restored(&app, "further held motion");
+        column_escape_frame(&mut app, &ctx, vec![key(false), button(at(4), false)], kind);
+        column_escape_frame(&mut app, &ctx, vec![], kind);
+        restored(&app, "release after Escape");
+        assert!(!ctx.input(|i| i.pointer.primary_down()));
+
+        app.run("edit.redo", json!({})).unwrap();
+        let st = app.session.doc().unwrap();
+        assert_eq!(st.doc, redo_state.doc, "the pre-existing Redo still restores the real move");
+        assert_eq!(st.selection, redo_state.selection);
+        assert_eq!(history(st), history(&redo_state));
+        assert!(st.is_dirty());
+        app.run("edit.undo", json!({})).unwrap();
+        let st = app.session.doc().unwrap();
+        assert_eq!(st.doc, before.doc);
+        assert_eq!(st.selection, before.selection);
+        assert_eq!(history(st), history_before);
+        assert!(!st.is_dirty(), "Undo returns to the saved checkpoint");
+        let mut expected_journal = journal;
+        expected_journal.extend([("edit.redo".into(), json!({})), ("edit.undo".into(), json!({}))]);
+        assert_eq!(app.session.journal, expected_journal);
+        eprintln!("LAYERS_COLUMN_ESCAPE_{kind}_RESTORATION_AND_REDO_VERIFIED");
+    }
+
+    #[test]
+    fn escape_cancels_eye_column_drag_restoring_document_selection_and_history() {
+        column_escape_restores_state(true);
+    }
+
+    #[test]
+    fn escape_cancels_lock_column_drag_restoring_document_selection_and_history() {
+        column_escape_restores_state(false);
+    }

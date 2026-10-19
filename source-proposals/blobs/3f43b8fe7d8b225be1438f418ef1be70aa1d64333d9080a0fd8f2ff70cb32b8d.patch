@@ -1,0 +1,76 @@
+--- accepted-e6/positive-config
++++ current73f/positive-config
+@@ -21,9 +21,9 @@
+   "expected_exits": [
+     0
+   ],
+-  "expected_head": "e6aec0664cf8ebc86677cb17f46be42b511208a7",
+-  "name": "r82-text-mixed-direction-e6ae-after-01",
++  "expected_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
++  "name": "r82-text-mixed-direction-73f-after-01",
+   "phase": "candidate",
+-  "tree": "14ecf13f024ca1220a7b16d25ebb15ea2d28644a",
++  "tree": "6cc560f983a4767037f784190a248f80b06386d2",
+   "worktree": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/worktrees/r82-pr1919-validation06b-consolidated"
+ }
+--- accepted73f/baseline-admission
++++ current73f/positive-admission
+@@ -1,19 +1,19 @@
+ {
+   "cases": {
+-    "baseline": {
+-      "canonical_source_digest": "ddd18b9fd1dd76160f4edf5d66a6221635c08765b0c5a31817e20c41cd36ddcd",
++    "candidate": {
++      "canonical_source_digest": "22088ae9dce1fcfc2a6da7dceb84e5c7fd419a4295e97c6b9b3fddf4810e8359",
+       "config": {
+-        "bytes": 714,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/baseline-config.json",
+-        "sha256": "db86f5c36e4dde4cde0295776245ac26fe7a3a59318673a08ade11c2962d3b24"
++        "bytes": 712,
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/runner-binding-01/candidate-config.json",
++        "sha256": "d30af38119bf6d04a5f0368c901e22db45a6c80c6b2d302588a4ae0615ac6c4e"
+       },
+       "expected_head": "73f40e3fd3fd6957508f18af1bf3bff93a9eb3e7",
+       "source_manifest": {
+         "bytes": 193557,
+-        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runtime-source-manifest.json",
+-        "sha256": "015a9fff310867e2c45e113051ec2c9c9d42e74f1539f40bff3feb9cd0ee9223"
++        "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/runtime-source-manifest.json",
++        "sha256": "b64a77bd89aa9d654c58c2601d3632d7e3d5ef87096f0f02f657ffebd5e83c34"
+       },
+-      "tree": "8a75d2f86bfbb31f39fa83b13f52ab76255ab27a"
++      "tree": "6cc560f983a4767037f784190a248f80b06386d2"
+     }
+   },
+   "independent_review": {
+@@ -25,9 +25,9 @@
+     "sha256": "97c01f80d25b1f6f45a2bbea802a6689f04acb22862c9485f8080fd18b5792fc"
+   },
+   "outer_environment_binding": {
+-    "bytes": 11570,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/runner-binding-01/output-environment.json",
+-    "sha256": "4072f7f0f96d403c765b537501b2c34f7bd6adcddf3e156619fa32e6827c451c"
++    "bytes": 11554,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/runner-binding-01/output-environment.json",
++    "sha256": "ec8357e13759d815ac054b7de13187ce299aa5d3ecd41f23c7566de799e1a7d9"
+   },
+   "owner_review": {
+     "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/picker-validation-runner-01/owner-review-v1.json",
+@@ -51,12 +51,12 @@
+     "terminate_grace_seconds": 10
+   },
+   "runner_sha256": "2faba37df44851611e1f56f4a0ea77c09f65d09e584296173f4c04e31c3b2584",
+-  "runtime_admission_required": "Fresh root grant and existing resource/process/lock/source guards before the explicit closed corrected-e6 to73f baseline transition. No transition or run performed.",
+-  "source_binding_note": "One unchanged private Type diagnostic on73f, containing plain-LTR and mixed-direction cases. The unchanged runner's historical11-test NOT_EVALUATED sentence is provenance only; actual named-test membership and earliest assertion control acceptance.",
++  "runtime_admission_required": "Fresh root grant and unchanged original resource/process/lock/source guards before the explicit closed73f baseline to positive two-file transition. No transition or run performed.",
++  "source_binding_note": "One unchanged private Type diagnostic on73f with plain-LTR and mixed-direction cases. The unchanged runner's historical11-test NOT_EVALUATED sentence is provenance only; actual one-test membership, assertions and both completion markers control acceptance.",
+   "source_materialization": {
+-    "bytes": 3181,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-baseline-73f-01/result.json",
+-    "sha256": "a2e968ebf9727b56f286ca3d2127850dbd9518f6efaea910006e66f539eda1f2"
++    "bytes": 4824,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/text-mixed-direction-caret-positive-73f-01/result.json",
++    "sha256": "aca58a0d3df43af74cf423c6a8ef7b8c83d3240e39a6776ed0b95f3a7fcf6996"
+   },
+   "status": "UNBOUND",
+   "target": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/targets/r82-pr1919-validation06b-consolidated",

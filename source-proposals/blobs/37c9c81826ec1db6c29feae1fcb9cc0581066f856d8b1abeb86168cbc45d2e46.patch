@@ -1,0 +1,30 @@
+diff --git a/crates/ui-egui/src/widgets.rs b/crates/ui-egui/src/widgets.rs
+index 4ed3caa60050bf3764d83bc1bc87e1aca9fdb8da..0f7cdcb13d2ee2ee173f803d902511500c45885f 100644
+--- a/crates/ui-egui/src/widgets.rs
++++ b/crates/ui-egui/src/widgets.rs
+@@ -1471,12 +1471,16 @@ pub fn hex_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &
+     ui.label(egui::RichText::new("#").size(15.0).color(t.text));
+     let id = ui.id().with(id);
+     let editing = ui.memory(|m| m.has_focus(id));
++    // As in recessed_text, keep a typed edit when an earlier field already took focus.
++    // Escape still discards it; the edited flag keeps untouched fields following hex.
++    let focus_id = id.with("had-focus");
++    let had_focus = ui.data_mut(|d| d.get_temp::<bool>(focus_id)).unwrap_or(false) && !ui.input(|i| i.key_pressed(egui::Key::Escape));
+     // Until the user types into it, the field shows `hex` as it is now, also while it has the
+     // focus. Tab can give it the focus in the frame another field commits an edit, before the edit
+     // changes `hex`; the text from before that edit is not committed when the focus moves on
+     // (#1692).
+     let edited_id = id.with("edited");
+-    let edited = editing && ui.data_mut(|d| d.get_temp::<bool>(edited_id)).unwrap_or(false);
++    let edited = (editing || had_focus) && ui.data_mut(|d| d.get_temp::<bool>(edited_id)).unwrap_or(false);
+     let mut buf: String = if edited { ui.data_mut(|d| d.get_temp::<String>(id)).unwrap_or_else(|| hex.to_string()) } else { hex.to_string() };
+     let resp = egui::Frame::NONE
+         .fill(t.input)
+@@ -1501,6 +1505,7 @@ pub fn hex_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &
+     let focused = ui.memory(|m| m.has_focus(id));
+     ui.data_mut(|d| {
+         d.insert_temp(id, buf.clone());
++        d.insert_temp(focus_id, focused);
+         d.insert_temp(edited_id, (edited || resp.changed()) && focused);
+     });
+     commit.then_some(buf)

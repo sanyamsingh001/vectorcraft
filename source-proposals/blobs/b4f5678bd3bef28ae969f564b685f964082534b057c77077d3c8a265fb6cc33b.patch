@@ -1,0 +1,15 @@
+--- a/crates/tools/src/text_tests.rs
++++ b/crates/tools/src/text_tests.rs
+@@ -54,7 +54,11 @@
+     assert_eq!(face.style, "Regular");
+     eprintln!(
+         "TYPE_ARROW_FONT: {} {}; version={}; bytes={}; face_index={}",
+-        face.family, face.style, face.version, face.file_data().len(), face.face_index()
++        face.family,
++        face.style,
++        face.version,
++        face.file_data().len(),
++        face.face_index()
+     );
+     let hindi = "हिन्दी";
+     let second = "हि".len();

@@ -1,0 +1,14 @@
+--- files/crates/ui-egui/src/widgets.rs
++++ files/crates/ui-egui/src/widgets.rs
+@@ -1483,9 +1483,8 @@
+     // Only the Color Picker keeps a typed edit when an earlier field already took focus.
+     // Escape still discards it; the edited flag keeps untouched fields following hex.
+     let focus_id = id.with("had-focus");
+-    let had_focus = retain_on_focus_handoff
+-        && ui.data_mut(|d| d.get_temp::<bool>(focus_id)).unwrap_or(false)
+-        && !ui.input(|i| i.key_pressed(egui::Key::Escape));
++    let had_focus =
++        retain_on_focus_handoff && ui.data_mut(|d| d.get_temp::<bool>(focus_id)).unwrap_or(false) && !ui.input(|i| i.key_pressed(egui::Key::Escape));
+     // Until the user types into it, the field shows `hex` as it is now, also while it has the
+     // focus. Tab can give it the focus in the frame another field commits an edit, before the edit
+     // changes `hex`; the text from before that edit is not committed when the focus moves on

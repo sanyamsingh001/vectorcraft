@@ -1,0 +1,41 @@
+--- a466/grant.UNBOUND.json
++++ 320b/grant.UNBOUND.json
+@@ -3,8 +3,8 @@
+     "/usr/bin/python",
+     "-B",
+     "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/guide-ci-runner-v1.py",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/ci-config.json",
+-    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/admission.bound.json"
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/ci-config.json",
++    "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/admission.bound.json"
+   ],
+   "authorized": false,
+   "commands": [
+@@ -24,9 +24,9 @@
+     "sha256": "78278c6c280dc6c08cc193e405539924163aa56ccabad395d6c22a5baa3c00d1"
+   },
+   "ready": {
+-    "bytes": 17731,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/binding-result.json",
+-    "sha256": "13c0caea42d9e01d9241339cedd118cd1ac9d257c6fc89bffae60e2373b7d33e"
++    "bytes": 19931,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/binding-result.json",
++    "sha256": "e7100bbd2db0236d6aaffa14fb2420b6f9418afb55b1619307f70303d11e8b55"
+   },
+   "resources": {
+     "address_space_limit_bytes": null,
+@@ -47,10 +47,10 @@
+   },
+   "runner_sha256": "3236aeb0c94f50bc001291a7a00f78afed82eedd51ac118cf086505b0758960b",
+   "slot": null,
+-  "source_after": "43adf5ce456dfadf56529d9a801e624e64281b53850498b3c5dc031dcf678d1c",
++  "source_after": "d80b77c20dbd9e7054e280d621911476d50635403d706cf6822f6aae45826fb1",
+   "source_transition": {
+-    "bytes": 77009,
+-    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-maina466-typef196-01/ci-binding-01/transition.UNBOUND.json",
+-    "sha256": "3a1545948fea882c020c3dd223427c692b42d68125ac49073764977a1395d5fc"
++    "bytes": 90592,
++    "path": "/mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-current-main320b-typef196-01/ci-binding-01/transition.UNBOUND.json",
++    "sha256": "86da374a714d8a99a8f8ea3a77abae51d79c726b5f81ed277ba379debbec660b"
+   }
+ }

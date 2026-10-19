@@ -1,0 +1,142 @@
+--- 8bc/crates/engine/src/lib.rs
++++ 088/crates/engine/src/lib.rs
+@@ -14,6 +14,7 @@
+ pub mod link_watch;
+ pub mod namematch;
+ pub mod steps;
++pub mod store;
+ mod tooling;
+ pub mod units;
+ 
+@@ -34,6 +35,7 @@
+ pub use journal::Journal;
+ pub use tooling::{UiRequest, ViewInfo};
+ pub use vectorcraft_doc as doc;
++pub use vectorcraft_doc::cancel;
+ pub use vectorcraft_tools as tools;
+ 
+ #[derive(Debug, thiserror::Error)]
+@@ -50,9 +52,18 @@
+     NoNode(NodeId),
+     #[error("{0}")]
+     Other(String),
++    /// The caller asked for the command to stop ([`cancel`]). It changed nothing.
++    #[error("cancelled; nothing was changed")]
++    Cancelled,
+     /// A bug: the command panicked. The document was rolled back to its state before the command.
+     #[error("internal error in `{cmd}`: {msg} (the document was left as it was before; please report this bug)")]
+     Internal { cmd: String, msg: String },
++}
++
++impl From<cancel::Cancelled> for EngineError {
++    fn from(_: cancel::Cancelled) -> Self {
++        EngineError::Cancelled
++    }
+ }
+ 
+ impl From<vectorcraft_doc::DocError> for EngineError {
+@@ -308,7 +319,7 @@
+     /// View Opacity Mask (Alt-click the mask thumbnail): the masked object whose mask the canvas
+     /// shows alone, in greyscale, while that mask is edited (see [`DocState::shown_mask`]).
+     pub mask_view: Option<NodeId>,
+-    /// View → Show Transparency Grid, per document (view state: not saved, not undoable).
++    /// View → Show Transparency Grid, per document (saved view state, not undoable).
+     pub transparency_grid: bool,
+     /// The format Save writes ([`cmd::fileio::SAVE_FORMATS`]): the one the document was opened
+     /// from or last saved as.
+@@ -345,7 +356,7 @@
+ 
+ /// The rows open in the Layers panel: the layers, sublayers and groups that show what they hold.
+ /// A document opens with the ones it was saved with ([`Document::layers_open`]), else with only
+-/// its top-level layers open.
++/// its top-level layers open (a `.ai` another app wrote opens with none open).
+ #[derive(Clone, Debug, Default)]
+ pub struct OpenRows {
+     ids: std::collections::HashSet<NodeId>,
+@@ -444,9 +455,9 @@
+ impl DocState {
+     pub fn new(mut doc: Document, path: Option<String>) -> Self {
+         let active_layer = doc.default_layer();
+-        // The saved view and open Layers rows live here while the document is open (saves write
+-        // them back).
++        // Saved view state lives here while the document is open (saves write it back).
+         let view = doc.last_view.take();
++        let transparency_grid = std::mem::take(&mut doc.transparency_grid);
+         let saved_open = doc.layers_open.take();
+         let layers_open = OpenRows::new(&doc, saved_open);
+         let doc = Arc::new(doc);
+@@ -468,7 +479,7 @@
+             recalled_selection: RecalledSelection::default(),
+             uid: NEXT_DOC_UID.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+             mask_view: None,
+-            transparency_grid: false,
++            transparency_grid,
+             format: "vectorcraft",
+             save_options: Default::default(),
+             converted: false,
+@@ -1007,7 +1018,7 @@
+             font_preview_size: s("medium"),
+             recent_fonts_count: 10,
+             missing_glyph_protection: true,
+-            highlight_alternate_glyphs: true,
++            highlight_alternate_glyphs: false,
+             placeholder_text: true,
+             units_general: s("points"),
+             units_stroke: s("points"),
+@@ -1166,6 +1177,12 @@
+     pub style_libraries: cmd::stylelib::Libraries,
+     /// The Libraries panel's libraries of graphics, colours and text styles (`library.*`).
+     pub libraries: cmd::library::Libraries,
++    /// Where the saved PDF presets are kept, one file each; `None`: only for the session
++    /// ([`Session::attach_pdf_preset_store`]).
++    pdf_preset_dir: Option<std::path::PathBuf>,
++    /// Where the ICC profiles `color.loadProfile` loads are kept; `None`: only for the process
++    /// ([`Session::attach_profile_store`]).
++    profile_dir: Option<std::path::PathBuf>,
+     /// URLs recently given in the Attributes panel (`attributes.set {url}`), newest first; not saved.
+     pub recent_urls: Vec<String>,
+     /// The language the UI is drawn in (a language code, never `auto`), set by the UI each frame;
+@@ -1198,6 +1215,8 @@
+     pub(crate) plane_widget_press: bool,
+     /// A guide being dragged out of a ruler ([`Session::ruler_guide`]).
+     pub(crate) ruler_guide: Option<vectorcraft_tools::rulerguide::NewGuide>,
++    /// Which selected type overflows its frame, for the markers every tool but the Type tools shows.
++    pub(crate) overflow_marks: vectorcraft_tools::text::OverflowMarks,
+     /// The last search for the files of missing fonts (`text.findFontFiles`), until another
+     /// starts; dropping it stops it.
+     pub(crate) font_search: Option<cmd::fontfiles::FontSearch>,
+@@ -1256,6 +1275,8 @@
+             freeform_point: None,
+             style_libraries: Default::default(),
+             libraries: Default::default(),
++            pdf_preset_dir: None,
++            profile_dir: None,
+             recent_urls: vec![],
+             ui_language: None,
+             journal_note: Default::default(),
+@@ -1268,6 +1289,7 @@
+             liquify_stroke: None,
+             plane_widget_press: false,
+             ruler_guide: None,
++            overflow_marks: Default::default(),
+             font_search: None,
+             link_search: None,
+             search_rules: None,
+@@ -1889,6 +1911,8 @@
+ #[cfg(test)]
+ mod tests_build;
+ #[cfg(test)]
++mod tests_cancel;
++#[cfg(test)]
+ mod tests_charstroke;
+ #[cfg(test)]
+ mod tests_clip;
+@@ -2114,6 +2138,8 @@
+ mod tests_slices;
+ #[cfg(test)]
+ mod tests_smartguides;
++#[cfg(test)]
++mod tests_store;
+ #[cfg(test)]
+ mod tests_strokegeom;
+ #[cfg(test)]

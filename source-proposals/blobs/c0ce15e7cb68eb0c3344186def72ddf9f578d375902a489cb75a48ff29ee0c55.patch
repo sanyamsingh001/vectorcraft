@@ -1,0 +1,372 @@
+--- a/crates/engine/src/cmd/distortcmds.rs
++++ b/crates/engine/src/cmd/distortcmds.rs
+@@ -1352,6 +1352,12 @@
+             st.saved_doc = e.doc.clone();
+         }
+     }
++    if let Some(g) = &mut st.undo_group {
++        for e in &mut g.saved_redo {
++            clear(&mut e.doc);
++            e.doc.drop_lookup_cache();
++        }
++    }
+     if let Some(it) = &mut st.interaction {
+         clear(&mut it.doc);
+     }
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -296,6 +296,8 @@
+ pub struct UndoGroup {
+     /// The document before the group's first edit, as the undo step that edit recorded keeps it.
+     first: Option<Arc<Document>>,
++    /// The Redo branch replaced by the recorded step, kept until commit or cancellation.
++    saved_redo: Vec<HistoryEntry>,
+     /// The journal's length when the group began: a cancelled group drops the entries after it.
+     journal: usize,
+     /// The undo step's name; else the first edit's.
+@@ -611,6 +613,7 @@
+                 return;
+             }
+             g.first = Some(doc.clone());
++            g.saved_redo = std::mem::take(&mut self.history.redo);
+             if let Some(l) = &g.label {
+                 label = l.clone();
+             }
+@@ -1965,7 +1968,7 @@
+         if let Some(st) = self.active_mut()
+             && st.undo_group.is_none()
+         {
+-            st.undo_group = Some(UndoGroup { first: None, journal, label });
++            st.undo_group = Some(UndoGroup { first: None, saved_redo: vec![], journal, label });
+         }
+     }
+ 
+@@ -1983,6 +1986,7 @@
+             {
+                 st.doc = e.doc;
+                 st.selection = Arc::unwrap_or_clone(e.selection);
++                st.history.redo = g.saved_redo;
+                 if self.menu.guides_locked {
+                     deselect_guides(&st.doc, &mut st.selection);
+                 }
+--- a/crates/engine/src/tests_persp_text.rs
++++ b/crates/engine/src/tests_persp_text.rs
+@@ -315,3 +315,181 @@
+     s.execute("object.exitIsolation", &json!({})).unwrap();
+     assert!(node(&s, id).projection().is_some());
+ }
++
++/// Diagnostic: cancellation must not restore a flat perspective-editing view after isolation ends.
++#[test]
++fn cancelled_group_redo_keeps_exited_perspective_text_projected() {
++    fn payloads(entries: &[HistoryEntry]) -> Vec<(String, Arc<Document>, Arc<Selection>)> {
++        entries.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect()
++    }
++    fn editing(doc: &Document, id: NodeId) -> bool {
++        let n = doc.node(id).expect("SCRUB03_NORMALIZATION_SETUP: text node must exist");
++        assert!(matches!(&n.kind, NodeKind::Text(_)), "SCRUB03_NORMALIZATION_SETUP: target must remain Text");
++        n.extras().perspective.as_deref().expect("SCRUB03_NORMALIZATION_SETUP: perspective record must exist").editing
++    }
++    fn projected_copy(doc: &Document, id: NodeId) -> Document {
++        // Expected values only: never repair the live document or any stored history entry.
++        let mut copy = doc.clone();
++        let n = copy.node_mut(id).expect("SCRUB03_NORMALIZATION_SETUP: comparison target exists");
++        let p = n.extras_if_any().and_then(|e| e.perspective.as_deref_mut()).expect("SCRUB03_NORMALIZATION_SETUP: comparison record exists");
++        p.editing = false;
++        copy
++    }
++    fn visible_history_projected(st: &DocState, id: NodeId) {
++        for e in st.history.undo.iter().chain(&st.history.redo) {
++            if let Some(p) = e.doc.node(id).and_then(|n| n.extras().perspective.as_deref()) {
++                assert!(!p.editing, "SCRUB03_NORMALIZATION_SETUP: visible history and group baseline must not already be flat");
++            }
++        }
++    }
++
++    let (mut s, rectangle) = persp_session();
++    let id = persp_text(&mut s);
++    s.execute("select.set", &json!({"ids": [id.0]})).expect("SCRUB03_NORMALIZATION_SETUP: select projected text");
++    assert_eq!(s.tool_id(), "selection", "SCRUB03_NORMALIZATION_SETUP: no Type-tool cleanup or typing preview");
++    let st = s.doc().unwrap();
++    assert!(st.doc.mask_edit.is_none() && st.isolation.is_none(), "SCRUB03_NORMALIZATION_SETUP: outside editing modes");
++    assert!(st.interaction.is_none() && st.undo_group.is_none(), "SCRUB03_NORMALIZATION_SETUP: no prior transaction");
++    assert!(st.history.redo.is_empty(), "SCRUB03_NORMALIZATION_SETUP: clean initial Redo");
++    assert!(!editing(&st.doc, id), "SCRUB03_NORMALIZATION_SETUP: initial text is projected");
++    let n = st.doc.node(id).unwrap();
++    let NodeKind::Text(text) = &n.kind else { panic!("SCRUB03_NORMALIZATION_SETUP: target is Text") };
++    let flat = text.bounds().expect("SCRUB03_NORMALIZATION_SETUP: actual laid-out text bounds are required");
++    let projection = n.projection().expect("SCRUB03_NORMALIZATION_SETUP: actual valid projection is required");
++    let drawn = projection.map_rect_bbox(flat).expect("SCRUB03_NORMALIZATION_SETUP: projection must map the actual bounds");
++    for b in [flat, drawn] {
++        assert!(
++            [b.x0, b.y0, b.x1, b.y1].into_iter().all(f64::is_finite) && b.width() > 0.0 && b.height() > 0.0,
++            "SCRUB03_NORMALIZATION_SETUP: finite, nonempty real text bounds"
++        );
++    }
++    visible_history_projected(st, id);
++    let a = st.doc.clone();
++    let s0 = st.selection.clone();
++    assert_eq!(s0.objects, vec![id], "SCRUB03_NORMALIZATION_SETUP: one selected text object");
++    let u = payloads(&st.history.undo);
++    let saved = st.saved_doc.clone();
++    let before_dirty = st.is_dirty();
++    let (limit, budget) = (st.history.limit, st.history.byte_budget);
++    let preserved = |st: &DocState| {
++        assert!(Arc::ptr_eq(&st.saved_doc, &saved), "SCRUB03_NORMALIZATION_SETUP: saved snapshot unchanged");
++        assert_eq!((st.history.limit, st.history.byte_budget), (limit, budget), "SCRUB03_NORMALIZATION_SETUP: limits unchanged");
++        assert!(st.doc.mask_edit.is_none() && st.interaction.is_none(), "SCRUB03_NORMALIZATION_SETUP: no mask or preview");
++    };
++    let mut with_edit = u.clone();
++    with_edit.push(("Edit Text".into(), a.clone(), Arc::new(s0.clone())));
++
++    let r = s.execute("perspective.editText", &json!({})).expect("SCRUB03_NORMALIZATION_SETUP: first Edit Text");
++    assert_eq!(r["id"], json!(id.0), "SCRUB03_NORMALIZATION_SETUP: correct first edit target");
++    let st = s.doc().unwrap();
++    preserved(st);
++    assert!(st.undo_group.is_none() && st.history.redo.is_empty(), "SCRUB03_NORMALIZATION_SETUP: first edit is standalone");
++    assert!(editing(&st.doc, id), "SCRUB03_NORMALIZATION_SETUP: first edit really entered flat editing");
++    assert!(st.doc.node(id).unwrap().projection().is_none(), "SCRUB03_NORMALIZATION_SETUP: first edit is drawn flat");
++    assert_eq!(st.isolation, Some(id), "SCRUB03_NORMALIZATION_SETUP: first edit entered isolation");
++    assert_eq!(st.selection, s0);
++    assert_eq!(payloads(&st.history.undo), with_edit, "SCRUB03_NORMALIZATION_SETUP: one complete Edit Text entry");
++    assert_eq!(st.doc.node(rectangle), a.node(rectangle), "SCRUB03_NORMALIZATION_SETUP: control rectangle unchanged");
++    let b = st.doc.clone();
++    let bs = st.selection.clone();
++    assert_ne!(b, a, "SCRUB03_NORMALIZATION_SETUP: command success alone cannot establish a real edit");
++    let expected_redo = vec![("Edit Text".into(), b.clone(), Arc::new(bs.clone()))];
++
++    let r = s.execute("edit.undo", &json!({})).expect("SCRUB03_NORMALIZATION_SETUP: undo first Edit Text");
++    assert_eq!(r["undone"], "Edit Text");
++    let st = s.doc().unwrap();
++    preserved(st);
++    assert!(st.undo_group.is_none());
++    assert_eq!(st.doc, a, "SCRUB03_NORMALIZATION_SETUP: Undo restored the complete projected document");
++    assert_eq!(st.selection, s0);
++    assert_eq!(payloads(&st.history.undo), u);
++    assert_eq!(payloads(&st.history.redo), expected_redo);
++    assert_eq!(st.isolation, Some(id), "SCRUB03_NORMALIZATION_SETUP: inherited perspective isolation survives Undo");
++    assert!(!editing(&st.doc, id) && st.doc.node(id).unwrap().projection().is_some());
++    assert_eq!(st.is_dirty(), before_dirty);
++
++    s.execute("edit.undoGroup.begin", &json!({})).expect("SCRUB03_NORMALIZATION_SETUP: begin public undo group");
++    let st = s.doc().unwrap();
++    let group = st.undo_group.as_ref().expect("SCRUB03_NORMALIZATION_SETUP: group opened");
++    assert!(group.first.is_none() && group.saved_redo.is_empty(), "SCRUB03_NORMALIZATION_SETUP: no group edit yet");
++    assert_eq!(st.doc, a);
++    assert_eq!(st.selection, s0);
++    assert_eq!(payloads(&st.history.undo), u);
++    assert_eq!(payloads(&st.history.redo), expected_redo);
++
++    let r = s.execute("perspective.editText", &json!({})).expect("SCRUB03_NORMALIZATION_SETUP: real grouped Edit Text");
++    assert_eq!(r["id"], json!(id.0));
++    let st = s.doc().unwrap();
++    preserved(st);
++    assert_eq!(st.doc, b, "SCRUB03_NORMALIZATION_SETUP: second real edit reaches the same complete edited document");
++    assert!(editing(&st.doc, id) && st.doc.node(id).unwrap().projection().is_none());
++    assert_eq!(st.isolation, Some(id));
++    assert_eq!(st.selection, s0);
++    assert_eq!(payloads(&st.history.undo), with_edit);
++    assert!(st.history.redo.is_empty(), "SCRUB03_NORMALIZATION_SETUP: prior Redo moved out of visible history");
++    let group = st.undo_group.as_ref().unwrap();
++    assert_eq!(payloads(&group.saved_redo), expected_redo, "SCRUB03_NORMALIZATION_SETUP: exactly one retained original Redo");
++    let first = group.first.as_ref().expect("SCRUB03_NORMALIZATION_SETUP: group recorded its baseline");
++    assert!(
++        Arc::ptr_eq(first, &a) && Arc::ptr_eq(first, &st.history.undo.last().unwrap().doc),
++        "SCRUB03_NORMALIZATION_SETUP: newest-step guard matches"
++    );
++    visible_history_projected(st, id);
++
++    s.execute("object.exitIsolation", &json!({})).expect("SCRUB03_NORMALIZATION_SETUP: public isolation exit");
++    let st = s.doc().unwrap();
++    preserved(st);
++    assert!(st.isolation.is_none(), "SCRUB03_NORMALIZATION_SETUP: isolation really exited");
++    assert!(!editing(&st.doc, id) && st.doc.node(id).unwrap().projection().is_some());
++    assert_eq!(st.selection, s0);
++    assert_eq!(payloads(&st.history.undo), with_edit);
++    assert!(st.history.redo.is_empty());
++    visible_history_projected(st, id);
++    let group = st.undo_group.as_ref().unwrap();
++    let first = group.first.as_ref().unwrap();
++    assert!(
++        Arc::ptr_eq(first, &a) && Arc::ptr_eq(first, &st.history.undo.last().unwrap().doc),
++        "SCRUB03_NORMALIZATION_SETUP: cleanup retained the cancel guard"
++    );
++    assert_eq!(group.saved_redo.len(), 1);
++    let retained = &group.saved_redo[0];
++    assert_eq!(retained.label, "Edit Text");
++    assert_eq!(*retained.selection, bs);
++    let hidden_editing = editing(&retained.doc, id);
++    let d = st.doc.clone();
++    assert_eq!(*d, projected_copy(&b, id), "SCRUB03_NORMALIZATION_SETUP: cleanup changed only the comparison's editing flag");
++    assert_eq!(projected_copy(&retained.doc, id), *d, "SCRUB03_NORMALIZATION_SETUP: hidden Redo has no unrelated document changes");
++
++    s.execute("edit.undoGroup.end", &json!({"cancel": true})).expect("SCRUB03_NORMALIZATION_SETUP: cancel the public group");
++    let st = s.doc().unwrap();
++    preserved(st);
++    assert!(st.undo_group.is_none() && st.isolation.is_none(), "SCRUB03_NORMALIZATION_SETUP: group closed outside isolation");
++    assert!(Arc::ptr_eq(&st.doc, &a), "SCRUB03_NORMALIZATION_SETUP: cancellation really restored the baseline Arc");
++    assert_eq!(st.doc, a);
++    assert_eq!(st.selection, s0);
++    assert_eq!(st.is_dirty(), before_dirty);
++    assert_eq!(payloads(&st.history.undo), u);
++    assert_eq!(st.history.redo.len(), 1, "SCRUB03_NORMALIZATION_SETUP: retained Redo is reachable after cancellation");
++    let redo = &st.history.redo[0];
++    assert_eq!(redo.label, "Edit Text");
++    assert_eq!(*redo.selection, bs);
++    assert_eq!(projected_copy(&redo.doc, id), *d, "SCRUB03_NORMALIZATION_SETUP: restored Redo differs only in its observed flag");
++
++    let r = s.execute("edit.redo", &json!({})).expect("SCRUB03_NORMALIZATION_SETUP: restored Redo must execute");
++    assert_eq!(r["redone"], "Edit Text");
++    let st = s.doc().unwrap();
++    preserved(st);
++    assert!(st.undo_group.is_none() && st.isolation.is_none(), "SCRUB03_NORMALIZATION_SETUP: Redo outside isolation and groups");
++    assert_eq!(st.selection, s0);
++    assert_eq!(payloads(&st.history.undo), with_edit);
++    assert!(st.history.redo.is_empty());
++    assert_eq!(projected_copy(&st.doc, id), *d, "SCRUB03_NORMALIZATION_SETUP: complete Redo result except the flag");
++    let editing = editing(&st.doc, id);
++    eprintln!("SCRUB03_NORMALIZATION_REDO_REACHED: hidden_editing={hidden_editing}, redo_editing={editing}");
++    assert!(!editing, "SCRUB03_NORMALIZATION_REDO_MUST_STAY_PROJECTED");
++    assert!(st.doc.node(id).unwrap().projection().is_some(), "SCRUB03_NORMALIZATION: text must be projected outside isolation");
++    assert_eq!(st.doc, d, "SCRUB03_NORMALIZATION: complete desired document");
++    assert_eq!(payloads(&st.history.undo), with_edit);
++    assert!(st.history.redo.is_empty());
++    eprintln!("SCRUB03_NORMALIZATION_DESIRED_STATE_VERIFIED");
++}
+--- a/crates/ui-egui/src/tests_scrub.rs
++++ b/crates/ui-egui/src/tests_scrub.rs
+@@ -280,3 +280,134 @@
+     drag_w(&mut app, &ctx, 40.0, false);
+     assert!((width(&app) - 100.0).abs() < 1e-6, "off: {}", width(&app));
+ }
++
++/// Cancelling a live Properties scrub must preserve the edit already waiting in Redo.
++#[test]
++fn escape_cancelled_properties_width_scrub_preserves_redo() {
++    let (mut app, ctx) = app_with_rect();
++    // Use the Properties W label, not the control bar's copy of the transform fields.
++    app.ui.control_bar = false;
++    app.ui.dock = true;
++    app.ui.dock_collapsed = false;
++    app.ui.dock_tab = crate::state::DockTab::Properties;
++    app.ui.open_panel = None;
++    let entries = |history: &[vectorcraft_engine::HistoryEntry]| {
++        history.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone(), e.bytes)).collect::<Vec<_>>()
++    };
++    let mut w = None;
++    for _ in 0..4 {
++        w = app_frame(&mut app, &ctx, vec![], "W:");
++    }
++    assert!(w.expect("the Properties W label is shown").center().x > 800.0);
++    assert!((width(&app) - 100.0).abs() < 1e-6);
++    app.session.doc_mut().unwrap().mark_saved();
++    let original_doc = app.session.doc().unwrap().doc.clone();
++    let original_selection = app.session.doc().unwrap().selection.clone();
++    assert_eq!(original_selection.objects.len(), 1);
++    let original_undo = entries(&app.session.doc().unwrap().history.undo);
++    assert!(app.session.doc().unwrap().history.redo.is_empty());
++    let original_journal_len = app.session.journal.len();
++
++    // A real released scrub is a single committed edit, which Undo places in Redo.
++    drag_w(&mut app, &ctx, 40.0, false);
++    assert!((width(&app) - 120.0).abs() < 1e-6);
++    let st = app.session.doc().unwrap();
++    assert_ne!(st.doc, original_doc);
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(st.history.undo.len(), original_undo.len() + 1);
++    assert!(st.history.redo.is_empty());
++    assert!(st.is_dirty());
++    assert!(app.session.journal.len() > original_journal_len);
++    let committed_doc = st.doc.clone();
++    let committed_undo = entries(&st.history.undo);
++    println!("SCRUB_REDO_SETUP_COMMITTED");
++    app.run("edit.undo", json!({})).unwrap();
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, original_doc);
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(entries(&st.history.undo), original_undo);
++    assert_eq!(st.history.redo.len(), 1);
++    assert_eq!(st.history.redo[0].doc, committed_doc);
++    assert_eq!(*st.history.redo[0].selection, original_selection);
++    assert!(!st.is_dirty());
++    println!("SCRUB_REDO_SETUP_UNDONE");
++
++    // Repeat the existing drag_w event route, stopping before Escape to prove a live edit.
++    for _ in 0..4 {
++        w = app_frame(&mut app, &ctx, vec![], "W:");
++    }
++    let at = w.expect("the Properties W label remains shown").center();
++    assert!(at.x > 800.0);
++    let st = app.session.doc().unwrap();
++    let before_doc = st.doc.clone();
++    let before_selection = st.selection.clone();
++    let before_undo = entries(&st.history.undo);
++    let before_redo = entries(&st.history.redo);
++    let before_limits = (st.history.limit, st.history.byte_budget);
++    let before_dirty = st.is_dirty();
++    let before_journal = app.session.journal.clone();
++    assert_eq!(before_redo.len(), 1);
++    let button = |pos, pressed| Event::PointerButton { pos, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
++    app_frame(&mut app, &ctx, vec![Event::PointerMoved(at)], "");
++    app_frame(&mut app, &ctx, vec![button(at, true)], "");
++    for i in 1..=4 {
++        app_frame(&mut app, &ctx, vec![Event::PointerMoved(at + vec2(10.0 * i as f32, 0.0))], "");
++    }
++    assert!(ctx.input(|i| i.pointer.button_down(PointerButton::Primary)));
++    assert_eq!(scrub::phase(&ctx), scrub::Phase::Dragging);
++    assert!((width(&app) - 120.0).abs() < 1e-6);
++    let st = app.session.doc().unwrap();
++    assert_ne!(st.doc, before_doc);
++    assert_eq!(st.selection, before_selection);
++    assert_eq!(st.history.undo.len(), before_undo.len() + 1);
++    assert!(st.is_dirty());
++    assert!(app.session.journal.len() > before_journal.len());
++    println!("SCRUB_REDO_LIVE_CHANGE_BEFORE_ESCAPE");
++
++    let escape = |pressed| Event::Key { key: Key::Escape, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE };
++    app_frame(&mut app, &ctx, vec![escape(true)], "");
++    app_frame(&mut app, &ctx, vec![button(at + vec2(40.0, 0.0), false)], "");
++    app_frame(&mut app, &ctx, vec![escape(false)], "");
++    app_frame(&mut app, &ctx, vec![], "");
++    assert_eq!(scrub::phase(&ctx), scrub::Phase::Idle);
++    assert!(!ctx.input(|i| i.pointer.button_down(PointerButton::Primary)));
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, before_doc, "Escape restores the full document");
++    assert_eq!(st.selection, before_selection, "Escape restores the exact selection");
++    assert_eq!(entries(&st.history.undo), before_undo, "Escape restores all Undo entries");
++    assert_eq!((st.history.limit, st.history.byte_budget), before_limits);
++    assert_eq!(app.session.journal, before_journal, "Escape restores the full command journal");
++    assert_eq!(st.is_dirty(), before_dirty, "Escape restores the saved state");
++    assert!(!st.is_dirty());
++    // Revision may increase on rollback; it is intentionally not a restoration oracle.
++    println!("SCRUB_REDO_CANCEL_STATE_RESTORED");
++    assert_eq!(entries(&st.history.redo), before_redo, "SCRUB_CANCEL_PRESERVES_REDO");
++
++    app.run("edit.redo", json!({})).unwrap();
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, committed_doc, "Redo replays the original committed scrub");
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(entries(&st.history.undo), committed_undo);
++    assert!(st.history.redo.is_empty());
++    assert!(st.is_dirty());
++    println!("SCRUB_REDO_ORIGINAL_REPLAYED");
++
++    // A subsequent released edit still replaces the Redo branch; only cancel preserves it.
++    app.run("edit.undo", json!({})).unwrap();
++    assert_eq!(app.session.doc().unwrap().doc, original_doc);
++    assert_eq!(app.session.doc().unwrap().history.redo.len(), 1);
++    drag_w(&mut app, &ctx, 80.0, false);
++    assert!((width(&app) - 140.0).abs() < 1e-6);
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(st.history.undo.len(), original_undo.len() + 1);
++    assert!(st.history.redo.is_empty(), "a released new scrub still invalidates Redo");
++    assert!(st.is_dirty());
++    app.run("edit.undo", json!({})).unwrap();
++    let st = app.session.doc().unwrap();
++    assert_eq!(st.doc, original_doc);
++    assert_eq!(st.selection, original_selection);
++    assert_eq!(entries(&st.history.undo), original_undo);
++    assert!(!st.is_dirty());
++    println!("SCRUB_CANCEL_REDO_DIAGNOSTIC_PASSED");
++}

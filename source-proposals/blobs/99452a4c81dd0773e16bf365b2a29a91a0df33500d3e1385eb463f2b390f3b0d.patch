@@ -1,0 +1,61 @@
+--- /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/guide-runner.py
++++ /mnt/downloads/dev/artcraft/vectorcraft/.git/codex/r82/consolidation-20261016/guide-validation-runner-01/guide-runner-v2.py
+@@ -108,7 +108,11 @@
+         child = subprocess.Popen(argv, cwd=WORK, env=env, stdin=subprocess.DEVNULL,
+                                  stdout=output, stderr=subprocess.STDOUT,
+                                  start_new_session=True, preexec_fn=child_limits)
+-        leader = process(child.pid)
++        step["pid"] = child.pid
++        try:
++            leader = process(child.pid)
++        except Exception as error:
++            retain_for_coordinator(step, step_path, "Cannot read launched child identity: " + repr(error))
+         if leader is None:
+             retain_for_coordinator(step, step_path, "Cannot establish launched child identity")
+         if leader["pgid"] != child.pid or leader["sid"] != child.pid:
+@@ -137,6 +141,9 @@
+                                                   else -exit_observed.si_status)
+                     step["exit_observed_at"] = time.time()
+                     save(step_path, step)
++                if exit_observed is not None:
++                    # The pre-wait scan can precede the leader's last child launch.
++                    current, live = observed_owned(leader, known)
+                 others = [item for item in live if item["pid"] != child.pid]
+                 if exit_observed is not None and not others:
+                     break
+@@ -188,6 +195,11 @@
+                             time.sleep(0.25)
+                         if live:
+                             retain_for_coordinator(step, step_path, repr(error))
++                        exit_observed = os.waitid(os.P_PID, child.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
++                        require(exit_observed is not None, "Cleanup has not observed the leader exit")
++                        current, live = observed_owned(leader, known)
++                        if live:
++                            retain_for_coordinator(step, step_path, "Owned process remains after cleanup exit observation")
+                         step["exit_code"] = child.wait()
+                         step["ended"] = time.time()
+                         step["observed_owned_at_closure"] = current
+@@ -312,6 +324,12 @@
+             step = execute(argv, number, expected_exits[number - 1], env, limits, out)
+             result["steps"].append(step)
+             save(out / "result.json", result)
++            # Preserve raw exit/log evidence first, then guard source before another command.
++            step_source = guard()
++            save(out / ("source-after-step-%d.json" % number), step_source)
++            step["source_after_sha256"] = step_source["sha256"]
++            save(out / ("step-%d.json" % number), step)
++            save(out / "result.json", result)
+             if step["status"] != "EXPECTED_EXIT_OBSERVED":
+                 break
+         after = guard()
+@@ -328,8 +346,9 @@
+         print(json.dumps({key: value for key, value in result.items() if key != "config"}), flush=True)
+         for handle in reversed(locks):
+             handle.close()
++    return 0 if result["status"] == "EXPECTED_COMMAND_EXITS_OBSERVED" else 1
+ 
+ if __name__ == "__main__":
+     signal.signal(signal.SIGINT, on_signal)
+     signal.signal(signal.SIGTERM, on_signal)
+-    main()
++    sys.exit(main())

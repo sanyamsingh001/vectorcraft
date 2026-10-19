@@ -1,0 +1,19 @@
+diff --git a/crates/ui-egui/src/tests_contextmenu.rs b/crates/ui-egui/src/tests_contextmenu.rs
+--- a/crates/ui-egui/src/tests_contextmenu.rs
++++ b/crates/ui-egui/src/tests_contextmenu.rs
+@@ -219,14 +219,7 @@
+         let entries = |items: &[vectorcraft_engine::HistoryEntry]| {
+             items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect::<Vec<_>>()
+         };
+-        (
+-            st.doc.clone(),
+-            st.selection.clone(),
+-            entries(&st.history.undo),
+-            entries(&st.history.redo),
+-            st.is_dirty(),
+-            app.session.in_interaction(),
+-        )
++        (st.doc.clone(), st.selection.clone(), entries(&st.history.undo), entries(&st.history.redo), st.is_dirty(), app.session.in_interaction())
+     };
+ 
+     for (selection, eligible) in [("empty", false), ("whole_objects", false), ("single_line", false), ("pair", true)] {

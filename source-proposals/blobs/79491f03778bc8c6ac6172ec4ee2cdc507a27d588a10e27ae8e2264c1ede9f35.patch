@@ -1,0 +1,1170 @@
+diff --git a/crates/engine/src/cmd/prefscmds.rs b/crates/engine/src/cmd/prefscmds.rs
+index 3bc30d8e7559ee56a963da1d0205cb082a48ba1f..c768fd3a48d738e656f8693c933a9d1a2ad8d4b6 100644
+--- a/crates/engine/src/cmd/prefscmds.rs
++++ b/crates/engine/src/cmd/prefscmds.rs
+@@ -265,6 +265,13 @@ pub const PREF_SPECS: &[PrefSpec] = &[
+         "Brightness",
+         choice(&[("dark", "Dark"), ("mediumDark", "Medium Dark"), ("mediumLight", "Medium Light"), ("light", "Light")])
+     ),
++    p!(
++        "uiAccent",
++        "User Interface",
++        "",
++        "Accent Color",
++        choice(&[("coral", "Coral"), ("blue", "Blue"), ("violet", "Violet"), ("green", "Green"), ("amber", "Amber"), ("pink", "Pink")])
++    ),
+     p!(
+         "canvasColor",
+         "User Interface",
+diff --git a/crates/engine/src/lib.rs b/crates/engine/src/lib.rs
+index cd5908927567300c8a1c708d73db86121c30485a..293aa6ef601ba70dd8ad856bc4b5b1b2cba1331b 100644
+--- a/crates/engine/src/lib.rs
++++ b/crates/engine/src/lib.rs
+@@ -744,6 +744,8 @@ pub struct Prefs {
+     pub scratch_secondary: String,
+     // User Interface
+     pub ui_brightness: String,
++    /// User Interface › Accent Color: the colour of what is on, chosen or focused.
++    pub ui_accent: String,
+     pub canvas_color: String,
+     pub auto_collapse_icon_panels: bool,
+     /// User Interface › Show Tool Group Labels: the toolbar's group names (Select, Shapes, Draw…);
+@@ -976,6 +978,7 @@ impl Default for Prefs {
+             scratch_primary: s("Startup"),
+             scratch_secondary: s("None"),
+             ui_brightness: s("mediumDark"),
++            ui_accent: s("coral"),
+             canvas_color: s("matchUi"),
+             auto_collapse_icon_panels: false,
+             tool_group_labels: false,
+diff --git a/crates/ui-egui/src/community.rs b/crates/ui-egui/src/community.rs
+index ef63f4739f516062dae73c0ff72510b0871c9a01..7ed5eb9843a071033318d228cba5a609558b550c 100644
+--- a/crates/ui-egui/src/community.rs
++++ b/crates/ui-egui/src/community.rs
+@@ -12,8 +12,9 @@ const DISCORD: Color32 = Color32::from_rgb(0x58, 0x65, 0xF2);
+ 
+ /// The Discord button's label, height and width.
+ fn discord_layout(ui: &Ui, large: bool) -> (std::sync::Arc<egui::Galley>, f32, f32) {
+-    let (h, font, label) = if large { (36.0, theme::semibold(14.0), tl!("Join our Discord")) } else { (24.0, theme::semibold(12.0), "Discord") };
+-    let galley = ui.painter().layout_no_wrap(label.to_string(), font, Color32::WHITE);
++    let (h, font, label) =
++        if large { (36.0, theme::semibold(14.0), tl!("Join our Discord")) } else { (24.0, egui::FontId::proportional(12.0), "Discord") };
++    let galley = ui.painter().layout_no_wrap(label.to_string(), font, Color32::PLACEHOLDER);
+     let w = galley.size().x + h * 0.55 + h * 0.9;
+     (galley, h, w)
+ }
+@@ -23,16 +24,25 @@ pub fn discord_width(ui: &Ui, large: bool) -> f32 {
+     discord_layout(ui, large).2
+ }
+ 
+-/// A Discord pill button: compact for the header, large for About / Home.
++/// The Discord button: compact and quiet for the app bar, large for About / Home.
+ pub fn discord_button(app: &mut VectorcraftApp, ui: &mut Ui, large: bool) -> egui::Response {
+     let (galley, h, w) = discord_layout(ui, large);
+     let icon = h * 0.55;
+     let (r, resp) = ui.allocate_exact_size(vec2(w, h), Sense::click());
+-    let fill = if resp.hovered() { DISCORD.gamma_multiply(0.85) } else { DISCORD };
+-    ui.painter().rect_filled(r, CornerRadius::same((h / 2.0) as u8), fill);
++    let at = egui::pos2(0.0, r.center().y - galley.size().y / 2.0);
+     let ir = egui::Rect::from_center_size(r.left_center() + vec2(h * 0.35 + icon / 2.0, 0.0), vec2(icon, icon));
+-    icons::paint(ui, "message-circle", ir, Color32::WHITE);
+-    ui.painter().galley(egui::pos2(ir.right() + h * 0.2, r.center().y - galley.size().y / 2.0), galley, Color32::WHITE);
++    if large {
++        let fill = if resp.hovered() { DISCORD.gamma_multiply(0.85) } else { DISCORD };
++        ui.painter().rect_filled(r, CornerRadius::same((h / 2.0) as u8), fill);
++        icons::paint(ui, "message-circle", ir, Color32::WHITE);
++        ui.painter().galley(egui::pos2(ir.right() + h * 0.2, at.y), galley, Color32::WHITE);
++    } else {
++        // In the app bar it stays quiet: a soft button with Discord's colour on its icon alone.
++        let t = Tokens::get(ui.ctx());
++        ui.painter().rect_filled(r, CornerRadius::same(6), if resp.hovered() { t.hover } else { t.button });
++        icons::paint(ui, "message-circle", ir, DISCORD);
++        ui.painter().galley(egui::pos2(ir.right() + h * 0.2, at.y), galley, if resp.hovered() { t.text_strong } else { t.text });
++    }
+     let resp = resp.on_hover_text(tl!("Join the ArtCraft community on Discord (discord.gg/artcraft)"));
+     if resp.clicked() {
+         app.open_link("help.discord");
+diff --git a/crates/ui-egui/src/dialogs/color_picker.rs b/crates/ui-egui/src/dialogs/color_picker.rs
+index 0169993d51d1bf060f17f77f9c6c4caee828f241..1d27072d42c2c99b4987ffd303fbbaaf961ab24e 100644
+--- a/crates/ui-egui/src/dialogs/color_picker.rs
++++ b/crates/ui-egui/src/dialogs/color_picker.rs
+@@ -364,7 +364,7 @@ fn value_fields(ui: &mut Ui, p: &Picked, channel: Channel) -> (Option<Picked>, O
+                 };
+                 // The hex field is taller than a value field. K's row takes the height of the hex
+                 // field's row beside it.
+-                let height = if i == 6 { left.response.rect.bottom() - ui.cursor().top() } else { ui.spacing().interact_size.y };
++                let height = if i == 6 { (left.response.rect.bottom() - ui.cursor().top()).round() } else { ui.spacing().interact_size.y };
+                 let size = vec2(ui.available_size_before_wrap().x, height);
+                 ui.allocate_ui_with_layout(size, egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                     ui.add_space(12.0);
+diff --git a/crates/ui-egui/src/dock.rs b/crates/ui-egui/src/dock.rs
+index 62cf2df93d970061d51b38ec7830328dc29a4a5c..a4152784dfc73ae06d8e9f9725a1503aea96e508 100644
+--- a/crates/ui-egui/src/dock.rs
++++ b/crates/ui-egui/src/dock.rs
+@@ -46,7 +46,6 @@ pub fn set_collapsed(app: &mut VectorcraftApp, collapsed: bool) {
+ pub(crate) fn collapse_header(ui: &mut Ui, collapsed: bool) -> bool {
+     let t = Tokens::get(ui.ctx());
+     let (hdr, resp) = ui.allocate_exact_size(vec2(ui.available_width(), HEADER), Sense::click());
+-    ui.painter().rect_filled(hdr, 0.0, t.tab_strip);
+     let arrow = Rect::from_min_size(hdr.right_top() + vec2(-16.0, 1.0), vec2(12.0, 12.0));
+     if resp.hovered() {
+         ui.painter().rect_filled(arrow, CornerRadius::same(2), t.hover);
+@@ -90,22 +89,27 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+             .resizable(true)
+             .default_size(DOCK_WIDTH)
+             .size_range(230.0..=520.0)
+-            .frame(egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.5, t.border)))
++            .frame(egui::Frame::NONE)
+             .show(ui, |ui| {
+-                if collapse_header(ui, false) {
+-                    toggle(app, true);
+-                }
+-                if tab_strip(app, ui, active) {
+-                    // It floats from this frame on.
+-                    return;
+-                }
+-                egui::Frame::NONE.inner_margin(egui::Margin { left: 12, right: 10, top: 10, bottom: 8 }).show(ui, |ui| match active {
+-                    DockTab::Properties => {
+-                        egui::ScrollArea::vertical().id_salt("props").auto_shrink([false, false]).show(ui, |ui| panels::properties::show(app, ui));
++                crate::theme::card(ui, &t, egui::Margin { left: 0, right: 6, top: 6, bottom: 6 }, |ui| {
++                    if collapse_header(ui, false) {
++                        toggle(app, true);
+                     }
+-                    DockTab::Layers => panels::layers::show(app, ui),
+-                    DockTab::Libraries => panels::libraries(app, ui),
+-                });
++                    if tab_strip(app, ui, active) {
++                        // It floats from this frame on.
++                        return;
++                    }
++                    egui::Frame::NONE.inner_margin(egui::Margin { left: 12, right: 10, top: 10, bottom: 8 }).show(ui, |ui| match active {
++                        DockTab::Properties => {
++                            egui::ScrollArea::vertical()
++                                .id_salt("props")
++                                .auto_shrink([false, false])
++                                .show(ui, |ui| panels::properties::show(app, ui));
++                        }
++                        DockTab::Layers => panels::layers::show(app, ui),
++                        DockTab::Libraries => panels::libraries(app, ui),
++                    });
++                })
+             })
+             .response
+             .rect
+@@ -114,16 +118,13 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+     // collapsed group's panels head it, under the « that expands them again. Floating panels leave
+     // it.
+     let collapsed = app.ui.dock_collapsed && shown.is_some();
+-    let column = egui::Panel::right("icon_column")
+-        .resizable(false)
+-        .exact_size(ICON_COL)
+-        .frame(egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.5, t.border)))
+-        .show(ui, |ui| {
++    let column = egui::Panel::right("icon_column").resizable(false).exact_size(ICON_COL).frame(egui::Frame::NONE).show(ui, |ui| {
++        crate::theme::card(ui, &t, egui::Margin { left: 3, right: 3, top: 6, bottom: 6 }, |ui| {
+             let bounds = ui.max_rect();
+             if collapsed && collapse_header(ui, true) {
+                 toggle(app, false);
+             }
+-            egui::Frame::NONE.inner_margin(egui::Margin::symmetric(4, 6)).show(ui, |ui| {
++            egui::Frame::NONE.inner_margin(egui::Margin::symmetric(1, 4)).show(ui, |ui| {
+                 ui.spacing_mut().item_spacing.y = 2.0;
+                 // The icons scroll in a window too short for them.
+                 widgets::strip_scroll(ui, "icon_column", |ui| {
+@@ -154,7 +155,8 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+                     }
+                 });
+             });
+-        });
++        })
++    });
+     let column = column.response.rect;
+     let dock = group.map_or(column, |g| g.union(column));
+     // Floating sets docked as columns, left of the icon column.
+@@ -173,8 +175,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+ fn tab_strip(app: &mut VectorcraftApp, ui: &mut Ui, active: DockTab) -> bool {
+     let t = Tokens::get(ui.ctx());
+     let (strip, _) = ui.allocate_exact_size(vec2(ui.available_width(), 33.0), Sense::hover());
+-    ui.painter().rect_filled(strip, 0.0, t.tab_strip);
+-    ui.painter().line_segment([strip.left_bottom(), strip.right_bottom()], Stroke::new(1.0, t.border));
++    ui.painter().line_segment([strip.left_bottom(), strip.right_bottom()], Stroke::new(1.0, t.divider));
+     let outside = ui.input(|i| i.pointer.interact_pos()).is_some_and(|p| !strip.contains(p));
+     // What a drag out of the strip floats: the panels, the one shown, where its tab began.
+     let mut tear: Option<(Vec<&'static str>, &'static str, f32)> = None;
+@@ -264,12 +265,10 @@ pub(crate) fn panel_tabs(
+             .focus_stroke(Stroke::new(1.0, t.accent))
+             .show_at(ui, rect, |ui, _| {
+                 if i == selected {
+-                    ui.painter().rect_filled(rect, 0.0, t.panel);
++                    ui.painter().rect_filled(rect.shrink2(vec2(3.0, 5.0)), 6.0, t.button);
+                 }
+                 ui.painter().with_clip_rect(rect.intersect(ui.clip_rect())).galley(rect.center() - galley.size() / 2.0, galley, t.text);
+-                if separators {
+-                    ui.painter().line_segment([rect.right_top(), rect.right_bottom()], Stroke::new(1.0, t.border));
+-                }
++                let _ = separators;
+             });
+         out.responses.push((i, if shrunk { resp.on_hover_text(*label) } else { resp }));
+         out.right = rect.right();
+diff --git a/crates/ui-egui/src/i18n/bg.tsv b/crates/ui-egui/src/i18n/bg.tsv
+index 4fda984fb2501d98ae6f81d2cff54225e1543de6..bd94ae1190b11d96e06b96a7698fe92ac0b777a3 100644
+--- a/crates/ui-egui/src/i18n/bg.tsv
++++ b/crates/ui-egui/src/i18n/bg.tsv
+@@ -4914,3 +4914,9 @@ theme	Appearance	Външен вид
+ # View › Hide Template / Show Template
+ 	Hide Template	Скриване на шаблона
+ 	Show Template	Показване на шаблона
++
++# User Interface › Accent Color
++	Accent Color	Цвят на акцента
++	Amber	Кехлибарен
++	Coral	Коралов
++	Violet	Виолетов
+diff --git a/crates/ui-egui/src/i18n/cs.tsv b/crates/ui-egui/src/i18n/cs.tsv
+index 74dfa45d86daf82d64cc52b40af95aa70d2fadd2..1f762579d13d8c3562c999029e79e603d8fc4cac 100644
+--- a/crates/ui-egui/src/i18n/cs.tsv
++++ b/crates/ui-egui/src/i18n/cs.tsv
+@@ -4932,3 +4932,9 @@ mark-style	Japanese	Japonské
+ @msg	choose a source folder	vyberte zdrojovou složku
+ @msg	open a document with data sets	otevřete dokument se sadami dat
+ @msg	the action has no steps	akce nemá žádné kroky
++
++# User Interface › Accent Color
++	Accent Color	Barva zvýraznění
++	Amber	Jantarová
++	Coral	Korálová
++	Violet	Fialová
+diff --git a/crates/ui-egui/src/i18n/de.tsv b/crates/ui-egui/src/i18n/de.tsv
+index b4ab2118eaa80e454fe127a2dfdb2e01002c141c..1210ad9b264fbea2b96cb194ef98b0744285e01e 100644
+--- a/crates/ui-egui/src/i18n/de.tsv
++++ b/crates/ui-egui/src/i18n/de.tsv
+@@ -4468,3 +4468,10 @@ theme	Appearance	Erscheinungsbild
+ @msg	choose a source folder	wählen Sie einen Quellordner
+ @msg	open a document with data sets	öffnen Sie ein Dokument mit Datensätzen
+ @msg	the action has no steps	die Aktion hat keine Schritte
++
++# User Interface › Accent Color
++	Accent Color	Akzentfarbe
++	Amber	Bernstein
++	Coral	Koralle
++	Violet	Violett
++	Pink	Pink
+diff --git a/crates/ui-egui/src/i18n/el.tsv b/crates/ui-egui/src/i18n/el.tsv
+index fd775caeba9a1e501bdcd7803259e4637d01bae5..1de2b99f46a0d8feaaedd1132ff7c7d095243092 100644
+--- a/crates/ui-egui/src/i18n/el.tsv
++++ b/crates/ui-egui/src/i18n/el.tsv
+@@ -4884,3 +4884,9 @@ effect	Points	Σημεία
+ @msg	this is a PostScript file (an .ai saved in an older format or without PDF compatibility, or an EPS file), not a PDF: File › Open and File › Place read it as EPS	αυτό είναι αρχείο PostScript (ένα .ai αποθηκευμένο σε παλαιότερη μορφή ή χωρίς συμβατότητα PDF, ή αρχείο EPS), όχι PDF: οι εντολές Αρχείο › Άνοιγμα και Αρχείο › Τοποθέτηση το διαβάζουν ως EPS
+ @msg	this system has no screen color sampler	αυτό το σύστημα δεν έχει δειγματοληψία χρώματος από την οθόνη
+ @msg	the image can't be read as a texture	η εικόνα δεν μπορεί να διαβαστεί ως υφή
++
++# User Interface › Accent Color
++	Accent Color	Χρώμα έμφασης
++	Amber	Κεχριμπαρί
++	Coral	Κοραλλί
++	Violet	Βιολετί
+diff --git a/crates/ui-egui/src/i18n/es.tsv b/crates/ui-egui/src/i18n/es.tsv
+index fb13598186c1d2bd9d88263257bd4cc55bdaf7a5..8214cacf5ba7ae3fe8d34cfe6b6f416658d89698 100644
+--- a/crates/ui-egui/src/i18n/es.tsv
++++ b/crates/ui-egui/src/i18n/es.tsv
+@@ -4874,3 +4874,9 @@ mark-style	Japanese	Japonesas
+ @msg	choose a source folder	elija una carpeta de origen
+ @msg	open a document with data sets	abra un documento con conjuntos de datos
+ @msg	the action has no steps	la acción no tiene pasos
++
++# User Interface › Accent Color
++	Accent Color	Color de acento
++	Amber	Ámbar
++	Coral	Coral
++	Violet	Violeta
+diff --git a/crates/ui-egui/src/i18n/fi.tsv b/crates/ui-egui/src/i18n/fi.tsv
+index 737d50229f55681285292f3668948be22eb34723..378b5b3716241edde91f7b360b385076d4950026 100644
+--- a/crates/ui-egui/src/i18n/fi.tsv
++++ b/crates/ui-egui/src/i18n/fi.tsv
+@@ -4896,3 +4896,9 @@ mark-style	Japanese	Japanilainen
+ @msg	this is a PostScript file (an .ai saved in an older format or without PDF compatibility, or an EPS file), not a PDF: File › Open and File › Place read it as EPS	tämä on PostScript-tiedosto (vanhemmassa muodossa tai ilman PDF-yhteensopivuutta tallennettu .ai tai EPS-tiedosto), ei PDF: Tiedosto › Avaa ja Tiedosto › Sijoita lukevat sen EPS-muodossa
+ @msg	this system has no screen color sampler	tässä järjestelmässä ei ole värin poimintaa näytöltä
+ @msg	the image can't be read as a texture	kuvaa ei voi lukea tekstuurina
++
++# User Interface › Accent Color
++	Accent Color	Korostusväri
++	Amber	Meripihka
++	Coral	Koralli
++	Violet	Violetti
+diff --git a/crates/ui-egui/src/i18n/fr.tsv b/crates/ui-egui/src/i18n/fr.tsv
+index 31e9363f1ea46617edcebbf9417a5d9943cf5aee..0e8200e2926a138a2ff96c4df79d90c3acfe2931 100644
+--- a/crates/ui-egui/src/i18n/fr.tsv
++++ b/crates/ui-egui/src/i18n/fr.tsv
+@@ -4931,3 +4931,9 @@ theme	Appearance	Apparence
+ @msg	choose a source folder	choisissez un dossier source
+ @msg	open a document with data sets	ouvrez un document avec des jeux de données
+ @msg	the action has no steps	l'action n'a aucune étape
++
++# User Interface › Accent Color
++	Accent Color	Couleur d’accent
++	Amber	Ambre
++	Coral	Corail
++	Violet	Violet
+diff --git a/crates/ui-egui/src/i18n/hu.tsv b/crates/ui-egui/src/i18n/hu.tsv
+index 6b8da9d7a1ae8604fb1ac16777678ea725c2d9da..d492f0f20faf0668034d8df7e353fc9cb1e5737e 100644
+--- a/crates/ui-egui/src/i18n/hu.tsv
++++ b/crates/ui-egui/src/i18n/hu.tsv
+@@ -4899,3 +4899,9 @@ imageTrace	Outline	Körvonal
+ @msg	choose a source folder	válasszon forrásmappát
+ @msg	open a document with data sets	nyisson meg egy adatkészleteket tartalmazó dokumentumot
+ @msg	the action has no steps	a műveletnek nincsenek lépései
++
++# User Interface › Accent Color
++	Accent Color	Kiemelőszín
++	Amber	Borostyán
++	Coral	Korall
++	Violet	Ibolya
+diff --git a/crates/ui-egui/src/i18n/it.tsv b/crates/ui-egui/src/i18n/it.tsv
+index 799a7d1d0572264bc598c1dae9d992827493ab1a..a71ab49954eecc26878968f9dae9259026ea80e0 100644
+--- a/crates/ui-egui/src/i18n/it.tsv
++++ b/crates/ui-egui/src/i18n/it.tsv
+@@ -4508,3 +4508,10 @@ lighting	Light	Luce
+ @msg	choose a source folder	scegli una cartella di origine
+ @msg	open a document with data sets	apri un documento con set di dati
+ @msg	the action has no steps	l'azione non ha passaggi
++
++# User Interface › Accent Color
++	Accent Color	Colore di risalto
++	Amber	Ambra
++	Coral	Corallo
++	Violet	Viola
++	Pink	Rosa
+diff --git a/crates/ui-egui/src/i18n/ja.tsv b/crates/ui-egui/src/i18n/ja.tsv
+index e699d2a89646d0ab88611b6e214a29f09ad8cb9a..e8dfb4b0d701012166d1ff0f8b788aeec4c1c720 100644
+--- a/crates/ui-egui/src/i18n/ja.tsv
++++ b/crates/ui-egui/src/i18n/ja.tsv
+@@ -4549,3 +4549,10 @@ lighting	Light	ライト
+ @msg	choose a source folder	ソースフォルダーを選択してください
+ @msg	open a document with data sets	データセットのあるドキュメントを開いてください
+ @msg	the action has no steps	アクションにステップがありません
++
++# User Interface › Accent Color
++	Accent Color	アクセントカラー
++	Coral	コーラル
++	Amber	アンバー
++	Violet	バイオレット
++	Pink	ピンク
+diff --git a/crates/ui-egui/src/i18n/ko.tsv b/crates/ui-egui/src/i18n/ko.tsv
+index 46c1bc4cf2ba72675fc85cd6ed6301391a9669d4..7c370810f281f83b0e1cdf900a05a9ed32f1bd61 100644
+--- a/crates/ui-egui/src/i18n/ko.tsv
++++ b/crates/ui-egui/src/i18n/ko.tsv
+@@ -4472,3 +4472,10 @@ lighting	Light	광원
+ @msg	choose a source folder	소스 폴더를 선택하세요
+ @msg	open a document with data sets	데이터 세트가 있는 문서를 여세요
+ @msg	the action has no steps	액션에 단계가 없습니다
++
++# User Interface › Accent Color
++	Accent Color	강조 색상
++	Amber	호박색
++	Coral	코럴
++	Violet	보라
++	Pink	분홍
+diff --git a/crates/ui-egui/src/i18n/pl.tsv b/crates/ui-egui/src/i18n/pl.tsv
+index 134baff1f0c48415c17681a32d2235e7649bca59..ab0bd637d64d7679567f89a68f4f8b6f96b2a2bb 100644
+--- a/crates/ui-egui/src/i18n/pl.tsv
++++ b/crates/ui-egui/src/i18n/pl.tsv
+@@ -4776,3 +4776,10 @@ mark-style	Japanese	Japońskie
+ @msg	choose a source folder	wybierz folder źródłowy
+ @msg	open a document with data sets	otwórz dokument z zestawami danych
+ @msg	the action has no steps	operacja nie ma kroków
++
++# User Interface › Accent Color
++	Accent Color	Kolor akcentu
++	Amber	Bursztynowy
++	Coral	Koralowy
++	Violet	Fioletowy
++	Pink	Różowy
+diff --git a/crates/ui-egui/src/i18n/pt-br.tsv b/crates/ui-egui/src/i18n/pt-br.tsv
+index ab7ffd2b8a81379f3d9e893cb06fb9b72c99311c..ce5f05af12168a4034f56e993ab255ece5ba4bc4 100644
+--- a/crates/ui-egui/src/i18n/pt-br.tsv
++++ b/crates/ui-egui/src/i18n/pt-br.tsv
+@@ -4849,3 +4849,9 @@ mark-style	Japanese	Japonesas
+ 	Color Panel Options	Opções do Painel Cor
+ @msg	`mode` must be grayscale, rgb, hsb, cmyk or websafe	`mode` deve ser grayscale, rgb, hsb, cmyk ou websafe
+ @msg	the image can't be read as a texture	a imagem não pode ser lida como textura
++
++# User Interface › Accent Color
++	Accent Color	Cor de destaque
++	Amber	Âmbar
++	Coral	Coral
++	Violet	Violeta
+diff --git a/crates/ui-egui/src/i18n/ru.tsv b/crates/ui-egui/src/i18n/ru.tsv
+index c2517404de38230cc2c8eaa77ad7c6b0cf5ba9b4..281ea9b6dabaed00b0eeece5ea5ccab794bb80d0 100644
+--- a/crates/ui-egui/src/i18n/ru.tsv
++++ b/crates/ui-egui/src/i18n/ru.tsv
+@@ -4504,3 +4504,10 @@ lighting	Light	Свет
+ @msg	choose a source folder	выберите исходную папку
+ @msg	open a document with data sets	откройте документ с наборами данных
+ @msg	the action has no steps	в действии нет шагов
++
++# User Interface › Accent Color
++	Accent Color	Цвет акцента
++	Amber	Янтарный
++	Coral	Коралловый
++	Violet	Фиолетовый
++	Pink	Розовый
+diff --git a/crates/ui-egui/src/i18n/sv.tsv b/crates/ui-egui/src/i18n/sv.tsv
+index 153ede7db8150d4cfe0d9605253763120c540336..37c1cbc17d860f59fe490ee74857fc25f7545116 100644
+--- a/crates/ui-egui/src/i18n/sv.tsv
++++ b/crates/ui-egui/src/i18n/sv.tsv
+@@ -4889,3 +4889,9 @@ theme	Appearance	Utseende
+ @msg	this is a PostScript file (an .ai saved in an older format or without PDF compatibility, or an EPS file), not a PDF: File › Open and File › Place read it as EPS	det här är en PostScript-fil (en .ai sparad i ett äldre format eller utan PDF-kompatibilitet, eller en EPS-fil), inte en PDF: Fil › Öppna och Fil › Placera läser den som EPS
+ @msg	this system has no screen color sampler	det här systemet saknar färghämtning från skärmen
+ @msg	the image can't be read as a texture	bilden kan inte läsas som en textur
++
++# User Interface › Accent Color
++	Accent Color	Accentfärg
++	Amber	Bärnsten
++	Coral	Korall
++	Violet	Violett
+diff --git a/crates/ui-egui/src/i18n/uk.tsv b/crates/ui-egui/src/i18n/uk.tsv
+index dbbeba03a7881e68233313bb848b78c2cb78b48e..0db34e51d16612db828f8f95470ba5090f1a22c9 100644
+--- a/crates/ui-egui/src/i18n/uk.tsv
++++ b/crates/ui-egui/src/i18n/uk.tsv
+@@ -4488,3 +4488,10 @@ lighting	Light	Світло
+ @msg	choose a source folder	виберіть вихідну папку
+ @msg	open a document with data sets	відкрийте документ із наборами даних
+ @msg	the action has no steps	у дії немає кроків
++
++# User Interface › Accent Color
++	Accent Color	Колір акценту
++	Amber	Бурштиновий
++	Coral	Кораловий
++	Violet	Фіолетовий
++	Pink	Рожевий
+diff --git a/crates/ui-egui/src/i18n/vi.tsv b/crates/ui-egui/src/i18n/vi.tsv
+index d42c3a88d587c66bfe37d68f94d6ff6d8f769d09..c35688cd8bc55479fb95a538e1b86dfd4ccdd1dc 100644
+--- a/crates/ui-egui/src/i18n/vi.tsv
++++ b/crates/ui-egui/src/i18n/vi.tsv
+@@ -4488,3 +4488,10 @@ theme	Appearance	Giao diện
+ @msg	choose a source folder	hãy chọn thư mục nguồn
+ @msg	open a document with data sets	hãy mở một tài liệu có tập dữ liệu
+ @msg	the action has no steps	hành động không có bước nào
++
++# User Interface › Accent Color
++	Accent Color	Màu nhấn
++	Amber	Hổ phách
++	Coral	San hô
++	Violet	Tím
++	Pink	Hồng
+diff --git a/crates/ui-egui/src/i18n/zh-hans.tsv b/crates/ui-egui/src/i18n/zh-hans.tsv
+index 8e732550a2c0e34089d1295bc95ada3fb30d7d65..4778c5f3a96e531f7fafa5dc1bbeec68059895fc 100644
+--- a/crates/ui-egui/src/i18n/zh-hans.tsv
++++ b/crates/ui-egui/src/i18n/zh-hans.tsv
+@@ -4040,3 +4040,9 @@ lighting	Light	光源
+ 	Destination Folder:	目标文件夹：
+ 	Overrides	覆盖
+ 	Uses every data set of the open document.	使用打开文档的每个数据集。
++
++# User Interface › Accent Color
++	Accent Color	强调色
++	Amber	琥珀色
++	Coral	珊瑚色
++	Violet	紫罗兰色
+diff --git a/crates/ui-egui/src/i18n/zh-hant.tsv b/crates/ui-egui/src/i18n/zh-hant.tsv
+index f32dfeac699f7306cd38d8cdb7ca0d51724eabcc..79a420819be7ebc7e3819737336015336796d7d3 100644
+--- a/crates/ui-egui/src/i18n/zh-hant.tsv
++++ b/crates/ui-egui/src/i18n/zh-hant.tsv
+@@ -3827,3 +3827,10 @@ lighting	Light	光源
+ 	Destination Folder:	目的地資料夾：
+ 	Overrides	覆寫
+ 	Uses every data set of the open document.	使用開啟文件的每個資料集。
++
++# User Interface › Accent Color
++	Accent Color	強調色
++	Amber	琥珀色
++	Coral	珊瑚色
++	Violet	紫羅蘭色
++	Pink	粉紅色
+diff --git a/crates/ui-egui/src/panel_docking.rs b/crates/ui-egui/src/panel_docking.rs
+index df21317ea3b253be7b541ff3124fe06a2494940d..d01858d3cbc1b584c88516d479ae3c2ca67d7cd2 100644
+--- a/crates/ui-egui/src/panel_docking.rs
++++ b/crates/ui-egui/src/panel_docking.rs
+@@ -644,9 +644,10 @@ pub(crate) fn show(app: &mut VectorcraftApp, ui: &mut egui::Ui) -> bool {
+         }
+         let mut style = craft_ui::docking::DockStyle::from_ui(ui);
+         style.tab_height = 33.0;
+-        style.background = t.panel;
+-        style.tab_background = t.tab_strip;
+-        style.active_background = t.panel;
++        // The dock is a card (`theme::card`): its panes and tab strip lie on the card's colour.
++        style.background = egui::Color32::TRANSPARENT;
++        style.tab_background = egui::Color32::TRANSPARENT;
++        style.active_background = t.button;
+         style.text = t.text_strong;
+         style.inactive_text = t.text_dim;
+         style.border = egui::Stroke::new(1.0, t.border);
+@@ -675,13 +676,9 @@ pub(crate) fn show(app: &mut VectorcraftApp, ui: &mut egui::Ui) -> bool {
+         output
+     };
+     let output = if layout.root.is_some() {
+-        let panel = egui::Panel::right("shared-panel-dock")
+-            .default_size(310.0)
+-            .size_range(220.0..=720.0)
+-            .resizable(true)
+-            .frame(egui::Frame::NONE.fill(t.panel));
++        let panel = egui::Panel::right("shared-panel-dock").default_size(310.0).size_range(220.0..=720.0).resizable(true).frame(egui::Frame::NONE);
+         let panel = if collapsed { panel.exact_size(38.0).resizable(false) } else { panel };
+-        let shown = panel.show(ui, &mut draw);
++        let shown = panel.show(ui, |ui| crate::theme::card(ui, &t, egui::Margin { left: 0, right: 6, top: 6, bottom: 6 }, &mut draw));
+         ui.ctx().data_mut(|data| data.insert_temp(crate::floating::dock_rect_id(), shown.response.rect));
+         shown.inner
+     } else {
+@@ -767,27 +764,29 @@ fn icon_rail(app: &mut VectorcraftApp, ui: &mut egui::Ui) {
+     let column = egui::Panel::right("shared-panel-icons")
+         .exact_size(38.0)
+         .resizable(false)
+-        .frame(egui::Frame::NONE.fill(t.panel))
++        .frame(egui::Frame::NONE)
+         .show(ui, |ui| {
+-            egui::ScrollArea::vertical().id_salt("shared-panel-icons-scroll").show(ui, |ui| {
+-                ui.spacing_mut().item_spacing.y = 2.0;
+-                for &(id, label, icon) in crate::state::ICON_PANEL_GROUPS
+-                    .iter()
+-                    .flat_map(|group| group.iter())
+-                    .filter_map(|id| crate::state::ICON_PANELS.iter().find(|entry| entry.0 == *id))
+-                {
+-                    if app.ui.docking.as_ref().is_some_and(|layout| layout.contains(&id.to_string())) {
+-                        continue;
++            crate::theme::card(ui, &t, egui::Margin { left: 3, right: 3, top: 6, bottom: 6 }, |ui| {
++                egui::ScrollArea::vertical().id_salt("shared-panel-icons-scroll").show(ui, |ui| {
++                    ui.spacing_mut().item_spacing.y = 2.0;
++                    for &(id, label, icon) in crate::state::ICON_PANEL_GROUPS
++                        .iter()
++                        .flat_map(|group| group.iter())
++                        .filter_map(|id| crate::state::ICON_PANELS.iter().find(|entry| entry.0 == *id))
++                    {
++                        if app.ui.docking.as_ref().is_some_and(|layout| layout.contains(&id.to_string())) {
++                            continue;
++                        }
++                        let (_, rect) = ui.allocate_space(egui::vec2(30.0, 30.0));
++                        let response = ui.interact(rect, ui.id().with(("panel-icon", id)), egui::Sense::click_and_drag());
++                        let response = crate::widgets::paint_icon_button(ui, response, icon, tl!(label), app.ui.open_panel.as_deref() == Some(id));
++                        if response.clicked() {
++                            app.ui.open_panel = if app.ui.open_panel.as_deref() == Some(id) { None } else { Some(id.into()) };
++                        }
++                        legacy_tab(app, ui, id, &response);
+                     }
+-                    let (_, rect) = ui.allocate_space(egui::vec2(30.0, 30.0));
+-                    let response = ui.interact(rect, ui.id().with(("panel-icon", id)), egui::Sense::click_and_drag());
+-                    let response = crate::widgets::paint_icon_button(ui, response, icon, tl!(label), app.ui.open_panel.as_deref() == Some(id));
+-                    if response.clicked() {
+-                        app.ui.open_panel = if app.ui.open_panel.as_deref() == Some(id) { None } else { Some(id.into()) };
+-                    }
+-                    legacy_tab(app, ui, id, &response);
+-                }
+-            });
++                });
++            })
+         })
+         .response
+         .rect;
+diff --git a/crates/ui-egui/src/prefs_dialog.rs b/crates/ui-egui/src/prefs_dialog.rs
+index c0182b1776f844f455c4c00235aeec75170028c8..43c3f93c9fca6ce53d89bf7c458b21f5505fbd3d 100644
+--- a/crates/ui-egui/src/prefs_dialog.rs
++++ b/crates/ui-egui/src/prefs_dialog.rs
+@@ -9,7 +9,7 @@ use vectorcraft_engine::Prefs;
+ use vectorcraft_engine::cmd::prefscmds::{GPU_PREFERENCES, PREF_CATEGORIES, PREF_GROUPS, PREF_SPECS, PrefKind};
+ 
+ use crate::state::Dialog;
+-use crate::theme::{self, Brightness, Tokens};
++use crate::theme::{self, Accent, Brightness, Tokens};
+ use crate::{VectorcraftApp, widgets};
+ 
+ /// UI-only fields shown in the dialog (backed by `UiState`, not engine prefs).
+@@ -81,6 +81,7 @@ pub fn restore(app: &mut VectorcraftApp) {
+ #[derive(Clone, Copy, PartialEq)]
+ struct Applied {
+     brightness: Brightness,
++    accent: Accent,
+     /// User Interface › Canvas Color, unless it matches the interface brightness.
+     canvas: Option<egui::Color32>,
+     threads: i32,
+@@ -111,6 +112,7 @@ pub fn apply_runtime(app: &mut VectorcraftApp, ctx: &egui::Context) {
+     }
+     let want = Applied {
+         brightness: app.ui.brightness,
++        accent: Accent::parse(&p.ui_accent).unwrap_or_default(),
+         canvas: canvas_color(&p.canvas_color),
+         threads: p.render_threads,
+         tool_tips: p.show_tool_tips,
+@@ -120,7 +122,7 @@ pub fn apply_runtime(app: &mut VectorcraftApp, ctx: &egui::Context) {
+     let id = egui::Id::new("dc-applied-prefs");
+     let prev: Option<Applied> = ctx.data(|d| d.get_temp::<Option<Applied>>(id)).flatten();
+     if prev != Some(want) {
+-        theme::apply(ctx, want.brightness);
++        theme::apply_with(ctx, want.brightness, want.accent);
+         // General › Show Tool Tips: off, no button or field shows its tool tip (they never come
+         // due), whichever widget asks for one.
+         let delay = if want.tool_tips { egui::style::Interaction::default().tooltip_delay } else { f32::INFINITY };
+diff --git a/crates/ui-egui/src/theme.rs b/crates/ui-egui/src/theme.rs
+index 1315d3203ce09a26634fd6c95d1198cc089b276b..c5d947c1df2626aece0fda765dcd2cedb5a6f550 100644
+--- a/crates/ui-egui/src/theme.rs
++++ b/crates/ui-egui/src/theme.rs
+@@ -1,4 +1,4 @@
+-//! Design tokens (Illustrator's four UI brightness levels), fonts and egui style.
++//! Design tokens (four UI brightness levels), fonts and egui style.
+ 
+ use std::sync::Arc;
+ 
+@@ -37,6 +37,54 @@ impl Brightness {
+     }
+ }
+ 
++/// User Interface › Accent Color: the one colour for what is on, chosen or focused. Coral, the
++/// default, is the app icon's.
++#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
++pub enum Accent {
++    #[default]
++    Coral,
++    Blue,
++    Violet,
++    Green,
++    Amber,
++    Pink,
++}
++
++impl Accent {
++    pub const ALL: [Accent; 6] = [Accent::Coral, Accent::Blue, Accent::Violet, Accent::Green, Accent::Amber, Accent::Pink];
++    pub fn id(self) -> &'static str {
++        match self {
++            Accent::Coral => "coral",
++            Accent::Blue => "blue",
++            Accent::Violet => "violet",
++            Accent::Green => "green",
++            Accent::Amber => "amber",
++            Accent::Pink => "pink",
++        }
++    }
++    pub fn parse(s: &str) -> Option<Self> {
++        Self::ALL.into_iter().find(|a| a.id().eq_ignore_ascii_case(s))
++    }
++    /// (accent, accent_strong) on dark panels and on light ones; the strong one fills buttons
++    /// with white lettering.
++    fn colors(self, dark: bool) -> (u32, u32) {
++        match (self, dark) {
++            (Accent::Coral, true) => (0xf06a52, 0xe8573f),
++            (Accent::Coral, false) => (0xd9472f, 0xd14a33),
++            (Accent::Blue, true) => (0x5b96ff, 0x2f74f0),
++            (Accent::Blue, false) => (0x2563eb, 0x1f5ad6),
++            (Accent::Violet, true) => (0xa98bff, 0x7c55f0),
++            (Accent::Violet, false) => (0x7146dc, 0x6a3fd4),
++            (Accent::Green, true) => (0x3fcf8e, 0x1f9d63),
++            (Accent::Green, false) => (0x16955a, 0x14874f),
++            (Accent::Amber, true) => (0xf5b544, 0xc47f0e),
++            (Accent::Amber, false) => (0xb06d06, 0xb06d06),
++            (Accent::Pink, true) => (0xf36aa3, 0xdb3f7c),
++            (Accent::Pink, false) => (0xcc3672, 0xc22e69),
++        }
++    }
++}
++
+ /// All colours and metrics the UI uses. Never hard-code a colour in a widget.
+ #[derive(Clone, Copy, Debug)]
+ pub struct Tokens {
+@@ -98,38 +146,41 @@ pub struct Tokens {
+ impl Tokens {
+     pub fn for_brightness(b: Brightness) -> Self {
+         let hex = |s: u32| Color32::from_rgb((s >> 16) as u8, (s >> 8) as u8, s as u8);
++        // The Craft look: cool slate greys, flat faces with soft corners, and one accent (the app
++        // icon's coral) for what is on, chosen or focused. The four brightness levels share the
++        // style and differ only in their greys.
+         let base = Tokens {
+             dark: true,
+-            app_bar: hex(0x262626),
+-            panel: hex(0x323232),
+-            panel_darker: hex(0x282828),
+-            input: hex(0x1f1f1f),
+-            input_border: hex(0x464646),
+-            border: hex(0x1b1b1b),
+-            divider: hex(0x3f3f3f),
+-            text: hex(0xd8d8d8),
+-            text_dim: hex(0xa8a8a8),
+-            text_disabled: hex(0x6e6e6e),
+-            icon: hex(0xcfcfcf),
+-            hover: hex(0x444444),
+-            tool_active: hex(0x1d1d1d),
+-            accent: hex(0x378ef0),
+-            accent_strong: hex(0x1473e6),
+-            row_selected: hex(0x484b50),
+-            pasteboard: hex(0x1e1e1e),
+-            ruler: hex(0x2f2f2f),
+-            ruler_tick: hex(0x8a8a8a),
++            app_bar: hex(0x0b0d12),
++            panel: hex(0x181b22),
++            panel_darker: hex(0x13161c),
++            input: hex(0x0f1116),
++            input_border: hex(0x2c323e),
++            border: hex(0x06070a),
++            divider: hex(0x232832),
++            text: hex(0xdfe4ec),
++            text_dim: hex(0x969faf),
++            text_disabled: hex(0x5a6271),
++            icon: hex(0xc9d0dc),
++            hover: hex(0x262b35),
++            tool_active: hex(0x2f3541),
++            accent: hex(0xf06a52),
++            accent_strong: hex(0xe8573f),
++            row_selected: hex(0x3a2a2c),
++            pasteboard: hex(0x101217),
++            ruler: hex(0x13161c),
++            ruler_tick: hex(0x6f788a),
+             smart_guide: hex(0xff3dfc),
+             guide: hex(0x4affff),
+-            measure_bg: Color32::from_rgba_unmultiplied(92, 92, 92, 235),
+-            button: hex(0x444444),
+-            radius: 2,
+-            text_strong: hex(0xf5f5f5),
+-            tab_strip: hex(0x282828),
+-            button_border: hex(0x6a6a6a),
++            measure_bg: Color32::from_rgba_unmultiplied(24, 27, 34, 235),
++            button: hex(0x282d37),
++            radius: 4,
++            text_strong: hex(0xffffff),
++            tab_strip: hex(0x0f1116),
++            button_border: hex(0x4a5363),
+             selection: hex(0x4f80ff),
+             anchor_selected: hex(0x3d82ff),
+-            flyout_active: hex(0x54b2f7),
++            flyout_active: hex(0xff8a74),
+             font_size: 13.0,
+             caption_close: hex(0xc42b1c),
+             caption_close_text: Color32::WHITE,
+@@ -143,92 +194,142 @@ impl Tokens {
+         };
+         match b {
+             Brightness::Dark => base,
+-            // Measured from Illustrator 2026 (plan/illustrator/10-observed-ui.md §1).
++            // Charcoal, the default.
+             Brightness::MediumDark => Tokens {
+-                app_bar: hex(0x535353),
+-                panel: hex(0x535353),
+-                panel_darker: hex(0x424242),
+-                tab_strip: hex(0x424242),
+-                input: hex(0x454545),
+-                input_border: hex(0x5f5f5f),
+-                border: hex(0x383838),
+-                divider: hex(0x4b4b4b),
+-                text: hex(0xd1d1d1),
+-                text_strong: hex(0xffffff),
+-                text_dim: hex(0xb0b0b0),
+-                text_disabled: hex(0x7a7a7a),
+-                icon: hex(0xc2c2c2),
+-                hover: hex(0x606060),
+-                tool_active: hex(0x303030),
+-                row_selected: hex(0x52677c),
+-                pasteboard: hex(0x606060),
+-                ruler: hex(0x333333),
+-                ruler_tick: hex(0x8a8a8a),
+-                button: hex(0x535353),
+-                button_border: hex(0x747474),
++                app_bar: hex(0x1b1f27),
++                panel: hex(0x272c36),
++                panel_darker: hex(0x21262f),
++                tab_strip: hex(0x1e222a),
++                input: hex(0x1a1e26),
++                input_border: hex(0x3a414e),
++                border: hex(0x11141a),
++                divider: hex(0x323946),
++                text: hex(0xe4e9f1),
++                text_dim: hex(0x99a2b2),
++                text_disabled: hex(0x626b7a),
++                icon: hex(0xccd3de),
++                hover: hex(0x353c49),
++                tool_active: hex(0x3d4553),
++                row_selected: hex(0x4a3236),
++                pasteboard: hex(0x1e222a),
++                ruler: hex(0x21262f),
++                ruler_tick: hex(0x7c8597),
++                measure_bg: Color32::from_rgba_unmultiplied(39, 44, 54, 235),
++                button: hex(0x39404d),
++                button_border: hex(0x5a6476),
+                 ..base
+             },
+             Brightness::MediumLight => Tokens {
+-                tab_strip: hex(0xa6a6a6),
+-                text_strong: hex(0x000000),
+-                button_border: hex(0x7a7a7a),
+                 dark: false,
+-                app_bar: hex(0xa9a9a9),
+-                panel: hex(0xb8b8b8),
+-                panel_darker: hex(0xaaaaaa),
+-                input: hex(0xd6d6d6),
+-                input_border: hex(0x8c8c8c),
+-                border: hex(0x969696),
+-                divider: hex(0x9e9e9e),
+-                text: hex(0x1f1f1f),
+-                text_dim: hex(0x3c3c3c),
+-                text_disabled: hex(0x7c7c7c),
+-                icon: hex(0x2a2a2a),
+-                hover: hex(0xc8c8c8),
+-                tool_active: hex(0x969696),
+-                row_selected: hex(0x9fb4d6),
+-                pasteboard: hex(0xa0a0a0),
+-                ruler: hex(0xc2c2c2),
+-                ruler_tick: hex(0x4a4a4a),
+-                button: hex(0xcacaca),
++                app_bar: hex(0xc4cad4),
++                panel: hex(0xd3d8e0),
++                panel_darker: hex(0xc9cfd8),
++                tab_strip: hex(0xc4cad4),
++                input: hex(0xe9ecf1),
++                input_border: hex(0x9aa2b0),
++                border: hex(0xa9b0bc),
++                divider: hex(0xbcc3ce),
++                text: hex(0x1b1f27),
++                text_strong: hex(0x000000),
++                text_dim: hex(0x4a5160),
++                text_disabled: hex(0x7d8594),
++                icon: hex(0x272c36),
++                hover: hex(0xc5ccd6),
++                tool_active: hex(0xb6bec9),
++                accent: hex(0xd9472f),
++                accent_strong: hex(0xd14a33),
++                flyout_active: hex(0xc23e28),
++                row_selected: hex(0xe7c4bd),
++                pasteboard: hex(0xb9c0cb),
++                ruler: hex(0xccd2db),
++                ruler_tick: hex(0x4a5160),
++                measure_bg: Color32::from_rgba_unmultiplied(211, 216, 224, 235),
++                button: hex(0xc9d0da),
++                button_border: hex(0x8a93a2),
+                 ..base
+             },
+             Brightness::Light => Tokens {
+-                tab_strip: hex(0xdddddd),
+-                text_strong: hex(0x000000),
+-                button_border: hex(0x9a9a9a),
+                 dark: false,
+-                app_bar: hex(0xe4e4e4),
+-                panel: hex(0xf0f0f0),
+-                panel_darker: hex(0xe2e2e2),
++                app_bar: hex(0xe6e9ee),
++                panel: hex(0xf3f5f8),
++                panel_darker: hex(0xe9ecf1),
++                tab_strip: hex(0xe6e9ee),
+                 input: hex(0xffffff),
+-                input_border: hex(0xb4b4b4),
+-                border: hex(0xcfcfcf),
+-                divider: hex(0xd6d6d6),
+-                text: hex(0x1f1f1f),
+-                text_dim: hex(0x4b4b4b),
+-                text_disabled: hex(0x9a9a9a),
+-                icon: hex(0x303030),
+-                hover: hex(0xdddddd),
+-                tool_active: hex(0xcdcdcd),
+-                row_selected: hex(0xc8daf7),
+-                pasteboard: hex(0xdcdcdc),
+-                ruler: hex(0xeaeaea),
+-                ruler_tick: hex(0x5a5a5a),
+-                button: hex(0xe0e0e0),
++                input_border: hex(0xc3c9d3),
++                border: hex(0xd0d5dd),
++                divider: hex(0xdde1e8),
++                text: hex(0x1b1f27),
++                text_strong: hex(0x000000),
++                text_dim: hex(0x58606e),
++                text_disabled: hex(0x9aa1ad),
++                icon: hex(0x2a303b),
++                hover: hex(0xe3e7ed),
++                tool_active: hex(0xd5dbe3),
++                accent: hex(0xd9472f),
++                accent_strong: hex(0xd14a33),
++                flyout_active: hex(0xc23e28),
++                row_selected: hex(0xf8d9d2),
++                pasteboard: hex(0xdfe3e9),
++                ruler: hex(0xeceff3),
++                ruler_tick: hex(0x58606e),
++                measure_bg: Color32::from_rgba_unmultiplied(243, 245, 248, 235),
++                button: hex(0xe3e7ed),
++                button_border: hex(0xa4abb8),
+                 ..base
+             },
+         }
+     }
+ 
++    /// These tokens with `accent`: the accent, buttons filled with it, the active item in flyouts and
++    /// selected rows (the panel tinted towards it).
++    pub fn with_accent(self, accent: Accent) -> Self {
++        let hex = |s: u32| Color32::from_rgb((s >> 16) as u8, (s >> 8) as u8, s as u8);
++        let (a, strong) = accent.colors(self.dark);
++        let (a, strong) = (hex(a), hex(strong));
++        let tint = |k: f32| {
++            let mix = |p: u8, q: u8| (f32::from(p) + (f32::from(q) - f32::from(p)) * k).round() as u8;
++            Color32::from_rgb(mix(self.panel.r(), a.r()), mix(self.panel.g(), a.g()), mix(self.panel.b(), a.b()))
++        };
++        Tokens {
++            accent: a,
++            accent_strong: strong,
++            flyout_active: if self.dark { a } else { strong },
++            row_selected: tint(if self.dark { 0.24 } else { 0.2 }),
++            tool_active: tint(if self.dark { 0.3 } else { 0.24 }),
++            ..self
++        }
++    }
++
+     pub fn get(ctx: &egui::Context) -> Tokens {
+-        ctx.data(|d| d.get_temp::<Tokens>(egui::Id::NULL)).unwrap_or_else(|| Tokens::for_brightness(Brightness::MediumDark))
++        ctx.data(|d| d.get_temp::<Tokens>(egui::Id::NULL)).unwrap_or_else(|| Tokens::for_brightness(Brightness::default()))
+     }
+     pub fn cr(&self) -> CornerRadius {
+         CornerRadius::same(self.radius)
+     }
+ }
+ 
++/// The toolbar, the panel dock and the icon rail are cards: `body` drawn on the panel colour with
++/// soft corners, `margin` of the window's frame colour around it.
++pub fn card<R>(ui: &mut egui::Ui, t: &Tokens, margin: egui::Margin, body: impl FnOnce(&mut egui::Ui) -> R) -> R {
++    egui::Frame::NONE
++        .fill(t.app_bar)
++        .inner_margin(margin)
++        .show(ui, |ui| {
++            egui::Frame::NONE
++                .fill(t.panel)
++                .corner_radius(CARD_RADIUS)
++                .show(ui, |ui| {
++                    ui.set_min_size(ui.available_size());
++                    body(ui)
++                })
++                .inner
++        })
++        .inner
++}
++
++/// The corner radius of [`card`]s and floating windows.
++pub const CARD_RADIUS: u8 = 8;
++
+ /// Selected text in the text fields `ui` draws from here on is in the strong text colour. egui
+ /// paints it in the selection stroke's colour, the accent, which is hard to read on the selection's
+ /// accent tint (#1465). For fields that draw their own frame: egui's frame takes its focus ring from
+@@ -254,16 +355,22 @@ pub fn install_fonts(ctx: &egui::Context) {
+         f.font_data.insert(name.to_owned(), Arc::new(FontData::from_static(bytes)));
+     };
+     add(&mut fonts, "SourceSans3", include_bytes!("../../../assets/fonts/SourceSans3-Regular.ttf"));
++    // Inter is drawn a little smaller than its size: its letters are wider than Source Sans's, and
++    // the panels are laid out for those.
++    let inter =
++        |bytes: &'static [u8]| Arc::new(FontData::from_static(bytes).tweak(egui::epaint::text::FontTweak { scale: 0.92, ..Default::default() }));
++    fonts.font_data.insert("Inter".to_owned(), inter(include_bytes!("../../../assets/fonts/Inter-Regular.ttf")));
++    fonts.font_data.insert("Inter-SemiBold".to_owned(), inter(include_bytes!("../../../assets/fonts/Inter-SemiBold.ttf")));
+     add(&mut fonts, "SourceSans3-Semibold", include_bytes!("../../../assets/fonts/SourceSans3-Semibold.ttf"));
+     add(&mut fonts, "JetBrainsMono", include_bytes!("../../../assets/fonts/JetBrainsMono-Regular.ttf"));
+     let fallback: Vec<String> = fonts.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
+-    let mut prop = vec!["SourceSans3".to_string()];
++    let mut prop = vec!["Inter".to_string(), "SourceSans3".to_string()];
+     prop.extend(fallback.clone());
+     fonts.families.insert(FontFamily::Proportional, prop);
+-    let mut semi = vec!["SourceSans3-Semibold".to_string()];
++    let mut semi = vec!["Inter-SemiBold".to_string(), "SourceSans3-Semibold".to_string()];
+     semi.extend(fallback.clone());
+     fonts.families.insert(FontFamily::Name(FONT_UI_SEMIBOLD.into()), semi);
+-    let mut ui = vec!["SourceSans3".to_string()];
++    let mut ui = vec!["Inter".to_string(), "SourceSans3".to_string()];
+     ui.extend(fallback.clone());
+     fonts.families.insert(FontFamily::Name(FONT_UI.into()), ui);
+     let mut mono = vec!["JetBrainsMono".to_string()];
+@@ -293,7 +400,12 @@ fn add_craft_fonts(fonts: &mut FontDefinitions) {
+ 
+ /// Apply tokens to egui's global style.
+ pub fn apply(ctx: &egui::Context, b: Brightness) {
+-    let t = Tokens::for_brightness(b);
++    apply_with(ctx, b, Accent::default());
++}
++
++/// [`apply`] with an accent colour.
++pub fn apply_with(ctx: &egui::Context, b: Brightness, accent: Accent) {
++    let t = Tokens::for_brightness(b).with_accent(accent);
+     ctx.data_mut(|d| d.insert_temp(egui::Id::NULL, t));
+     let mut v = if t.dark { Visuals::dark() } else { Visuals::light() };
+     v.panel_fill = t.panel;
+@@ -301,8 +413,8 @@ pub fn apply(ctx: &egui::Context, b: Brightness) {
+     v.extreme_bg_color = t.input;
+     v.faint_bg_color = t.panel_darker;
+     v.window_stroke = Stroke::new(1.0, t.border);
+-    v.window_corner_radius = CornerRadius::same(6);
+-    v.menu_corner_radius = CornerRadius::same(6);
++    v.window_corner_radius = CornerRadius::same(10);
++    v.menu_corner_radius = CornerRadius::same(8);
+     v.selection.bg_fill = t.accent.gamma_multiply(0.55);
+     v.selection.stroke = Stroke::new(1.0, t.accent);
+     v.hyperlink_color = t.accent;
+diff --git a/crates/ui-egui/src/toolbar.rs b/crates/ui-egui/src/toolbar.rs
+index 9b72dfd8b4bd18dea3de3179fb5aceb3fba75507..0f9de6456ede72929f92a12ff90891e900c437b5 100644
+--- a/crates/ui-egui/src/toolbar.rs
++++ b/crates/ui-egui/src/toolbar.rs
+@@ -104,11 +104,12 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+     // Where the panel docks: along the window's left edge, under the bars.
+     let edge = ui.available_rect_before_wrap();
+     ui.ctx().data_mut(|d| d.insert_temp(crate::floating::tools_zone_id(), egui::Rect::from_min_size(edge.min, vec2(WIDTH, edge.height()))));
+-    let frame =
+-        egui::Frame::NONE.fill(t.panel).inner_margin(egui::Margin { left: 0, right: 0, top: 0, bottom: 4 }).stroke(Stroke::new(1.5, t.border));
+     match app.ui.toolbar_pos {
+         None => {
+-            egui::Panel::left("toolbar").resizable(false).exact_size(w).frame(frame).show(ui, |ui| body(app, ui, cols, None));
++            let margin = egui::Margin { left: 6, right: 0, top: 6, bottom: 6 };
++            egui::Panel::left("toolbar").resizable(false).exact_size(w + 6.0).frame(egui::Frame::NONE).show(ui, |ui| {
++                crate::theme::card(ui, &t, margin, |ui| body(app, ui, cols, None));
++            });
+         }
+         Some(pos) => {
+             // Floating, kept inside the window, its tools scrolling when they don't fit under it.
+@@ -221,11 +222,11 @@ fn body(app: &mut VectorcraftApp, ui: &mut Ui, cols: usize, floating: Option<egu
+                     let Some(shown) = tool_info(&shown_id).or_else(|| tool_info(slot[0])) else { continue };
+                     let is_active = slot.contains(&active);
+                     let (rect, resp) = ui.allocate_exact_size(vec2(36.0, PITCH - 1.0), Sense::click_and_drag());
+-                    let well = egui::Rect::from_center_size(rect.center(), vec2(35.5, 27.5));
++                    let well = egui::Rect::from_center_size(rect.center(), vec2(30.0, 27.5));
+                     if is_active {
+-                        ui.painter().rect_filled(well, CornerRadius::same(1), t.tool_active);
++                        ui.painter().rect_filled(well, CornerRadius::same(6), t.tool_active);
+                     } else if resp.hovered() {
+-                        ui.painter().rect_filled(well, CornerRadius::same(1), t.hover);
++                        ui.painter().rect_filled(well, CornerRadius::same(6), t.hover);
+                     }
+                     let ir = egui::Rect::from_center_size(rect.center(), vec2(18.0, 18.0));
+                     icons::paint(ui, icons::tool_icon(shown.icon), ir, if is_active { t.text_strong } else { t.icon });
+@@ -693,9 +694,9 @@ fn tool_strip(ui: &mut Ui, t: &Tokens, active: &str, tools: &[String]) -> Option
+         let (r, resp) = ui.allocate_exact_size(STRIP_BUTTON, Sense::click());
+         let well = r.shrink(1.0);
+         if active == tool.id {
+-            ui.painter().rect_filled(well, CornerRadius::same(1), t.tool_active);
++            ui.painter().rect_filled(well, CornerRadius::same(6), t.tool_active);
+         } else if resp.hovered() {
+-            ui.painter().rect_filled(well, CornerRadius::same(1), t.hover);
++            ui.painter().rect_filled(well, CornerRadius::same(6), t.hover);
+         }
+         let ir = egui::Rect::from_center_size(r.center(), vec2(18.0, 18.0));
+         icons::paint(ui, icons::tool_icon(tool.icon), ir, if active == tool.id { t.text_strong } else { t.icon });
+diff --git a/crates/ui-egui/src/widgets.rs b/crates/ui-egui/src/widgets.rs
+index d99c11b1c0e70031617b5a1ca08596b203d46db5..4ed3caa60050bf3764d83bc1bc87e1aca9fdb8da 100644
+--- a/crates/ui-egui/src/widgets.rs
++++ b/crates/ui-egui/src/widgets.rs
+@@ -1,4 +1,4 @@
+-//! Shared widgets in Illustrator's panel style. Colours come from theme tokens.
++//! Shared widgets. Colours come from theme tokens.
+ 
+ use egui::{Color32, CornerRadius, Pos2, Rect, Response, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
+ use vectorcraft_color::{BlendMode, Color, Paint};
+@@ -25,9 +25,9 @@ pub fn paint_icon_button(ui: &mut Ui, resp: Response, icon: &str, tip: &str, sel
+     } else {
+         Color32::TRANSPARENT
+     };
+-    ui.painter().rect_filled(rect, CornerRadius::same(3), bg);
++    ui.painter().rect_filled(rect, CornerRadius::same(5), bg);
+     let pad = (size * 0.2).round();
+-    icons::paint(ui, icon, rect.shrink(pad), if selected { t.text } else { t.icon });
++    icons::paint(ui, icon, rect.shrink(pad), if selected { t.text_strong } else { t.icon });
+     if !tip.is_empty() { resp.on_hover_text(tl!(tip)) } else { resp }
+ }
+ 
+@@ -36,13 +36,8 @@ pub fn flat_button(ui: &mut Ui, text: &str, width: f32) -> Response {
+     let t = Tokens::get(ui.ctx());
+     let (rect, resp) = ui.allocate_exact_size(vec2(width, 24.0), Sense::click());
+     let rect = rect.shrink2(vec2(0.0, 0.5));
++    ui.painter().rect_filled(rect, CornerRadius::same(5), t.button);
+     flat_fill(ui, rect, &resp);
+-    ui.painter().rect_stroke(
+-        rect,
+-        CornerRadius::same(2),
+-        Stroke::new(1.0, if resp.hovered() { t.text } else { t.button_border }),
+-        StrokeKind::Inside,
+-    );
+     ui.painter().with_clip_rect(rect).text(rect.center(), egui::Align2::CENTER_CENTER, tl!(text), egui::FontId::proportional(12.5), t.text_strong);
+     resp
+ }
+@@ -61,11 +56,10 @@ pub fn split_button(ui: &mut Ui, text: &str, width: f32) -> (Response, Response)
+     let arrow_rect = Rect::from_min_max(pos2(split, rect.top()), rect.max);
+     let main = ui.interact(main_rect, ui.id().with((text, "split")), Sense::click());
+     let arrow = ui.interact(arrow_rect, ui.id().with((text, "split-arrow")), Sense::click());
++    ui.painter().rect_filled(rect, CornerRadius::same(5), t.button);
+     flat_fill(ui, main_rect, &main);
+     flat_fill(ui, arrow_rect, &arrow);
+-    let border = if main.hovered() || arrow.hovered() { t.text } else { t.button_border };
+-    ui.painter().rect_stroke(rect, CornerRadius::same(2), Stroke::new(1.0, border), StrokeKind::Inside);
+-    ui.painter().vline(split, rect.y_range().shrink(4.0), Stroke::new(1.0, t.button_border));
++    ui.painter().vline(split, rect.y_range().shrink(5.0), Stroke::new(1.0, t.panel));
+     ui.painter().with_clip_rect(main_rect).text(
+         main_rect.center(),
+         egui::Align2::CENTER_CENTER,
+@@ -81,13 +75,13 @@ pub fn split_button(ui: &mut Ui, text: &str, width: f32) -> (Response, Response)
+ fn flat_fill(ui: &Ui, rect: Rect, resp: &Response) {
+     let t = Tokens::get(ui.ctx());
+     if resp.is_pointer_button_down_on() {
+-        ui.painter().rect_filled(rect, CornerRadius::same(2), t.tool_active);
++        ui.painter().rect_filled(rect, CornerRadius::same(5), t.tool_active);
+     } else if resp.hovered() {
+-        ui.painter().rect_filled(rect, CornerRadius::same(2), t.hover);
++        ui.painter().rect_filled(rect, CornerRadius::same(5), t.hover);
+     }
+ }
+ 
+-/// Blue call-to-action pill (dialog OK/Create).
++/// The accent call-to-action button (dialog OK/Create).
+ pub fn primary_button(ui: &mut Ui, text: &str) -> Response {
+     primary_button_enabled(ui, text, true)
+ }
+@@ -104,24 +98,21 @@ pub fn primary_button_enabled(ui: &mut Ui, text: &str, enabled: bool) -> Respons
+         (true, true) => t.accent,
+         (true, false) => t.accent_strong,
+     };
+-    ui.painter().rect_filled(rect, CornerRadius::same(14), bg);
++    ui.painter().rect_filled(rect, CornerRadius::same(6), bg);
+     if !enabled {
+-        ui.painter().rect_stroke(rect, CornerRadius::same(14), egui::Stroke::new(1.0, t.button_border), egui::StrokeKind::Inside);
++        ui.painter().rect_stroke(rect, CornerRadius::same(6), egui::Stroke::new(1.0, t.button_border), egui::StrokeKind::Inside);
+     }
+     ui.painter().galley(rect.center() - galley.size() / 2.0, galley, fg);
+     resp
+ }
+ 
+-/// Outlined secondary pill (dialog Cancel).
++/// The quiet secondary button (dialog Cancel).
+ pub fn secondary_button(ui: &mut Ui, text: &str) -> Response {
+     let t = Tokens::get(ui.ctx());
+     let galley = ui.painter().layout_no_wrap(tl!(text).to_string(), theme::semibold(12.5), t.text);
+     let w = galley.size().x + 32.0;
+     let (rect, resp) = ui.allocate_exact_size(vec2(w.max(72.0), 28.0), Sense::click());
+-    if resp.hovered() {
+-        ui.painter().rect_filled(rect, CornerRadius::same(14), t.hover);
+-    }
+-    ui.painter().rect_stroke(rect, CornerRadius::same(14), Stroke::new(1.5, t.text_dim), StrokeKind::Inside);
++    ui.painter().rect_filled(rect, CornerRadius::same(6), if resp.hovered() { t.hover } else { t.button });
+     ui.painter().galley(rect.center() - galley.size() / 2.0, galley, t.text);
+     resp
+ }
+@@ -130,7 +121,7 @@ pub fn secondary_button(ui: &mut Ui, text: &str) -> Response {
+ pub fn section_header(ui: &mut Ui, text: &str) {
+     let t = Tokens::get(ui.ctx());
+     ui.add_space(2.0);
+-    ui.label(egui::RichText::new(tl!(text)).size(13.0).color(t.text));
++    ui.label(egui::RichText::new(tl!(text)).size(12.5).color(t.text_strong));
+     ui.add_space(2.0);
+ }
+ 
+@@ -421,7 +412,7 @@ fn recessed_text(ui: &mut Ui, id: egui::Id, shown: &str, width: f32, rows: usize
+         .allocate_ui_with_layout(vec2(width, height), layout, |ui| {
+             ui.set_min_size(vec2(width, height));
+             let rect = ui.max_rect();
+-            ui.painter().rect(rect, 2.0, t.input, Stroke::new(1.0, if editing { t.accent } else { t.input_border }), StrokeKind::Inside);
++            ui.painter().rect(rect, 5.0, t.input, Stroke::new(1.0, if editing { t.accent } else { t.input_border }), StrokeKind::Inside);
+             let margin = egui::Margin { left: 7, right: 7, top: if rows > 1 { 4 } else { 0 }, bottom: 0 };
+             let resp = egui::Frame::NONE
+                 .inner_margin(margin)
+@@ -1490,9 +1481,11 @@ pub fn hex_field(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, hex: &
+     let resp = egui::Frame::NONE
+         .fill(t.input)
+         .stroke(Stroke::new(1.0, if editing { t.accent } else { t.input_border }))
+-        .corner_radius(2)
++        .corner_radius(5)
+         .inner_margin(egui::Margin::symmetric(6, 4))
+         .show(ui, |ui| {
++            // As tall as the other fields (26 points with the margin), whatever the font's line height.
++            ui.set_height(18.0);
+             ui.add(
+                 egui::TextEdit::singleline(&mut buf)
+                     .id(id)

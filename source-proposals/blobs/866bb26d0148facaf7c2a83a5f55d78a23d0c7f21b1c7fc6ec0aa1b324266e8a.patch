@@ -1,0 +1,96 @@
+--- a/crates/ui-egui/src/canvas.rs
++++ b/crates/ui-egui/src/canvas.rs
+@@ -5639,7 +5639,15 @@
+             let entries = |stack: &[vectorcraft_engine::HistoryEntry]| {
+                 stack.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone(), e.bytes)).collect::<Vec<_>>()
+             };
+-            (st.doc.clone(), st.selection.clone(), entries(&st.history.undo), entries(&st.history.redo), st.history.limit, st.history.byte_budget, st.is_dirty())
++            (
++                st.doc.clone(),
++                st.selection.clone(),
++                entries(&st.history.undo),
++                entries(&st.history.redo),
++                st.history.limit,
++                st.history.byte_budget,
++                st.is_dirty(),
++            )
+         };
+         let mut f = MovedGuideFixture::new(true, tool, Point::ZERO, false);
+         f.app.session.prefs.touch_gestures = true;
+@@ -5661,9 +5669,8 @@
+         assert_eq!(baseline.3.len(), 1, "setup: retain a real Redo branch");
+         assert_eq!(f.app.session.tool_id(), tool);
+ 
+-        let second_touch = |phase| egui::Event::Touch {
+-            device_id: egui::TouchDeviceId(1), id: egui::TouchId(2), phase, pos: second, force: Some(0.5),
+-        };
++        let second_touch =
++            |phase| egui::Event::Touch { device_id: egui::TouchDeviceId(1), id: egui::TouchId(2), phase, pos: second, force: Some(0.5) };
+         let mut starts = pen(egui::TouchPhase::Start, f.from, 0.5);
+         starts.push(second_touch(egui::TouchPhase::Start));
+         frame(&mut f.app, &f.ctx, starts);
+@@ -5676,7 +5683,9 @@
+ 
+         frame(&mut f.app, &f.ctx, pen(egui::TouchPhase::Move, later, 0.5));
+         assert!(f.ctx.input(|i| i.pointer.primary_down() && i.pointer.interact_pos() == Some(later) && i.pointer.delta().length() > 16.0));
+-        assert!(f.ctx.input(|i| i.events.iter().any(|e| matches!(e, egui::Event::Touch { id: egui::TouchId(1), phase: egui::TouchPhase::Move, pos, .. } if *pos == later))));
++        assert!(f.ctx.input(|i| {
++            i.events.iter().any(|e| matches!(e, egui::Event::Touch { id: egui::TouchId(1), phase: egui::TouchPhase::Move, pos, .. } if *pos == later))
++        }));
+         assert!(f.ctx.data(|d| d.get_temp::<crate::touch::Taps>(egui::Id::new("canvas-touch"))).unwrap().is_down());
+         let during_motion = snapshot(&f.app);
+         eprintln!("inherited-touch/same-frame/{tool}/reached-move-over-16");
+@@ -5707,7 +5716,15 @@
+             let entries = |stack: &[vectorcraft_engine::HistoryEntry]| {
+                 stack.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone(), e.bytes)).collect::<Vec<_>>()
+             };
+-            (st.doc.clone(), st.selection.clone(), entries(&st.history.undo), entries(&st.history.redo), st.history.limit, st.history.byte_budget, st.is_dirty())
++            (
++                st.doc.clone(),
++                st.selection.clone(),
++                entries(&st.history.undo),
++                entries(&st.history.redo),
++                st.history.limit,
++                st.history.byte_budget,
++                st.is_dirty(),
++            )
+         };
+         let mut f = MovedGuideFixture::new(true, tool, Point::ZERO, false);
+         f.app.session.prefs.touch_gestures = true;
+@@ -5723,7 +5740,10 @@
+         let art = f.before.art_bounds().unwrap();
+         let zero_rect = Rect::from_points(start_doc, Point::ZERO);
+         let marquee = Rect::from_points(start_doc, later_doc);
+-        assert!(zero_rect.x0 <= art.x0 && zero_rect.y0 <= art.y0 && zero_rect.x1 >= art.x1 && zero_rect.y1 >= art.y1, "setup: synthetic zero rectangle includes the artwork");
++        assert!(
++            zero_rect.x0 <= art.x0 && zero_rect.y0 <= art.y0 && zero_rect.x1 >= art.x1 && zero_rect.y1 >= art.y1,
++            "setup: synthetic zero rectangle includes the artwork"
++        );
+         assert!(marquee.x0 > art.x1 && marquee.y0 > art.y1, "setup: real marquee is blank");
+         assert!(f.selection.objects.is_empty() && f.selection.guides == [0], "setup: artwork differs from the selected guide");
+         frame(&mut f.app, &f.ctx, vec![egui::Event::PointerMoved(from)]);
+@@ -5744,7 +5764,11 @@
+         assert!(f.app.session.tool_busy() && !f.app.session.in_interaction());
+         let view = f.app.view_info();
+         let overlays = f.app.session.overlays(view);
+-        assert_eq!(overlays.iter().filter(|o| matches!(o, Overlay::Marquee(r) if *r == marquee)).count(), 1, "setup: reached the actual blank marquee");
++        assert_eq!(
++            overlays.iter().filter(|o| matches!(o, Overlay::Marquee(r) if *r == marquee)).count(),
++            1,
++            "setup: reached the actual blank marquee"
++        );
+         assert!(f.ctx.data(|d| d.get_temp::<crate::touch::Taps>(egui::Id::new("canvas-touch"))).unwrap().is_down());
+         let before_cancel = snapshot(&f.app);
+         assert_eq!(before_cancel, baseline, "setup: marquee motion preserves document, selection and history");
+@@ -5763,7 +5787,10 @@
+         eprintln!("inherited-touch/marquee-cancel/{tool}/reached-cancel-release");
+         eprintln!("inherited-touch/marquee-cancel/{tool}/late-oracles");
+ 
+-        assert_eq!(after_cancel_release, before_cancel, "late/marquee-cancel: {tool}: cancellation must preserve the complete baseline instead of selecting to document zero");
++        assert_eq!(
++            after_cancel_release, before_cancel,
++            "late/marquee-cancel: {tool}: cancellation must preserve the complete baseline instead of selecting to document zero"
++        );
+         assert_eq!(after_idle, before_cancel, "late/marquee-cancel: {tool}: idle must preserve the complete baseline");
+         assert!(!f.app.session.tool_busy() && !f.app.session.in_interaction(), "late/marquee-cancel: no pending marquee");
+         assert!(f.ctx.data(|d| d.get_temp::<Drag>(drag_id())).is_none());

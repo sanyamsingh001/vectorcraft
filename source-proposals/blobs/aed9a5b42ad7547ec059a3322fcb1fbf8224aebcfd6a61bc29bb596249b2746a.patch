@@ -1,0 +1,11 @@
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -116,6 +116,8 @@
+ mod tests_printps;
+ #[cfg(test)]
+ mod tests_printtiling;
++#[cfg(test)]
++mod tests_properties_rotation_reference;
+ #[cfg(test)]
+ mod tests_puppetwarp;
+ #[cfg(test)]

@@ -1,0 +1,11 @@
+--- before/crates/tools/src/text_tests.rs
++++ after/crates/tools/src/text_tests.rs
+@@ -97,7 +97,7 @@
+         }
+         assert_eq!(lay.glyphs.iter().any(|g| g.rtl), visual_route, "{case}: actual Type arrow-route predicate");
+         if visual_route {
+-            assert!(lay.glyphs.iter().any(|g| g.rtl && g.byte >= hindi.len() + 1), "{case}: the ordinary suffix supplies RTL glyphs");
++            assert!(lay.glyphs.iter().any(|g| g.rtl && g.byte > hindi.len()), "{case}: the ordinary suffix supplies RTL glyphs");
+         }
+         assert_eq!(edit::next_cluster(text, second), hindi.len(), "{case}: logical cluster end");
+         assert_eq!(edit::prev_cluster(text, hindi.len()), second, "{case}: logical cluster start");

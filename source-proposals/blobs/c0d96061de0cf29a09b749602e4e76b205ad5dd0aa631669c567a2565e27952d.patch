@@ -1,0 +1,15 @@
+diff --git a/crates/engine/src/cmd/fileio/action_batch.rs b/crates/engine/src/cmd/fileio/action_batch.rs
+index ccc48689..f81957ff 100644
+--- a/crates/engine/src/cmd/fileio/action_batch.rs
++++ b/crates/engine/src/cmd/fileio/action_batch.rs
+@@ -5,7 +5,9 @@
+ //! Save and Close, or Folder; Override Open / Save / Export. Cited:
+ //! <https://helpx.adobe.com/illustrator/desktop/automate-visualize-data/automate-actions/batch-options.html>
+ 
+-use serde_json::{Value, json};
++use serde_json::Value;
++#[cfg(not(target_arch = "wasm32"))]
++use serde_json::json;
+ 
+ use super::super::*;
+ 

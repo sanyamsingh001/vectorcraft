@@ -1,0 +1,269 @@
+diff --git a/crates/ui-egui/src/shortcuts.rs b/crates/ui-egui/src/shortcuts.rs
+index a7f07de603d1b60f63858f1b9d4a86a3fb605615..9ac73697c264325792d6f347370f2c259877a123 100644
+--- a/crates/ui-egui/src/shortcuts.rs
++++ b/crates/ui-egui/src/shortcuts.rs
+@@ -256,6 +256,10 @@ pub fn handle(app: &mut VectorcraftApp, ctx: &egui::Context) {
+             return;
+         }
+         if ctx.input(|i| i.key_pressed(Key::Escape)) {
++            // Let the open popup handle Escape when the dialog is rendered later this frame.
++            if app.ui.dialog.is_some() && egui::Popup::is_any_open(ctx) {
++                return;
++            }
+             crate::dialogs::cancel(app);
+             app.ui.palette_open = false;
+         }
+diff --git a/crates/ui-egui/tests/modal_popup_escape.rs b/crates/ui-egui/tests/modal_popup_escape.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..140e531bb4235a03f6ef11412d1a42c9d126ca6e
+--- /dev/null
++++ b/crates/ui-egui/tests/modal_popup_escape.rs
+@@ -0,0 +1,248 @@
++//! Ordinary Escape in an existing modal list, through the full application frame.
++//! Offset Path on main only: no Warp or Average and Join candidate dependency.
++#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
++
++use std::sync::Arc;
++
++use egui::{Event, Key, Modifiers, Pos2, Rect, Shape, vec2};
++use serde_json::{Map, Value, json};
++use vectorcraft_doc::{Document, Selection};
++use vectorcraft_engine::{HistoryEntry, Session};
++use vectorcraft_ui_egui::{VectorcraftApp, menus};
++
++#[derive(Debug, PartialEq)]
++struct HistoryState {
++    undo: Vec<(String, Arc<Document>, Arc<Selection>)>,
++    redo: Vec<(String, Arc<Document>, Arc<Selection>)>,
++    limit: usize,
++    byte_budget: usize,
++}
++
++#[derive(Debug, PartialEq)]
++struct InteractionState {
++    label: String,
++    doc: Arc<Document>,
++    selection: Arc<Selection>,
++    preview: Option<(String, Value)>,
++}
++
++#[derive(Debug, PartialEq)]
++struct ModelState {
++    doc: Arc<Document>,
++    selection: Selection,
++    history: HistoryState,
++    dirty: bool,
++    interaction: Option<InteractionState>,
++    remembered_offset_options: Value,
++}
++
++fn model(app: &VectorcraftApp) -> ModelState {
++    let st = app.session.doc().unwrap();
++    let entries = |items: &[HistoryEntry]| items.iter().map(|e| (e.label.clone(), e.doc.clone(), e.selection.clone())).collect();
++    ModelState {
++        doc: st.doc.clone(),
++        selection: st.selection.clone(),
++        history: HistoryState {
++            undo: entries(&st.history.undo),
++            redo: entries(&st.history.redo),
++            limit: st.history.limit,
++            byte_budget: st.history.byte_budget,
++        },
++        dirty: st.is_dirty(),
++        interaction: st.interaction.as_ref().map(|i| InteractionState {
++            label: i.label.clone(),
++            doc: i.doc.clone(),
++            selection: i.selection.clone(),
++            preview: i.preview.clone(),
++        }),
++        remembered_offset_options: app.ui.offset_path.clone(),
++    }
++}
++
++struct AppFrames {
++    app: VectorcraftApp,
++    ctx: egui::Context,
++    time: f64,
++}
++
++impl AppFrames {
++    fn frame(&mut self, events: Vec<Event>) -> Vec<(String, Rect)> {
++        self.time += 0.05;
++        let input = egui::RawInput {
++            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1600.0, 1000.0))),
++            time: Some(self.time),
++            events,
++            ..Default::default()
++        };
++        let app = &mut self.app;
++        // Visible native/web eframe ordering, including the production shortcut handler.
++        let mut output = self.ctx.run_ui(input, |ui| {
++            app.logic(ui.ctx());
++            app.ui(ui);
++        });
++        output.textures_delta.clear();
++        fn collect(shape: &Shape, clip: Rect, out: &mut Vec<(String, Rect)>) {
++            match shape {
++                Shape::Text(text) => {
++                    let rect = text.visual_bounding_rect();
++                    if clip.contains(rect.center()) {
++                        out.push((text.galley.text().to_string(), rect));
++                    }
++                }
++                Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect(shape, clip, out)),
++                _ => {}
++            }
++        }
++        let mut text = vec![];
++        for shape in &output.shapes {
++            collect(&shape.shape, shape.clip_rect, &mut text);
++        }
++        text
++    }
++
++    fn settle(&mut self) {
++        for _ in 0..6 {
++            self.frame(vec![]);
++        }
++    }
++
++    fn label(&mut self, wanted: &str, in_dialog: bool) -> Pos2 {
++        let text = self.frame(vec![]);
++        let dialog = self.ctx.memory(|m| m.area_rect(egui::Id::new(("dialog", "offsetPath")))).expect("SETUP: Offset Path is rendered");
++        let matches: Vec<_> = text
++            .iter()
++            .filter(|(label, rect)| {
++                label == wanted
++                    && (!in_dialog || dialog.contains(rect.center()))
++                    && self.ctx.layer_id_at(rect.center()).is_some_and(|layer| layer.order == egui::Order::Foreground)
++            })
++            .map(|(_, rect)| rect.center())
++            .collect();
++        assert_eq!(matches.len(), 1, "SETUP: one visible foreground {wanted:?}, found {matches:?}");
++        matches[0]
++    }
++
++    fn click(&mut self, at: Pos2) {
++        self.frame(vec![Event::ModifiersChanged(Modifiers::NONE), Event::PointerMoved(at)]);
++        for pressed in [true, false] {
++            self.frame(vec![Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE }]);
++        }
++        self.frame(vec![]);
++    }
++
++    fn open_joins(&mut self, shown: &str) {
++        assert!(!egui::Popup::is_any_open(&self.ctx), "SETUP: no prior popup");
++        let at = self.label(shown, true);
++        self.click(at);
++        self.settle();
++        assert!(egui::Popup::is_any_open(&self.ctx), "SETUP: real pointer opens the Joins list");
++        // Actual visible alternatives distinguish this list from a generic popup Area.
++        self.label("Bevel", false);
++        self.label(if shown == "Round" { "Miter" } else { "Round" }, false);
++    }
++
++    fn escape(&mut self, pressed: bool) {
++        self.frame(vec![
++            Event::ModifiersChanged(Modifiers::NONE),
++            Event::Key { key: Key::Escape, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE },
++        ]);
++    }
++}
++
++fn preview_fixture() -> (AppFrames, ModelState) {
++    let mut app = VectorcraftApp::new(Session::new(), Default::default());
++    app.run("file.new", json!({"width": 400, "height": 300})).unwrap();
++    app.run("shape.rectangle", json!({"x": 80, "y": 70, "width": 100, "height": 60})).unwrap();
++    // A normal second edit followed by Undo leaves a real, usable Redo branch.
++    app.run("shape.rectangle", json!({"x": 250, "y": 180, "width": 20, "height": 20})).unwrap();
++    app.run("edit.undo", json!({})).unwrap();
++    app.run("select.all", json!({})).unwrap();
++    app.session.doc_mut().unwrap().mark_saved();
++    let mut h = AppFrames { app, ctx: egui::Context::default(), time: 0.0 };
++    h.settle();
++    let before = model(&h.app);
++    assert!(!before.dirty && before.interaction.is_none(), "SETUP: saved, idle document");
++    assert!(!before.history.undo.is_empty() && !before.history.redo.is_empty(), "SETUP: both history directions are populated");
++    assert_eq!(before.selection.objects.len(), 1, "SETUP: one original rectangle selected");
++    menus::invoke(&mut h.app, "object.path.offsetPath", json!({}));
++    h.settle();
++    assert_eq!(h.app.ui.dialog.as_ref().unwrap().kind, "offsetPath");
++    assert_eq!(model(&h.app), before, "SETUP: opening alone does not edit art or history");
++
++    // Change an option through the real list before opening it again for Escape.
++    h.open_joins("Miter");
++    let round = h.label("Round", false);
++    h.click(round);
++    h.settle();
++    assert!(!egui::Popup::is_any_open(&h.ctx), "SETUP: pointer choice closes its list");
++    assert_eq!(h.app.ui.dialog.as_ref().unwrap().str("joins"), "round");
++    let preview = h.label("Preview", true);
++    h.click(preview);
++    h.settle();
++    let d = h.app.ui.dialog.as_ref().unwrap();
++    assert!(d.bool("preview"), "SETUP: real Preview checkbox is on");
++    assert_eq!(d.f64("offset", 0.0), 10.0);
++    assert_eq!(d.f64("miterLimit", 0.0), 4.0);
++    let live = model(&h.app);
++    assert!(live.interaction.is_some() && live.dirty, "SETUP: an actual unsaved live preview exists");
++    assert_ne!(live.doc, before.doc, "SETUP: preview changes actual document art");
++    assert_eq!(live.history, before.history, "SETUP: preview keeps every Undo/Redo entry");
++    (h, before)
++}
++
++fn assert_kept(h: &AppFrames, live: &ModelState, fields: &Map<String, Value>) {
++    assert!(h.app.ui.dialog.is_some(), "MODAL_POPUP_ESCAPE_KEEPS_DIALOG: first Escape must dismiss only the open Joins list");
++    let d = h.app.ui.dialog.as_ref().unwrap();
++    assert_eq!(d.kind, "offsetPath");
++    assert_eq!(&d.fields, fields, "first Escape preserves all latest dialog options, including Round and Preview");
++    assert_eq!(&model(&h.app), live, "first Escape preserves the entire live document, selection, Undo/Redo and saved state");
++    assert!(Arc::ptr_eq(&h.app.session.doc().unwrap().doc, &live.doc), "first Escape does not replace the current preview snapshot");
++    assert!(!egui::Popup::is_any_open(&h.ctx), "MODAL_POPUP_ESCAPE_CLOSES_LIST: the Joins list must close");
++}
++
++fn assert_cancelled(h: &AppFrames, before: &ModelState) {
++    assert!(h.app.ui.dialog.is_none(), "MODAL_NO_POPUP_ESCAPE_CANCELS: Escape without a list cancels Offset Path");
++    assert_eq!(&model(&h.app), before, "Cancel restores the complete pre-dialog document, selection, Undo/Redo and saved state");
++    assert!(Arc::ptr_eq(&h.app.session.doc().unwrap().doc, &before.doc), "Cancel restores the exact saved document snapshot");
++    assert!(!egui::Popup::is_any_open(&h.ctx));
++}
++
++#[test]
++fn modal_popup_escape_first_closes_list_then_cancels_offset_preview() {
++    let (mut h, before) = preview_fixture();
++    let live = model(&h.app);
++    let fields = h.app.ui.dialog.as_ref().unwrap().fields.clone();
++    h.open_joins("Round");
++    assert_eq!(model(&h.app), live, "SETUP: opening the list preserves the preview");
++    assert_eq!(h.app.ui.dialog.as_ref().unwrap().fields, fields);
++
++    h.escape(true);
++    assert_kept(&h, &live, &fields);
++    h.escape(false);
++    let text = h.frame(vec![]);
++    assert_kept(&h, &live, &fields);
++    assert!(
++        !text.iter().any(|(label, rect)| {
++            matches!(label.as_str(), "Miter" | "Bevel")
++                && h.ctx.layer_id_at(rect.center()).is_some_and(|layer| layer.order == egui::Order::Foreground)
++        }),
++        "the dismissed Joins options are no longer painted after release and idle"
++    );
++
++    h.escape(true);
++    assert_cancelled(&h, &before);
++    h.escape(false);
++    h.frame(vec![]);
++    assert_cancelled(&h, &before);
++}
++
++#[test]
++fn modal_popup_escape_without_list_cancels_offset_preview() {
++    let (mut h, before) = preview_fixture();
++    assert!(!egui::Popup::is_any_open(&h.ctx), "SETUP: this control has no open list");
++    h.escape(true);
++    assert_cancelled(&h, &before);
++    h.escape(false);
++    h.frame(vec![]);
++    assert_cancelled(&h, &before);
++}

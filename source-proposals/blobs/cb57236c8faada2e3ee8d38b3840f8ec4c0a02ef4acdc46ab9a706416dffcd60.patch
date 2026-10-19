@@ -1,0 +1,17 @@
+diff --git a/crates/engine/src/cmd/distortcmds.rs b/crates/engine/src/cmd/distortcmds.rs
+index 689f1dbb..7322522b 100644
+--- a/crates/engine/src/cmd/distortcmds.rs
++++ b/crates/engine/src/cmd/distortcmds.rs
+@@ -1355,6 +1355,12 @@ pub(crate) fn finish_edit_text(st: &mut crate::DocState, id: NodeId) {
+         clear(&mut e.doc);
+         e.doc.drop_lookup_cache();
+     }
++    if let Some(g) = &mut st.undo_group {
++        for e in &mut g.saved_redo {
++            clear(&mut e.doc);
++            e.doc.drop_lookup_cache();
++        }
++    }
+     if let Some(it) = &mut st.interaction {
+         clear(&mut it.doc);
+     }
